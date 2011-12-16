@@ -1,0 +1,28 @@
+Name:           math-functions
+Version:        0.1
+Cabal-Version:  >= 1.8
+License:        BSD3
+License-File:   LICENSE
+Author:         Bryan O'Sullivan <bos@serpentine.com>, Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+Maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+homepage:       https://github.com/bos/math-functions
+Category:       Math, Numeric
+Build-Type:     Simple
+Synopsis:       Special functions and Chebyshev polynomials
+Description:
+  This library provide implementation of special functions and
+  Chebyshev polynomials.
+
+source-repository head
+  type:     git
+  location: https://github.com/bos/math-functions
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/math-functions
+
+Library
+  Build-Depends:        base >=3 && <5,
+                        vector >= 0.7,
+                        erf >= 2
+  Exposed-modules:      
