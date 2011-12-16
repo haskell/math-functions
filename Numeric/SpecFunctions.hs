@@ -449,8 +449,6 @@ log2 v0
 -- Factorial
 ----------------------------------------------------------------
 
-data F = F {-# UNPACK #-} !Word64 {-# UNPACK #-} !Word64
-
 -- | Compute the factorial function /n/!.  Returns &#8734; if the
 -- input is above 170 (above which the result cannot be represented by
 -- a 64-bit 'Double').
@@ -458,13 +456,8 @@ factorial :: Int -> Double
 factorial n
     | n < 0     = error "Statistics.Math.factorial: negative input"
     | n <= 1    = 1
-    | n <= 14   = fini . U.foldl' goLong (F 1 1) $ ns
-    | otherwise = U.foldl' goDouble 1 ns
-    where goDouble t k = t * fromIntegral k
-          goLong (F z x) _ = F (z * x') x'
-              where x' = x + 1
-          fini (F z _) = fromIntegral z
-          ns = U.enumFromTo 2 n
+    | n <= 170  = U.product $ U.map fromIntegral $ U.enumFromTo 2 n
+    | otherwise = m_pos_inf
 
 -- | Compute the natural logarithm of the factorial function.  Gives
 -- 16 decimal digits of precision.
