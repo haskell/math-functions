@@ -12,6 +12,8 @@ Synopsis:       Special functions and Chebyshev polynomials
 Description:
   This library provide implementation of special functions and
   Chebyshev polynomials.
+Extra-source-files:
+  tests/Tests/SpecFunctions/gen.py
 
 source-repository head
   type:     git
@@ -26,3 +28,24 @@ Library
                         vector >= 0.7,
                         erf >= 2
   Exposed-modules:      
+    Numeric.SpecFunctions
+    Numeric.Polynomial.Chebyshev
+
+Test-suite tests
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is:        tests.hs
+  other-modules:
+    Tests.Chebyshev
+    Tests.SpecFunctions
+    Tests.SpecFunctions.Tables
+  build-depends:
+    math-functions,
+    base >=3 && <5,
+    vector >= 0.7,
+    ieee754 >= 0.7.3,
+    HUnit      >= 1.2,
+    QuickCheck >= 2.4,
+    test-framework,
+    test-framework-hunit,
+    test-framework-quickcheck2
