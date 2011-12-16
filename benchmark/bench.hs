@@ -20,4 +20,10 @@ main = defaultMain
            , 1e+3, 3e+3, 1e+4, 3e+4 
            ]
     ]
+  , bgroup "factorial"
+    [ bench (show n) $ nf factorial n
+    | n <- [ 0, 1, 3, 6, 9, 11, 15
+           , 20, 30, 40, 50, 60, 70, 80, 90, 100
+           ]
+    ]
   ]
