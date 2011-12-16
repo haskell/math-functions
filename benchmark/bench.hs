@@ -16,7 +16,8 @@ main = defaultMain
   , bgroup "logGammaL"
     [ bench (printf "%.3f" x) $ nf logGammaL x
     | x <- [ 1e-1, 3e-1, 1e+0, 3e+0
-           , 1e+1, 3e+1, 1e+2, 3e+2, 
+           , 1e+1, 3e+1, 1e+2, 3e+2 
            , 1e+3, 3e+3, 1e+4, 3e+4 
            ]
+    ]
   ]
