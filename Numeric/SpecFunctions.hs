@@ -568,18 +568,18 @@ m_NaN = 0/0
 --   gamma integral. /Applied Statistics/
 --   37(3):466&#8211;473. <http://www.jstor.org/stable/2347328>
 --
--- * K. L. Majumder, G. P. Bhattacharjee (1973) Algorithm AS 63: The
+-- * Majumder, K.L., Bhattacharjee, G.P. (1973) Algorithm AS 63: The
 --   Incomplete Beta Integral. /Journal of the Royal Statistical
 --   Society. Series C (Applied Statistics)/ Vol. 22, No. 3 (1973),
 --   pp. 409-411. <http://www.jstor.org/pss/2346797>
 --
--- * K. L. Majumder, G. P. Bhattacharjee (1973) Algorithm AS 64:
+-- * Majumder, K.L., Bhattacharjee, G.P. (1973) Algorithm AS 64:
 --   Inverse of the Incomplete Beta Function Ratio. /Journal of the
 --   Royal Statistical Society. Series C (Applied Statistics)/
 --   Vol. 22, No. 3 (1973), pp. 411-414
 --   <http://www.jstor.org/pss/2346798>
 --
--- * G. W. Cran, K. J. Martin and G. E. Thomas (1977) Remark AS R19
+-- * Cran, G.W., Martin, K.J., Thomas, G.E. (1977) Remark AS R19
 --   and Algorithm AS 109: A Remark on Algorithms: AS 63: The
 --   Incomplete Beta Integral AS 64: Inverse of the Incomplete Beta
 --   Function Ratio. /Journal of the Royal Statistical Society. Series
