@@ -1,39 +1,32 @@
-Name:           math-functions
-Version:        0.1.0.0
-Cabal-Version:  >= 1.8
-License:        BSD3
-License-File:   LICENSE
-Author:         Bryan O'Sullivan <bos@serpentine.com>,
+name:           math-functions
+version:        0.1.0.0
+cabal-version:  >= 1.8
+license:        BSD3
+license-file:   LICENSE
+author:         Bryan O'Sullivan <bos@serpentine.com>,
                 Aleksey Khudyakov <alexey.skladnoy@gmail.com>
-Maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 homepage:       https://github.com/bos/math-functions
-Category:       Math, Numeric
-Build-Type:     Simple
-Synopsis:       Special functions and Chebyshev polynomials
-Description:
-  This library provide implementation of special functions and
-  Chebyshev polynomials.
-Extra-source-files:
+category:       Math, Numeric
+build-type:     Simple
+synopsis:       Special functions and Chebyshev polynomials
+description:
+  This library provides implementations of special mathematical
+  functions and Chebyshev polynomials.  These functions are often
+  useful in statistical and numerical computing.
+extra-source-files:
   README.markdown
   tests/Tests/SpecFunctions/gen.py
 
-source-repository head
-  type:     git
-  location: https://github.com/bos/math-functions
-
-source-repository head
-  type:     mercurial
-  location: https://bitbucket.org/bos/math-functions
-
-Library
-  Build-Depends:        base >=3 && <5,
+library
+  build-depends:        base >=3 && <5,
                         vector >= 0.7,
                         erf >= 2
-  Exposed-modules:      
+  exposed-modules:      
     Numeric.SpecFunctions
     Numeric.Polynomial.Chebyshev
 
-Test-suite tests
+test-suite tests
   type:           exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is:        tests.hs
@@ -51,3 +44,11 @@ Test-suite tests
     test-framework,
     test-framework-hunit,
     test-framework-quickcheck2
+
+source-repository head
+  type:     git
+  location: https://github.com/bos/math-functions
+
+source-repository head
+  type:     mercurial
+  location: https://bitbucket.org/bos/math-functions
