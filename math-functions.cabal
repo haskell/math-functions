@@ -1,9 +1,10 @@
 Name:           math-functions
-Version:        0.1
+Version:        0.1.0.0
 Cabal-Version:  >= 1.8
 License:        BSD3
 License-File:   LICENSE
-Author:         Bryan O'Sullivan <bos@serpentine.com>, Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+Author:         Bryan O'Sullivan <bos@serpentine.com>,
+                Aleksey Khudyakov <alexey.skladnoy@gmail.com>
 Maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 homepage:       https://github.com/bos/math-functions
 Category:       Math, Numeric
@@ -13,6 +14,7 @@ Description:
   This library provide implementation of special functions and
   Chebyshev polynomials.
 Extra-source-files:
+  README.markdown
   tests/Tests/SpecFunctions/gen.py
 
 source-repository head
