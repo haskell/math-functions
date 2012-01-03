@@ -28,7 +28,9 @@ import Data.Word       (Word64)
 import Data.Number.Erf (erfc)
 import qualified Data.Vector.Unboxed as U
 
-import Numeric.Polynomial.Chebyshev  (chebyshevBroucke)
+import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
+import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi, 
+                                        m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
 
 
 
@@ -507,46 +509,6 @@ n `choose` k
     max64          = fromIntegral (maxBound :: Int64)
     round64 x      = round x :: Int64
 
-
-----------------------------------------------------------------
--- Constants
-----------------------------------------------------------------
-
--- | @sqrt 2@
-m_sqrt_2 :: Double
-m_sqrt_2 = 1.4142135623730950488016887242096980785696718753769480731766
-{-# INLINE m_sqrt_2 #-}
-
--- | @sqrt (2 * pi)@
-m_sqrt_2_pi :: Double
-m_sqrt_2_pi = 2.5066282746310005024157652848110452530069867406099383166299
-{-# INLINE m_sqrt_2_pi #-}
-
-
--- | The smallest 'Double' &#949; such that 1 + &#949; &#8800; 1.
-m_epsilon :: Double
-m_epsilon = encodeFloat (signif+1) expo - 1.0
-    where (signif,expo) = decodeFloat (1.0::Double)
-
--- | @log(sqrt((2*pi))@
-m_ln_sqrt_2_pi :: Double
-m_ln_sqrt_2_pi = 0.9189385332046727417803297364056176398613974736377834128171
-{-# INLINE m_ln_sqrt_2_pi #-}
-
--- | Positive infinity.
-m_pos_inf :: Double
-m_pos_inf = 1/0
-{-# INLINE m_pos_inf #-}
-
--- | Negative infinity.
-m_neg_inf :: Double
-m_neg_inf = -1/0
-{-# INLINE m_neg_inf #-}
-
--- | Not a number.
-m_NaN :: Double
-m_NaN = 0/0
-{-# INLINE m_NaN #-}
 
 
 

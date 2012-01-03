@@ -1,5 +1,5 @@
 name:           math-functions
-version:        0.1.0.0
+version:        0.1.1.0
 cabal-version:  >= 1.8
 license:        BSD3
 license-file:   LICENSE
@@ -25,6 +25,7 @@ library
   exposed-modules:      
     Numeric.SpecFunctions
     Numeric.Polynomial.Chebyshev
+    Numeric.MathFunctions.Constants
 
 test-suite tests
   type:           exitcode-stdio-1.0
