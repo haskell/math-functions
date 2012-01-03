@@ -24,6 +24,7 @@ library
                         erf >= 2
   exposed-modules:      
     Numeric.SpecFunctions
+    Numeric.SpecFunctions.Extra
     Numeric.Polynomial.Chebyshev
     Numeric.MathFunctions.Constants
 
