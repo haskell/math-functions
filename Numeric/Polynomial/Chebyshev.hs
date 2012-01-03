@@ -1,4 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
+-- |
+-- Module    : Numeric.Polynomial.Chebyshev
+-- Copyright : (c) 2009, 2011 Bryan O'Sullivan
+-- License   : BSD3
+--
+-- Maintainer  : bos@serpentine.com
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Chebyshev polynomials.
 module Numeric.Polynomial.Chebyshev (
     -- * Chebyshev polinomials
     -- $chebyshev

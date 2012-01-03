@@ -1,4 +1,14 @@
 {-# LANGUAGE BangPatterns #-}
+-- |
+-- Module    : Numeric.SpecFunctions
+-- Copyright : (c) 2009, 2011 Bryan O'Sullivan
+-- License   : BSD3
+--
+-- Maintainer  : bos@serpentine.com
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Special functions and factorials.
 module Numeric.SpecFunctions (
     -- * Gamma function
     logGamma
