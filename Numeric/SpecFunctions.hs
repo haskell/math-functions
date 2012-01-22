@@ -178,7 +178,7 @@ incompleteGamma p x
     | otherwise       = let g = p * log x - x - logGamma p + log cf
                         in if g > limit then 1 - exp g else 1
   where
-    norm a = erfc (- a / m_sqrt_2)
+    norm a = 0.5 * erfc (- a / m_sqrt_2)
     pearson !a !c !g
         | c' <= tolerance = g'
         | otherwise       = pearson a' c' g'
