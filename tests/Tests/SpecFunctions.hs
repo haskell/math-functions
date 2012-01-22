@@ -21,6 +21,7 @@ tests = testGroup "Special functions"
   [ testProperty "Γ(x+1) = x·Γ(x) logGamma"  $ gammaReccurence logGamma  3e-8
   , testProperty "Γ(x+1) = x·Γ(x) logGammaL" $ gammaReccurence logGammaL 2e-13
   , testProperty "γ(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
+  , testProperty "0 <= γ <= 1"               $ incompleteGammaInRange
   , testProperty "γ - increases"             $
       \s x y -> s > 0 && x > 0 && y > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
   , testProperty "invIncompleteGamma = γ^-1" $ invIGammaIsInverse
@@ -71,6 +72,10 @@ gammaReccurence logG ε x =
       g1 = logG x
       g2 = logG (x+1)
 
+-- γ(s,x) is in [0,1] range
+incompleteGammaInRange :: Double -> Double -> Property
+incompleteGammaInRange s x =
+  x >= 0 && s > 0  ==> let i = incompleteGamma s x in i >= 0 && i <= 1
 
 -- γ(1,x) = 1 - exp(-x)
 -- Since Γ(1) = 1 normalization doesn't make any difference
