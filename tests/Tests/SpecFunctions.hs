@@ -59,6 +59,9 @@ tests = testGroup "Special functions"
   , testAssertion "choose is expected to precise at 1e-12 level"
       $ and [ eq 1e-12 (choose (fromIntegral n) (fromIntegral k)) (fromIntegral $ choose' n k)
             | n <- [0..300], k <- [0..n]]
+    ----------------------------------------------------------------
+    -- Self tests
+  , testProperty "Self-test: 0 <= range01 <= 1" $ \x -> let f = range01 x in f <= 1 && f >= 0
   ]
 
 ----------------------------------------------------------------
@@ -75,20 +78,20 @@ gammaReccurence logG ε x =
 
 -- γ(s,x) is in [0,1] range
 incompleteGammaInRange :: Double -> Double -> Property
-incompleteGammaInRange s x =
+incompleteGammaInRange (abs -> s) (abs -> x) =
   x >= 0 && s > 0  ==> let i = incompleteGamma s x in i >= 0 && i <= 1
 
 -- γ(1,x) = 1 - exp(-x)
 -- Since Γ(1) = 1 normalization doesn't make any difference
 incompleteGammaAt1Check :: Double -> Property
-incompleteGammaAt1Check x =
+incompleteGammaAt1Check (abs -> x) =
   x > 0 ==> (incompleteGamma 1 x + exp(-x)) ≈ 1
   where
     (≈) = eq 1e-13
 
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
-invIGammaIsInverse (abs -> a) (abs . snd . properFraction -> p) =
+invIGammaIsInverse (abs -> a) (range01 -> p) =
   a > 0 && p > 0 && p < 1  ==> ( printTestCase ("x  = " ++ show x )
                                $ printTestCase ("p' = " ++ show p')
                                $ printTestCase ("Δp = " ++ show (p - p'))
@@ -100,7 +103,7 @@ invIGammaIsInverse (abs -> a) (abs . snd . properFraction -> p) =
 
 -- B(s,x) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
-incompleteBetaInRange (abs -> p) (abs -> q) (abs . snd . properFraction -> x) =
+incompleteBetaInRange (abs -> p) (abs -> q) (range01 -> x) =
   p > 0 && q > 0  ==> let i = incompleteBeta p q x in i >= 0 && i <= 1
 
 -- invIncompleteBeta is inverse of incompleteBeta
@@ -136,3 +139,7 @@ factorial' n = factorial_table ! fromIntegral n
 -- Exact albeit slow implementation of choose
 choose' :: Integer -> Integer -> Integer
 choose' n k = factorial' n `div` (factorial' k * factorial' (n-k))
+
+-- Truncate double to [0,1]
+range01 :: Double -> Double
+range01 = abs . snd . properFraction
