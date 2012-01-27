@@ -25,6 +25,7 @@ tests = testGroup "Special functions"
   , testProperty "γ - increases"             $
       \s x y -> s > 0 && x > 0 && y > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
   , testProperty "invIncompleteGamma = γ^-1" $ invIGammaIsInverse
+  , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
   , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
     -- Unit tests
   , testAssertion "Factorial is expected to be precise at 1e-15 level"
@@ -96,6 +97,11 @@ invIGammaIsInverse (abs -> a) (abs . snd . properFraction -> p) =
   where
     x  = invIncompleteGamma a p
     p' = incompleteGamma    a x
+
+-- B(s,x) is in [0,1] range
+incompleteBetaInRange :: Double -> Double -> Double -> Property
+incompleteBetaInRange (abs -> p) (abs -> q) (abs . snd . properFraction -> x) =
+  p > 0 && q > 0  ==> let i = incompleteBeta p q x in i >= 0 && i <= 1
 
 -- invIncompleteBeta is inverse of incompleteBeta
 invIBetaIsInverse :: Double -> Double -> Double -> Property
