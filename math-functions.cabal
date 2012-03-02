@@ -29,6 +29,7 @@ library
     Numeric.MathFunctions.Constants
 
 test-suite tests
+  buildable:      False
   type:           exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is:        tests.hs
