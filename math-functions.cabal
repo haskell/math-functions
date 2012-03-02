@@ -16,6 +16,8 @@ description:
   useful in statistical and numerical computing.
 extra-source-files:
   README.markdown
+  tests/*.hs
+  tests/Tests/*.hs
   tests/Tests/SpecFunctions/gen.py
 
 library
