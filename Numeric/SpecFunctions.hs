@@ -168,15 +168,16 @@ incompleteGamma :: Double       -- ^ /s/
                 -> Double       -- ^ /x/
                 -> Double
 incompleteGamma p x
-    | x < 0 || p <= 0 = m_pos_inf
-    | x == 0          = 0
-    | p >= 1000       = norm (3 * sqrt p * ((x/p) ** (1/3) + 1/(9*p) - 1))
-    | x >= 1e8        = 1
-    | x <= 1 || x < p = let a = p * log x - x - logGamma (p + 1)
-                            g = a + log (pearson p 1 1)
-                        in if g > limit then exp g else 0
-    | otherwise       = let g = p * log x - x - logGamma p + log cf
-                        in if g > limit then 1 - exp g else 1
+    | isNaN p || isNaN x = m_NaN
+    | x < 0 || p <= 0    = m_pos_inf
+    | x == 0             = 0
+    | p >= 1000          = norm (3 * sqrt p * ((x/p) ** (1/3) + 1/(9*p) - 1))
+    | x >= 1e8           = 1
+    | x <= 1 || x < p    = let a = p * log x - x - logGamma (p + 1)
+                               g = a + log (pearson p 1 1)
+                           in if g > limit then exp g else 0
+    | otherwise          = let g = p * log x - x - logGamma p + log cf
+                           in if g > limit then 1 - exp g else 1
   where
     norm a = 0.5 * erfc (- a / m_sqrt_2)
     pearson !a !c !g
