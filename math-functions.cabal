@@ -34,6 +34,7 @@ test-suite tests
   hs-source-dirs: tests
   main-is:        tests.hs
   other-modules:
+    Tests.Helpers
     Tests.Chebyshev
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
