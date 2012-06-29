@@ -92,7 +92,9 @@ incompleteGammaAt1Check (abs -> x) =
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
 invIGammaIsInverse (abs -> a) (range01 -> p) =
-  a > 0 && p > 0 && p < 1  ==> ( printTestCase ("x  = " ++ show x )
+  a > 0 && p > 0 && p < 1  ==> ( printTestCase ("a  = " ++ show a )
+                               $ printTestCase ("p  = " ++ show p )
+                               $ printTestCase ("x  = " ++ show x )
                                $ printTestCase ("p' = " ++ show p')
                                $ printTestCase ("Δp = " ++ show (p - p'))
                                $ abs (p - p') <= 1e-12

@@ -232,24 +232,25 @@ invIncompleteGamma a p
     -- Solve equation γ(a,x) = p using Halley method
     loop :: Int -> Double -> Double
     loop i x
-      | i >= 12   = x
-      | otherwise =
-         let 
-           -- Value of γ(a,x) - p
-           f    = incompleteGamma a x - p
-           -- dγ(a,x)/dx
-           f'   | a > 1     = afac * exp( -(x - a1) + a1 * (log x - lna1))
-                | otherwise = exp( -x + a1 * log x - gln)
-           u    = f / f'
-           -- Halley correction to Newton-Rapson step
-           corr = u * (a1 / x - 1)
-           dx   = u / (1 - 0.5 * min 1.0 corr)
-           -- New approximation to x
-           x'   | x < dx    = 0.5 * x -- Do not go below 0
-                | otherwise = x - dx
-         in if abs dx < eps * x'
-            then x'
-            else loop (i+1) x'
+      | i >= 12           = x'
+      -- For small s derivative becomes approximately 1/x*exp(-x) and
+      -- skyrockets for small x. If it happens correct answer is 0.
+      | isInfinite f'     = 0
+      | abs dx < eps * x' = x'
+      | otherwise         = loop (i + 1) x'
+      where
+        -- Value of γ(a,x) - p
+        f    = incompleteGamma a x - p
+        -- dγ(a,x)/dx
+        f'   | a > 1     = afac * exp( -(x - a1) + a1 * (log x - lna1))
+             | otherwise = exp( -x + a1 * log x - gln)
+        u    = f / f'
+        -- Halley correction to Newton-Rapson step
+        corr = u * (a1 / x - 1)
+        dx   = u / (1 - 0.5 * min 1.0 corr)
+        -- New approximation to x
+        x'   | x < dx    = 0.5 * x -- Do not go below 0
+             | otherwise = x - dx
     -- Calculate inital guess for root
     guess
       -- 
