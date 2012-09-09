@@ -314,9 +314,9 @@ incompleteBeta_ :: Double -- ^ logarithm of beta function
                 -> Double -- ^ /x/, must lie in [0,1] range
                 -> Double
 incompleteBeta_ beta p q x
-  | p <= 0 || q <= 0 = error "p <= 0 || q <= 0"
-  | x <  0 || x >  1 = error "x <  0 || x >  1"
-  | x == 0 || x == 1 = x
+  | p <= 0 || q <= 0            = error "p <= 0 || q <= 0"
+  | x <  0 || x >  1 || isNaN x = error "x out of [0,1] range"
+  | x == 0 || x == 1            = x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
 
