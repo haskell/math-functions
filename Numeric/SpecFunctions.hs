@@ -329,7 +329,7 @@ incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q) :: Int) 
     eps = 1e-15
     cx  = 1 - x
     -- Loop
-    loop psq ns ai term betain
+    loop !psq ns ai term betain
       | done      = betain' * exp( p * log x + (q - 1) * log cx - beta) / p
       | otherwise = loop psq' (ns - 1) (ai + 1) term' betain'
       where
