@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, ScopedTypeVariables #-}
 -- |
 -- Module    : Numeric.SpecFunctions
 -- Copyright : (c) 2009, 2011 Bryan O'Sullivan
@@ -323,13 +323,13 @@ incompleteBeta_ beta p q x
 -- Worker for incomplete beta function. It is separate function to
 -- avoid confusion with parameter during parameter swapping
 incompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
-incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q) :: Int) 1 1 1
+incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q)) 1 1 1
   where
     -- Constants
     eps = 1e-15
     cx  = 1 - x
     -- Loop
-    loop !psq ns ai term betain
+    loop !psq (ns :: Int) ai term betain
       | done      = betain' * exp( p * log x + (q - 1) * log cx - beta) / p
       | otherwise = loop psq' (ns - 1) (ai + 1) term' betain'
       where
