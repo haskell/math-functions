@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns, ScopedTypeVariables #-}
 -- |
 -- Module    : Numeric.SpecFunctions
--- Copyright : (c) 2009, 2011 Bryan O'Sullivan
+-- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
 -- License   : BSD3
 --
 -- Maintainer  : bos@serpentine.com
