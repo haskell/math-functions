@@ -299,7 +299,7 @@ logBeta a b
       c   = logGammaCorrection q - logGammaCorrection pq
 
 -- | Regularized incomplete beta function. Uses algorithm AS63 by
---   Majumder abd Bhattachrjee.
+-- Majumder and Bhattachrjee.
 incompleteBeta :: Double -- ^ /p/ > 0
                -> Double -- ^ /q/ > 0
                -> Double -- ^ /x/, must lie in [0,1] range
