@@ -10,8 +10,13 @@
 --
 -- Special functions and factorials.
 module Numeric.SpecFunctions (
+    -- * Error function
+    erf
+  , erfc
+  , invErf
+  , invErfc
     -- * Gamma function
-    logGamma
+  , logGamma
   , logGammaL
   , incompleteGamma
   , invIncompleteGamma
@@ -36,12 +41,61 @@ module Numeric.SpecFunctions (
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
 import Data.Word       (Word64)
-import Data.Number.Erf (erfc)
+import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi, 
                                         m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
+
+
+----------------------------------------------------------------
+-- Error function
+----------------------------------------------------------------
+
+-- | Error function
+--
+-- > errorFun -∞ = ...
+-- > errorFun +∞ = ...
+erf :: Double -> Double
+{-# INLINE erf #-}
+erf = Erf.erf
+
+-- | Complementary error function
+--
+-- > errorFun -∞ = ...
+-- > errorFun +∞ = ...
+erfc :: Double -> Double
+{-# INLINE erfc #-}
+erfc = Erf.erfc
+
+
+-- | Inverse of 'errorFun'
+invErf :: Double -> Double
+invErf p = invErfc (1 - p)
+
+-- | Inverse of 'errorFunC'
+invErfc :: Double -> Double
+invErfc p
+  | p == 2    = m_neg_inf
+  | p == 0    = m_pos_inf
+  | p > 2     = error "x>2"
+  | p < 0     = error "x<0"
+  | p <= 1    =  r
+  | otherwise = -r
+  where
+    pp = if p <= 1 then p else 2 - p
+    t  = sqrt $ -2 * log( 0.5 * pp)
+    -- Initial guess
+    x0 = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
+    r  = loop 0 x0
+    --
+    loop !j !x
+      | j >= 2    = x
+      | otherwise = let err = erfc x - pp
+                        x'  = x + err / (1.12837916709551257 * exp(-sqr x) - x * err) -- // Halley
+                    in loop (j+1) x'
+    sqr x = x * x
 
 
 
