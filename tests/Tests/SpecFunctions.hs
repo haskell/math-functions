@@ -27,6 +27,8 @@ tests = testGroup "Special functions"
   , testProperty "invIncompleteGamma = γ^-1" $ invIGammaIsInverse
   , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
   , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
+  , testProperty "invErfc = erfc^-1"         $ invErfcIsInverse
+  , testProperty "invErf  = erf^-1"          $ invErfIsInverse
     -- Unit tests
   , testAssertion "Factorial is expected to be precise at 1e-15 level"
       $ and [ eq 1e-15 (factorial (fromIntegral n))
@@ -102,6 +104,30 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
   where
     x  = invIncompleteGamma a p
     p' = incompleteGamma    a x
+
+-- invErfc is inverse of erfc
+invErfcIsInverse :: Double -> Property
+invErfcIsInverse ((*2) . range01 -> p)
+  = printTestCase ("p  = " ++ show p )
+  $ printTestCase ("x  = " ++ show x )
+  $ printTestCase ("p' = " ++ show p')
+  $ abs (p - p') <= 1e-14
+  where
+    x  = invErfc p
+    p' = erfc x
+
+-- invErf is inverse of erf
+invErfIsInverse :: Double -> Property
+invErfIsInverse a
+  = printTestCase ("p  = " ++ show p )
+  $ printTestCase ("x  = " ++ show x )
+  $ printTestCase ("p' = " ++ show p')
+  $ abs (p - p') <= 1e-14
+  where
+    x  = invErf p
+    p' = erf x
+    p  | a < 0     = - range01 a
+       | otherwise =   range01 a
 
 -- B(s,x) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
