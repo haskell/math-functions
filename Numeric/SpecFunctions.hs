@@ -53,29 +53,33 @@ import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi,
 -- Error function
 ----------------------------------------------------------------
 
--- | Error function
+-- | Error function.
 --
--- > errorFun -∞ = ...
--- > errorFun +∞ = ...
+-- > erf -∞ = -1
+-- > erf  0 =  0
+-- > erf +∞ =  1
 erf :: Double -> Double
 {-# INLINE erf #-}
 erf = Erf.erf
 
--- | Complementary error function
+-- | Complementary error function.
 --
--- > errorFun -∞ = ...
--- > errorFun +∞ = ...
+-- > erfc -∞ = 2
+-- > erfc  0 = 1
+-- > errc +∞ = 0
 erfc :: Double -> Double
 {-# INLINE erfc #-}
 erfc = Erf.erfc
 
 
--- | Inverse of 'errorFun'
-invErf :: Double -> Double
+-- | Inverse of 'erf'.
+invErf :: Double -- ^ /p/ ∈ [-1,1]
+       -> Double
 invErf p = invErfc (1 - p)
 
--- | Inverse of 'errorFunC'
-invErfc :: Double -> Double
+-- | Inverse of 'erfc'.
+invErfc :: Double -- ^ /p/ ∈ [0,2]
+        -> Double
 invErfc p
   | p == 2    = m_neg_inf
   | p == 0    = m_pos_inf
