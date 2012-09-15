@@ -109,15 +109,14 @@ invErfc p
 
 -- Adapted from http://people.sc.fsu.edu/~burkardt/f_src/asa245/asa245.html
 
--- | Compute the logarithm of the gamma function &#915;(/x/).  Uses
+-- | Compute the logarithm of the gamma function Γ(/x/).  Uses
 -- Algorithm AS 245 by Macleod.
 --
--- Gives an accuracy of 10&#8211;12 significant decimal digits, except
+-- Gives an accuracy of 10-12 significant decimal digits, except
 -- for small regions around /x/ = 1 and /x/ = 2, where the function
 -- goes to zero.  For greater accuracy, use 'logGammaL'.
 --
--- Returns &#8734; if the input is outside of the range (0 < /x/
--- &#8804; 1e305).
+-- Returns ∞ if the input is outside of the range (0 < /x/ ≤ 1e305).
 logGamma :: Double -> Double
 logGamma x
     | x <= 0    = m_pos_inf
@@ -220,10 +219,10 @@ logGammaCorrection x
 
 
 -- | Compute the normalized lower incomplete gamma function
--- &#947;(/s/,/x/). Normalization means that
--- &#947;(/s/,&#8734;)=1. Uses Algorithm AS 239 by Shea.
-incompleteGamma :: Double       -- ^ /s/
-                -> Double       -- ^ /x/
+-- γ(/s/,/x/). Normalization means that
+-- γ(/s/,∞)=1. Uses Algorithm AS 239 by Shea.
+incompleteGamma :: Double       -- ^ /s/ ∈ (0,∞)
+                -> Double       -- ^ /x/ ∈ (0,∞)
                 -> Double
 incompleteGamma p x
     | isNaN p || isNaN x = m_NaN
@@ -274,10 +273,9 @@ incompleteGamma p x
 --   approximately holds:
 --
 -- > invIncompleteGamma s . incompleteGamma s = id
---
---   For @invIncompleteGamma s p@ /s/ must be positive and /p/ must be
---   in [0,1] range.
-invIncompleteGamma :: Double -> Double -> Double
+invIncompleteGamma :: Double    -- ^ /s/ ∈ (0,∞)
+                   -> Double    -- ^ /p/ ∈ [0,1]
+                   -> Double
 invIncompleteGamma a p
   | a <= 0         = 
       error $ "Statistics.Math.invIncompleteGamma: a must be positive. Got: " ++ show a
@@ -366,7 +364,7 @@ incompleteBeta p q = incompleteBeta_ (logBeta p q) p q
 
 -- | Regularized incomplete beta function. Same as 'incompleteBeta'
 -- but also takes logarithm of beta function as parameter.
-incompleteBeta_ :: Double -- ^ logarithm of beta function
+incompleteBeta_ :: Double -- ^ logarithm of beta function for given /p/ and /q/
                 -> Double -- ^ /p/ > 0
                 -> Double -- ^ /q/ > 0
                 -> Double -- ^ /x/, must lie in [0,1] range
@@ -405,9 +403,9 @@ incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q)) 1 1 1
 
 -- | Compute inverse of regularized incomplete beta function. Uses
 -- initial approximation from AS109 and Halley method to solve equation.
-invIncompleteBeta :: Double     -- ^ /p/
-                  -> Double     -- ^ /q/
-                  -> Double     -- ^ /a/
+invIncompleteBeta :: Double     -- ^ /p/ > 0
+                  -> Double     -- ^ /q/ > 0
+                  -> Double     -- ^ /a/ ∈ [0,1]
                   -> Double
 invIncompleteBeta p q a
   | p <= 0 || q <= 0 = error "p <= 0 || q <= 0"
@@ -522,7 +520,7 @@ log2 v0
 -- Factorial
 ----------------------------------------------------------------
 
--- | Compute the factorial function /n/!.  Returns &#8734; if the
+-- | Compute the factorial function /n/!.  Returns +∞ if the
 -- input is above 170 (above which the result cannot be represented by
 -- a 64-bit 'Double').
 factorial :: Int -> Double
