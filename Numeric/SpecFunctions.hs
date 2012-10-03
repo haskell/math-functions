@@ -402,7 +402,8 @@ incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q)) 1 1 1
 
 
 -- | Compute inverse of regularized incomplete beta function. Uses
--- initial approximation from AS109 and Halley method to solve equation.
+-- initial approximation from AS109, AS64 and Halley method to solve
+-- equation.
 invIncompleteBeta :: Double     -- ^ /p/ > 0
                   -> Double     -- ^ /q/ > 0
                   -> Double     -- ^ /a/ ∈ [0,1]
@@ -412,7 +413,7 @@ invIncompleteBeta p q a
   | a <  0 || a >  1 = error "bad a"
   | a == 0 || a == 1 = a
   | a > 0.5          = 1 - invIncompleteBetaWorker (logBeta p q) q p (1 - a)
-  | otherwise        = invIncompleteBetaWorker (logBeta p q) p q a
+  | otherwise        =     invIncompleteBetaWorker (logBeta p q) p q  a
 
 invIncompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
 invIncompleteBetaWorker beta p q a = loop (0::Int) guess
@@ -434,7 +435,9 @@ invIncompleteBetaWorker beta p q a = loop (0::Int) guess
             | z > 1     = (x + 1) / 2
             | otherwise = z
             where z = x - dx
-    -- Calculate initial guess
+    -- Calculate initial guess. Approximations are described in the AS64.
+    --
+    -- Note that a <= 0.5.
     guess 
       | p > 1 && q > 1 = 
           let rr = (y*y - 3) / 6
@@ -449,7 +452,7 @@ invIncompleteBetaWorker beta p q a = loop (0::Int) guess
       where
         r   = sqrt $ - 2 * log a
         y   = r - ( 2.30753 + 0.27061 * r )
-                   / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
+                  / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
         t   = 1 / (9 * q)
         t'  = 2 * q * (1 - t + y * sqrt t) ** 3
         t'' = (4*p + 2*q - 2) / t'
