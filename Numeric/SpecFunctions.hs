@@ -447,7 +447,7 @@ invIncompleteBetaWorker beta p q a = loop (0::Int) guess
       | t'' <= 1  = exp( (log(a * p) + beta) / p )
       | otherwise = 1 - 2 / (t'' + 1)
       where
-        r   = sqrt ( - log ( a * a ) )
+        r   = sqrt $ - 2 * log a
         y   = r - ( 2.30753 + 0.27061 * r )
                    / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
         t   = 1 / (9 * q)
