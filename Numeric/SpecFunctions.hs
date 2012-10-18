@@ -138,8 +138,7 @@ logGamma x
         | otherwise = (0  , x     , x - 1)
 
     y      = log x
-    k      = x * (y-1) - 0.5 * y + alr2pi
-    alr2pi = 0.918938533204673
+    k      = x * (y-1) - 0.5 * y + m_ln_sqrt_2_pi
 
     x1 = 1 / x
     x2 = x1 * x1
