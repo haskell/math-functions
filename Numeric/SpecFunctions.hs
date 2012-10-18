@@ -129,6 +129,7 @@ logGamma x
     | x < 12    = ((((r3_4 * x + r3_3) * x + r3_2) * x + r3_1) * x + r3_0) /
                   ((((x + r3_8) * x + r3_7) * x + r3_6) * x + r3_5)
     | x > 3e6   = k
+    | x > maxGood = m_pos_inf
     | otherwise = k + x1 *
                   ((r4_2 * x2 + r4_1) * x2 + r4_0) /
                   ((x2 + r4_4) * x2 + r4_3)
@@ -140,6 +141,7 @@ logGamma x
     y      = log x
     k      = x * (y-1) - 0.5 * y + alr2pi
     alr2pi = 0.918938533204673
+    maxGood = 2.559984e305
 
     x1 = 1 / x
     x2 = x1 * x1
