@@ -535,9 +535,10 @@ factorial n
     | n <= 170  = U.product $ U.map fromIntegral $ U.enumFromTo 2 n
     | otherwise = m_pos_inf
 
--- | Compute the factorial function /n/!.
-exactFactorial :: (Integral a)=> a -> a
-exactFactorial n:: product [1..n]
+-- | Compute the factorial function /n/!. This is intended to be used for small Ints/Words and for Integers.
+-- using it on large Ints will make demons fly out of your nose.
+exactFactorial :: (Integral a) => a -> a
+exactFactorial n = product [1..n]
 
 -- | Compute the natural logarithm of the factorial function.  Based on the discussion and public-domain code at
 -- http://www.johndcook.com/blog/2010/08/16/how-to-compute-log-factorial/
