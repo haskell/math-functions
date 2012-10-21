@@ -120,6 +120,10 @@ invErfc p
 logGamma :: Double -> Double
 logGamma x
     | x <= 0    = m_pos_inf
+    -- Handle positive infinity. logGamma overflows before 1e308 so
+    -- it's safe
+    | x > 1e308 = m_pos_inf
+    -- Normal cases
     | x < 1.5   = a + c *
                   ((((r1_4 * b + r1_3) * b + r1_2) * b + r1_1) * b + r1_0) /
                   ((((b + r1_8) * b + r1_7) * b + r1_6) * b + r1_5)
