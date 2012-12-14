@@ -20,6 +20,7 @@ module Numeric.SpecFunctions (
   , logGammaL
   , incompleteGamma
   , invIncompleteGamma
+  , digamma
     -- * Beta function
   , logBeta
   , incompleteBeta
@@ -45,7 +46,7 @@ import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
-import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi, 
+import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi,
                                         m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
 
 
@@ -281,9 +282,9 @@ invIncompleteGamma :: Double    -- ^ /s/ ∈ (0,∞)
                    -> Double    -- ^ /p/ ∈ [0,1]
                    -> Double
 invIncompleteGamma a p
-  | a <= 0         = 
+  | a <= 0         =
       error $ "Statistics.Math.invIncompleteGamma: a must be positive. Got: " ++ show a
-  | p < 0 || p > 1 = 
+  | p < 0 || p > 1 =
       error $ "Statistics.Math.invIncompleteGamma: p must be in [0,1] range. Got: " ++ show p
   | p == 0         = 0
   | p == 1         = 1 / 0
@@ -313,7 +314,7 @@ invIncompleteGamma a p
              | otherwise = x - dx
     -- Calculate inital guess for root
     guess
-      -- 
+      --
       | a > 1   =
          let t  = sqrt $ -2 * log(if p < 0.5 then p else 1 - p)
              x1 = (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t
@@ -442,8 +443,8 @@ invIncompleteBetaWorker beta p q a = loop (0::Int) guess
     -- Calculate initial guess. Approximations are described in the AS64.
     --
     -- Note that a <= 0.5.
-    guess 
-      | p > 1 && q > 1 = 
+    guess
+      | p > 1 && q > 1 =
           let rr = (y*y - 3) / 6
               ss = 1 / (2*p - 1)
               tt = 1 / (2*q - 1)
@@ -622,10 +623,48 @@ n `choose` k
     max64          = fromIntegral (maxBound :: Int64)
     round64 x      = round x :: Int64
 
+-- | Compute ψ0(/x/), the first logarithmic derivative of the gamma
+-- function. Uses Algorithm AS 103 by Bernardo, based on Minka's C
+-- implementation.
+digamma :: Double -> Double
+digamma x
+    | isNaN x || isInfinite x                  = m_NaN
+    | x <= 0 && fromIntegral (truncate x) == x = m_neg_inf
+    | x < 0     = -- Jeffery's reflection formula
+                  digamma (1 - x) + pi / tan (negate pi * x)
+    | x <= 1e-6 = digamma1 - 1/x + trigamma1 * x
+    | x' < c    = r
+    | otherwise = let s = 1/x'
+                      u = r + log x' - 0.5 * s
+                      t = s * s
+                  in -- De Moivre's expansion
+                     u - t * (s3 - t * (s4 - t * (s5 - t * (s6 - t * s7))))
+  where
+    s3 = 1/12; s4 = 1/120; s5 = 1/252; s6 = 1/240; s7 = 1/132
+    c = 12
+    (r, x') = -- Reduce to digamma (x + n) where (x + n) >= c
+              reduce 0 x
+        where reduce !s y
+                  | y < c     = reduce (s - 1 / y) (y + 1)
+                  | otherwise = (s, y)
 
-
+digamma1, trigamma1 :: Double
+digamma1  = -0.5772156649015328606065121 -- Euler-Mascheroni constant
+trigamma1 = 1.6449340668482264365 -- pi**2 / 6
 
 -- $references
+--
+-- * Bernardo, J. (1976) Algorithm AS 103: Psi (digamma)
+--   function. /Journal of the Royal Statistical Society. Series C
+--   (Applied Statistics)/ 25(3):315-317.
+--   <http://www.jstor.org/stable/2347257>
+--
+-- * Cran, G.W., Martin, K.J., Thomas, G.E. (1977) Remark AS R19
+--   and Algorithm AS 109: A Remark on Algorithms: AS 63: The
+--   Incomplete Beta Integral AS 64: Inverse of the Incomplete Beta
+--   Function Ratio. /Journal of the Royal Statistical Society. Series
+--   C (Applied Statistics)/ Vol. 26, No. 1 (1977), pp. 111-114
+--   <http://www.jstor.org/pss/2346887>
 --
 -- * Lanczos, C. (1964) A precision approximation of the gamma
 --   function.  /SIAM Journal on Numerical Analysis B/
@@ -639,10 +678,6 @@ n `choose` k
 --   /Journal of the Royal Statistical Society, Series C (Applied Statistics)/
 --   38(2):397&#8211;402. <http://www.jstor.org/stable/2348078>
 --
--- * Shea, B. (1988) Algorithm AS 239: Chi-squared and incomplete
---   gamma integral. /Applied Statistics/
---   37(3):466&#8211;473. <http://www.jstor.org/stable/2347328>
---
 -- * Majumder, K.L., Bhattacharjee, G.P. (1973) Algorithm AS 63: The
 --   Incomplete Beta Integral. /Journal of the Royal Statistical
 --   Society. Series C (Applied Statistics)/ Vol. 22, No. 3 (1973),
@@ -654,9 +689,6 @@ n `choose` k
 --   Vol. 22, No. 3 (1973), pp. 411-414
 --   <http://www.jstor.org/pss/2346798>
 --
--- * Cran, G.W., Martin, K.J., Thomas, G.E. (1977) Remark AS R19
---   and Algorithm AS 109: A Remark on Algorithms: AS 63: The
---   Incomplete Beta Integral AS 64: Inverse of the Incomplete Beta
---   Function Ratio. /Journal of the Royal Statistical Society. Series
---   C (Applied Statistics)/ Vol. 26, No. 1 (1977), pp. 111-114
---   <http://www.jstor.org/pss/2346887>
+-- * Shea, B. (1988) Algorithm AS 239: Chi-squared and incomplete
+--   gamma integral. /Applied Statistics/
+--   37(3):466&#8211;473. <http://www.jstor.org/stable/2347328>
