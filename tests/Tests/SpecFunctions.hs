@@ -55,6 +55,8 @@ tests = testGroup "Special functions"
                       (logGammaL p + logGammaL q - logGammaL (p+q))
             | p <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
             , q <- [0.1,0.2 .. 0.9] ++ [2 .. 20]]
+  , testAssertion "digamma is expected to be precise at 1e-14" $
+      digammaTestIntegers 1e-14
   -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
   , testAssertion "incompleteBeta is expected to be precise at 1e-8 level"
       $ and [ eq 1e-8 (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
@@ -149,6 +151,21 @@ invIBetaIsInverse (abs -> p) (abs -> q) (abs . snd . properFraction -> x) =
     x' = incompleteBeta    p q a
     a  = invIncompleteBeta p q x
   
+-- Table for digamma function:
+--
+-- Uses equality ψ(n) = H_{n-1} - γ where
+--   H_{n} = Σ 1/k, k = [1 .. n]     - harmonic number
+--   γ     = 0.57721566490153286060  - Euler-Mascheroni number
+digammaTestIntegers :: Double -> Bool
+digammaTestIntegers eps
+  = all (uncurry $ eq eps) $ take 3000 digammaInt
+  where
+    ok approx exact = approx
+    -- Harmonic numbers starting from 0
+    harmN = scanl (\a n -> a + 1/n) 0 [1::Rational .. ]
+    gam   = 0.57721566490153286060
+    -- Digamma values
+    digammaInt = zipWith (\i h -> (digamma i, realToFrac h - gam)) [1..] harmN
 
 
 ----------------------------------------------------------------
