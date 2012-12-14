@@ -18,13 +18,13 @@ import Numeric.SpecFunctions
 
 tests :: Test
 tests = testGroup "Special functions"
-  [ testProperty "Γ(x+1) = x·Γ(x) logGamma"  $ gammaReccurence logGamma  3e-8
-  , testProperty "Γ(x+1) = x·Γ(x) logGammaL" $ gammaReccurence logGammaL 2e-13
-  , testProperty "γ(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
-  , testProperty "0 <= γ <= 1"               $ incompleteGammaInRange
-  , testProperty "γ - increases"             $
+  [ testProperty "Gamma(x+1) = x*Gamma(x) [logGamma]"  $ gammaReccurence logGamma  3e-8
+  , testProperty "Gamma(x+1) = x*Gamma(x) [logGammaL]" $ gammaReccurence logGammaL 2e-13
+  , testProperty "gamma(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
+  , testProperty "0 <= gamma <= 1"               $ incompleteGammaInRange
+  , testProperty "gamma - increases"             $
       \s x y -> s > 0 && x > 0 && y > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
-  , testProperty "invIncompleteGamma = γ^-1" $ invIGammaIsInverse
+  , testProperty "invIncompleteGamma = gamma^-1" $ invIGammaIsInverse
   , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
   , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
   , testProperty "invErfc = erfc^-1"         $ invErfcIsInverse
