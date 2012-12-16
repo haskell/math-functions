@@ -5,6 +5,8 @@
 from mpmath import *
 import random
 
+# Set very-very large precision
+mp.dps = 100
 # Set fixed seed in order to get repeatable results
 random.seed( 279570842 )
 

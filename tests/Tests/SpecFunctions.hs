@@ -58,7 +58,7 @@ tests = testGroup "Special functions"
   , testAssertion "digamma is expected to be precise at 1e-14 [integers]"
       $ digammaTestIntegers 1e-14
     -- Relative precision is lost when digamma(x) ≈ 0
-  , testAssertion "digamma is expected to be precise at 1e-14"
+  , testAssertion "digamma is expected to be precise at 1e-12"
       $ and [ eq 1e-12 r (digamma x) | (x,r) <- tableDigamma ]
     -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
   , testAssertion "incompleteBeta is expected to be precise at 1e-8 level"
