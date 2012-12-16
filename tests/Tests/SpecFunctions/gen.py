@@ -3,13 +3,18 @@
 """
 
 from mpmath import *
+import random
+
+# Set fixed seed in order to get repeatable results
+random.seed( 279570842 )
 
 def printListLiteral(lines) :
     print "  [" + "\n  , ".join(lines) + "\n  ]"
 
+
 ################################################################
 # Generate header
-print "module Tests.Math.Tables where"
+print "module Tests.SpecFunctions.Tables where"
 print
 
 ################################################################
@@ -49,3 +54,15 @@ printListLiteral(
     [ '(%.15f, %.15f, %.15f, %.20g)' % (p,q,x, betainc(p,q,0,x, regularized=True))
       for (p,q,x) in incompleteBetaArg
       ])
+
+
+################################################################
+## Generate table for digamma
+
+print "tableDigamma :: [(Double,Double)]"
+print "tableDigamma ="
+printListLiteral(
+    [ '(%.16f, %.20g)' % (x, digamma(x)) for x in
+      [ random.expovariate(0.1) for i in xrange(100) ]
+      ]
+    )

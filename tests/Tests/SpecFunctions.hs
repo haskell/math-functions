@@ -55,9 +55,12 @@ tests = testGroup "Special functions"
                       (logGammaL p + logGammaL q - logGammaL (p+q))
             | p <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
             , q <- [0.1,0.2 .. 0.9] ++ [2 .. 20]]
-  , testAssertion "digamma is expected to be precise at 1e-14" $
-      digammaTestIntegers 1e-14
-  -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
+  , testAssertion "digamma is expected to be precise at 1e-14 [integers]"
+      $ digammaTestIntegers 1e-14
+    -- Relative precision is lost when digamma(x) ≈ 0
+  , testAssertion "digamma is expected to be precise at 1e-14"
+      $ and [ eq 1e-12 r (digamma x) | (x,r) <- tableDigamma ]
+    -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
   , testAssertion "incompleteBeta is expected to be precise at 1e-8 level"
       $ and [ eq 1e-8 (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
   , testAssertion "choose is expected to precise at 1e-12 level"
