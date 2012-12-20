@@ -21,6 +21,7 @@ extra-source-files:
   tests/Tests/SpecFunctions/gen.py
 
 library
+  ghc-options:          -Wall
   build-depends:        base >=3 && <5,
                         vector >= 0.7,
                         erf >= 2

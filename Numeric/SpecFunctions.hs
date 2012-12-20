@@ -94,6 +94,7 @@ invErfc p
     x0 = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
     r  = loop 0 x0
     --
+    loop :: Int -> Double -> Double
     loop !j !x
       | j >= 2    = x
       | otherwise = let err = erfc x - pp
