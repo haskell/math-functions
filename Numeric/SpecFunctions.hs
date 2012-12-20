@@ -641,12 +641,13 @@ digamma x
                      u - t * (s3 - t * (s4 - t * (s5 - t * (s6 - t * s7))))
   where
     s3 = 1/12; s4 = 1/120; s5 = 1/252; s6 = 1/240; s7 = 1/132
-    c = 12
-    (r, x') = -- Reduce to digamma (x + n) where (x + n) >= c
-              reduce 0 x
-        where reduce !s y
-                  | y < c     = reduce (s - 1 / y) (y + 1)
-                  | otherwise = (s, y)
+    c  = 12
+    -- Reduce to digamma (x + n) where (x + n) >= c
+    (r, x') = reduce 0 x
+      where
+        reduce !s y
+          | y < c     = reduce (s - 1 / y) (y + 1)
+          | otherwise = (s, y)
 
 digamma1, trigamma1 :: Double
 digamma1  = -0.5772156649015328606065121 -- Euler-Mascheroni constant
