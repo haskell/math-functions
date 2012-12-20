@@ -41,7 +41,6 @@ module Numeric.SpecFunctions (
 
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
-import Data.Word       (Word64)
 import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
