@@ -48,8 +48,11 @@ tests = testGroup "Special functions"
       $ and [ eq 1e-15 (logGammaL (fromIntegral n))
                        (logFactorial (n-1))
             | n <- [3..10000]]
-  , testAssertion "logGammaL is expected to be precise at 1e-9 level [fractional points]"
+    -- FIXME: Too low!
+  , testAssertion "logGammaL is expected to be precise at 1e-10 level [fractional points]"
       $ and [ eq 1e-10 (logGammaL x) lg | (x,lg) <- tableLogGamma ]
+    -- FIXME: loss of precision when logBeta p q ≈ 0.
+    --        Relative error doesn't work properly in this case.
   , testAssertion "logBeta is expected to be precise at 1e-6 level"
       $ and [ eq 1e-6 (logBeta p q)
                       (logGammaL p + logGammaL q - logGammaL (p+q))
