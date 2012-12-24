@@ -381,10 +381,58 @@ incompleteBeta_ beta p q x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
 
+
+-- Approximation of incomplete beta by quandrature.
+--
+-- Note that x =< p/(p+q)
+incompleteBetaApprox :: Double -> Double -> Double -> Double -> Double
+incompleteBetaApprox beta p q x
+  | ans > 0   = 1 - ans
+  | otherwise = -ans
+  where
+    -- Constants
+    p1    = p - 1
+    q1    = q - 1
+    mu    = p / (p + q)
+    lnmu  = log mu
+    lnmuc = log (1 - mu)
+    -- Upper limit for integration
+    xu = max 0 $ min (mu - 10*t) (x - 5*t)
+       where
+         t = sqrt $ p*q / ( (p+q) * (p+q) * (p + q + 1) )
+    -- Calculate incomplete beta by quadrature
+    go y w = let t = x + (xu - x) * y
+             in  w * exp( p1 * (log t - lnmu) + q1 * (log(1-t) - lnmuc) )
+    s   = U.sum $ U.zipWith go coefY coefW
+    ans = s * (xu - x) * exp( p1 * lnmu + q1 * lnmuc - beta )
+    -- Coefficients for 18-point Gauss-Legendre integration.
+    coefW = U.fromList [ 0.0055657196642445571, 0.012915947284065419, 0.020181515297735382
+                       , 0.027298621498568734,  0.034213810770299537, 0.040875750923643261
+                       , 0.047235083490265582,  0.053244713977759692, 0.058860144245324798
+                       , 0.064039797355015485,  0.068745323835736408, 0.072941885005653087
+                       , 0.076598410645870640,  0.079687828912071670, 0.082187266704339706
+                       , 0.084078218979661945,  0.085346685739338721, 0.085983275670394821
+                       ]
+    coefY = U.fromList [ 0.0021695375159141994, 0.011413521097787704, 0.027972308950302116
+                       , 0.051727015600492421,  0.082502225484340941, 0.12007019910960293
+                       , 0.16415283300752470,   0.21442376986779355,  0.27051082840644336
+                       , 0.33199876341447887,   0.39843234186401943,  0.46931971407375483
+                       , 0.54413605556657973,   0.62232745288031077,  0.70331500465597174
+                       , 0.78649910768313447,   0.87126389619061517,  0.95698180152629142
+                       ]
+    {-# NOINLINE coefW #-}
+    {-# NOINLINE coefY #-}
+
+
+
 -- Worker for incomplete beta function. It is separate function to
 -- avoid confusion with parameter during parameter swapping
 incompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
-incompleteBetaWorker beta p q x = loop (p+q) (truncate $ q + cx * (p+q)) 1 1 1
+incompleteBetaWorker beta p q x
+  -- For very large p and q this method becomes very slow so another
+  -- method is used.
+  | p > 3000 && q > 3000 = incompleteBetaApprox beta p q x
+  | otherwise            = loop (p+q) (truncate $ q + cx * (p+q)) 1 1 1
   where
     -- Constants
     eps = 1e-15
