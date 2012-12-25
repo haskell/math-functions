@@ -360,7 +360,8 @@ logBeta a b
       c   = logGammaCorrection q - logGammaCorrection pq
 
 -- | Regularized incomplete beta function. Uses algorithm AS63 by
--- Majumder and Bhattachrjee.
+-- Majumder and Bhattachrjee and quadrature approximation for large
+-- /p/ and /q/.
 incompleteBeta :: Double -- ^ /p/ > 0
                -> Double -- ^ /q/ > 0
                -> Double -- ^ /x/, must lie in [0,1] range
