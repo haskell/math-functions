@@ -57,7 +57,8 @@ tests = testGroup "Special functions"
       $ and [ eq 1e-6 (logBeta p q)
                       (logGammaL p + logGammaL q - logGammaL (p+q))
             | p <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
-            , q <- [0.1,0.2 .. 0.9] ++ [2 .. 20]]
+            , q <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
+            ]
   , testAssertion "digamma is expected to be precise at 1e-14 [integers]"
       $ digammaTestIntegers 1e-14
     -- Relative precision is lost when digamma(x) ≈ 0
@@ -66,6 +67,14 @@ tests = testGroup "Special functions"
     -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
   , testAssertion "incompleteBeta is expected to be precise at 1e-8 level"
       $ and [ eq 1e-8 (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
+  , testAssertion "incompleteBeta with p > 3000 and q > 3000"
+      $ and [ eq 1e-11 (incompleteBeta p q x) ib | (x,p,q,ib) <-
+                 [ (0.495,  3001,  3001, 0.2192546757957825068677527085659175689142653854877723)
+                 , (0.501,  3001,  3001, 0.5615652382981522803424365187631195161665429270531389)
+                 , (0.531,  3500,  3200, 0.9209758089734407825580172472327758548870610822321278)
+                 , (0.501, 13500, 13200, 0.0656209987264794057358373443387716674955276089622780)
+                 ]
+            ]
   , testAssertion "choose is expected to precise at 1e-12 level"
       $ and [ eq 1e-12 (choose (fromIntegral n) (fromIntegral k)) (fromIntegral $ choose' n k)
             | n <- [0..300], k <- [0..n]]
