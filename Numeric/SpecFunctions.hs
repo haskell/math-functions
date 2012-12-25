@@ -83,8 +83,8 @@ invErfc :: Double -- ^ /p/ ∈ [0,2]
 invErfc p
   | p == 2    = m_neg_inf
   | p == 0    = m_pos_inf
-  | p > 2     = error "x>2"
-  | p < 0     = error "x<0"
+  | p > 2     = error $ "Numeric.SpecFunctions.invErfc: p must be in [0,2] got " ++ show p
+  | p < 0     = error $ "Numeric.SpecFunctions.invErfc: p must be in [0,2] got " ++ show p
   | p <= 1    =  r
   | otherwise = -r
   where
@@ -283,9 +283,9 @@ invIncompleteGamma :: Double    -- ^ /s/ ∈ (0,∞)
                    -> Double
 invIncompleteGamma a p
   | a <= 0         =
-      error $ "Statistics.Math.invIncompleteGamma: a must be positive. Got: " ++ show a
+      error $ "Numeric.SpecFunctions.invIncompleteGamma: a must be positive. Got: " ++ show a
   | p < 0 || p > 1 =
-      error $ "Statistics.Math.invIncompleteGamma: p must be in [0,1] range. Got: " ++ show p
+      error $ "Numeric.SpecFunctions.invIncompleteGamma: p must be in [0,1] range. Got: " ++ show p
   | p == 0         = 0
   | p == 1         = 1 / 0
   | otherwise      = loop 0 guess
@@ -375,8 +375,8 @@ incompleteBeta_ :: Double -- ^ logarithm of beta function for given /p/ and /q/
                 -> Double -- ^ /x/, must lie in [0,1] range
                 -> Double
 incompleteBeta_ beta p q x
-  | p <= 0 || q <= 0            = error "p <= 0 || q <= 0"
-  | x <  0 || x >  1 || isNaN x = error "x out of [0,1] range"
+  | p <= 0 || q <= 0            = error $ "Numeric.SpecFunctions.incompleteBeta_: p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
+  | x <  0 || x >  1 || isNaN x = error $ "Numeric.SpecFunctions.incompleteBeta_: x out of [0,1] range. got" ++ show x
   | x == 0 || x == 1            = x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
@@ -462,8 +462,8 @@ invIncompleteBeta :: Double     -- ^ /p/ > 0
                   -> Double     -- ^ /a/ ∈ [0,1]
                   -> Double
 invIncompleteBeta p q a
-  | p <= 0 || q <= 0 = error "p <= 0 || q <= 0"
-  | a <  0 || a >  1 = error "bad a"
+  | p <= 0 || q <= 0 = error $ "Numeric.SpecFunctions.invIncompleteBeta p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
+  | a <  0 || a >  1 = error $ "Numeric.SpecFunctions.invIncompleteBeta x must be in [0,1]. Got " ++ show a
   | a == 0 || a == 1 = a
   | a > 0.5          = 1 - invIncompleteBetaWorker (logBeta p q) q p (1 - a)
   | otherwise        =     invIncompleteBetaWorker (logBeta p q) p q  a
@@ -560,7 +560,7 @@ log1p x
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.
 log2 :: Int -> Int
 log2 v0
-    | v0 <= 0   = error "Statistics.Math.log2: invalid input"
+    | v0 <= 0   = error $ "Numeric.SpecFunctions.log2: negative input, got " ++ show v0
     | otherwise = go 5 0 v0
   where
     go !i !r !v | i == -1        = r
@@ -581,7 +581,7 @@ log2 v0
 -- a 64-bit 'Double').
 factorial :: Int -> Double
 factorial n
-    | n < 0     = error "Statistics.Math.factorial: negative input"
+    | n < 0     = error "Numeric.SpecFunctions.factorial: negative input"
     | n <= 1    = 1
     | n <= 170  = U.product $ U.map fromIntegral $ U.enumFromTo 2 n
     | otherwise = m_pos_inf
