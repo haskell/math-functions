@@ -379,7 +379,8 @@ incompleteBeta_ :: Double -- ^ logarithm of beta function for given /p/ and /q/
                 -> Double
 incompleteBeta_ beta p q x
   | p <= 0 || q <= 0            = error $ "Numeric.SpecFunctions.incompleteBeta_: p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
-  | x <  0 || x >  1 || isNaN x = error $ "Numeric.SpecFunctions.incompleteBeta_: x out of [0,1] range. got" ++ show x
+  | x <  0 || x >  1 || isNaN x = error $ "Numeric.SpecFunctions.incompletBeta_: x out of [0,1] range. got "
+                                  ++ show p ++ " " ++ show q ++ " " ++ show x
   | x == 0 || x == 1            = x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
@@ -466,52 +467,98 @@ invIncompleteBeta :: Double     -- ^ /p/ > 0
                   -> Double
 invIncompleteBeta p q a
   | p <= 0 || q <= 0 = error $ "Numeric.SpecFunctions.invIncompleteBeta p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
-  | a <  0 || a >  1 = error $ "Numeric.SpecFunctions.invIncompleteBeta x must be in [0,1]. Got " ++ show a
+  | a <  0 || a >  1 = error $ "Numeric.SpecFunctions.invIncompleteBeta x must be in [0,1]. Got "
+                       ++ show p ++ " " ++ show q ++ " "
+                       ++ show a
   | a == 0 || a == 1 = a
   | a > 0.5          = 1 - invIncompleteBetaWorker (logBeta p q) q p (1 - a)
   | otherwise        =     invIncompleteBetaWorker (logBeta p q) p q  a
 
+
 invIncompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
-invIncompleteBetaWorker beta p q a = loop (0::Int) guess
+-- NOTE: p <= 0.5.
+invIncompleteBetaWorker beta a b p = loop (0::Int) guess
   where
-    p1 = p - 1
-    q1 = q - 1
+    a1 = a - 1
+    b1 = b - 1
     -- Solve equation using Halley method
     loop !i !x
+      -- We cannot continue at this point so we simply return `x'
       | x == 0 || x == 1             = x
-      | i >= 10                      = x
-      | abs dx <= 16 * m_epsilon * x = x
+      -- When derivative becomes infinite we cannot continue
+      -- iterations. It cat only happen in vicinity of 0 or 1.  It's
+      -- hardly possible to get good answer in such circumstances but
+      -- `x' is already reasonable.
+      | isInfinite f'                = x
+      -- Iterations limit reached. Most of the time solution will
+      -- converge to answer because of discetenes of Double. But
+      -- solution have good precision already.
+      | i >= 1000                    = x
+      -- Solution converges
+      | abs dx <= 16 * m_epsilon * x = x'
       | otherwise                    = loop (i+1) x'
       where
-        f   = incompleteBeta_ beta p q x - a
-        f'  = exp $ p1 * log x + q1 * log (1 - x) - beta
+        -- Calculate Halley step.
+        f   = incompleteBeta_ beta a b x - p
+        f'  = exp $ a1 * log x + b1 * log (1 - x) - beta
         u   = f / f'
-        dx  = u / (1 - 0.5 * min 1 (u * (p1 / x - q1 / (1 - x))))
+        dx  = u / (1 - 0.5 * min 1 (u * (a1 / x - b1 / (1 - x))))
+        -- Next approximation. If Halley step leas us out of [0,1]
+        -- range we revert to bisection.
         x'  | z < 0     = x / 2
             | z > 1     = (x + 1) / 2
             | otherwise = z
             where z = x - dx
-    -- Calculate initial guess. Approximations are described in the AS64.
+    -- Calculate initial guess. Approximations from AS64, AS109 and
+    -- Numerical recipes are used.
     --
-    -- Note that a <= 0.5.
+    -- Equations are refered to by name of paper and number e.g. [AS64 2]
+    -- In AS64 papers equations are not numbered so they are refered
+    -- to by number of appearance starting from definition of
+    -- incomplete beta.
     guess
-      | p > 1 && q > 1 =
-          let rr = (y*y - 3) / 6
-              ss = 1 / (2*p - 1)
-              tt = 1 / (2*q - 1)
-              hh = 2 / (ss + tt)
-              ww = y * sqrt(hh + rr) / hh - (tt - ss) * (rr + 5/6 - 2 / (3 * hh))
-          in p / (p + q * exp(2 * ww))
-      | t'  <= 0  = 1 - exp( (log((1 - a) * q) + beta) / q )
-      | t'' <= 1  = exp( (log(a * p) + beta) / p )
-      | otherwise = 1 - 2 / (t'' + 1)
+      -- In this region we use approximation from AS109 (Carter
+      -- approximation). It's reasonably good (2 iterations on
+      -- average) and never crashes.
+      | a > 1 && b > 1 =
+          let r = (y*y - 3) / 6
+              s = 1 / (2*a - 1)
+              t = 1 / (2*b - 1)
+              h = 2 / (s + t)
+              w = y * sqrt(h + r) / h - (t - s) * (r + 5/6 - 2 / (3 * h))
+          in a / (a + b * exp(2 * w))
+      -- Otherwise we revert to approximation from AS64 derived from
+      -- [AS64 2] when it's applicable.
+      --
+      -- It slightly reduces average number of iterations when `a' and
+      -- `b' have different magnitudes.
+      | chi2 > 0 && ratio > 1 = 1 - 2 / (ratio + 1)
+      -- If all else fails we use approximation from "Numerical
+      -- Recipes". It's very similar to approximations [AS64 4,5] but
+      -- it never goes out of [0,1] interval.
+      | otherwise = case () of
+          _| p < t / w  -> (a * p * w) ** (1/a)
+           | otherwise  -> 1 - (b * (1 - p) * w) ** (1/b)
+           where
+             lna = log $ a / (a+b)
+             lnb = log $ b / (a+b)
+             t   = exp( a * lna ) / a
+             u   = exp( b * lnb ) / b
+             w   = t + u
       where
-        r   = sqrt $ - 2 * log a
+        -- Formula [2]
+        ratio = (4*a + 2*b - 2) / chi2
+        -- Quantile of chi-squared distribution. Formula [3].
+        chi2 = 2 * b * (1 - t + y * sqrt t) ** 3
+          where
+            t   = 1 / (9 * b)
+        -- `y' is Hasting's approximation of p'th quantile of standard
+        -- normal distribution.
         y   = r - ( 2.30753 + 0.27061 * r )
                   / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
-        t   = 1 / (9 * q)
-        t'  = 2 * q * (1 - t + y * sqrt t) ** 3
-        t'' = (4*p + 2*q - 2) / t'
+          where
+            r = sqrt $ - 2 * log p
+
 
 
 
