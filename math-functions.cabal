@@ -28,6 +28,7 @@ library
   exposed-modules:      
     Numeric.SpecFunctions
     Numeric.SpecFunctions.Extra
+    Numeric.Polynomial
     Numeric.Polynomial.Chebyshev
     Numeric.MathFunctions.Constants
 
