@@ -45,6 +45,7 @@ import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
+import Numeric.Polynomial              (evaluateEvenPolynomial)
 import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi,
                                         m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
 import Text.Printf
@@ -733,17 +734,22 @@ digamma x
     --   an integer. We also must make sure that excess precision
     --   won't bite us.
     | x <= 0 && fromIntegral (truncate x) == x = m_neg_inf
-    | x < 0     = -- Jeffery's reflection formula
-                  digamma (1 - x) + pi / tan (negate pi * x)
+    -- Jeffery's reflection formula
+    | x < 0     = digamma (1 - x) + pi / tan (negate pi * x)
     | x <= 1e-6 = digamma1 - 1/x + trigamma1 * x
     | x' < c    = r
+    -- De Moivre's expansion
     | otherwise = let s = 1/x'
-                      u = r + log x' - 0.5 * s
-                      t = s * s
-                  in -- De Moivre's expansion
-                     u - t * (s3 - t * (s4 - t * (s5 - t * (s6 - t * s7))))
+                  in  evaluateEvenPolynomial s $
+                        U.fromList [   r + log x' - 0.5 * s
+                                   , - 1/12
+                                   ,   1/120
+                                   , - 1/252
+                                   ,   1/240
+                                   , - 1/132
+                                   ,  391/32760
+                                   ]
   where
-    s3 = 1/12; s4 = 1/120; s5 = 1/252; s6 = 1/240; s7 = 1/132
     c  = 12
     -- Reduce to digamma (x + n) where (x + n) >= c
     (r, x') = reduce 0 x
@@ -755,6 +761,7 @@ digamma x
 digamma1, trigamma1 :: Double
 digamma1  = -0.5772156649015328606065121 -- Euler-Mascheroni constant
 trigamma1 = 1.6449340668482264365 -- pi**2 / 6
+
 
 
 modErr :: String -> a
