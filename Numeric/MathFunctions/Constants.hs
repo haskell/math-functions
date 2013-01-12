@@ -11,19 +11,26 @@
 
 module Numeric.MathFunctions.Constants
     (
+      -- * IEE754 constants
       m_epsilon
     , m_huge
     , m_tiny
-    , m_1_sqrt_2
-    , m_2_sqrt_pi
-    , m_ln_sqrt_2_pi
     , m_max_exp
-    , m_sqrt_2
-    , m_sqrt_2_pi
     , m_pos_inf
     , m_neg_inf
     , m_NaN
+      -- * Mathematical constants
+    , m_1_sqrt_2
+    , m_2_sqrt_pi
+    , m_ln_sqrt_2_pi
+    , m_sqrt_2
+    , m_sqrt_2_pi
+    , m_eulerMascheroni
     ) where
+
+----------------------------------------------------------------
+-- IEE754 constants
+----------------------------------------------------------------
 
 -- | A very large number.
 m_huge :: Double
@@ -38,6 +45,27 @@ m_tiny = 2.2250738585072014e-308
 -- representable as a 'Double'.
 m_max_exp :: Int
 m_max_exp = 1024
+
+-- | Positive infinity.
+m_pos_inf :: Double
+m_pos_inf = 1/0
+{-# INLINE m_pos_inf #-}
+
+-- | Negative infinity.
+m_neg_inf :: Double
+m_neg_inf = -1/0
+{-# INLINE m_neg_inf #-}
+
+-- | Not a number.
+m_NaN :: Double
+m_NaN = 0/0
+{-# INLINE m_NaN #-}
+
+
+
+----------------------------------------------------------------
+-- Mathematical constants
+----------------------------------------------------------------
 
 -- | @sqrt 2@
 m_sqrt_2 :: Double
@@ -69,17 +97,7 @@ m_ln_sqrt_2_pi :: Double
 m_ln_sqrt_2_pi = 0.9189385332046727417803297364056176398613974736377834128171
 {-# INLINE m_ln_sqrt_2_pi #-}
 
--- | Positive infinity.
-m_pos_inf :: Double
-m_pos_inf = 1/0
-{-# INLINE m_pos_inf #-}
-
--- | Negative infinity.
-m_neg_inf :: Double
-m_neg_inf = -1/0
-{-# INLINE m_neg_inf #-}
-
--- | Not a number.
-m_NaN :: Double
-m_NaN = 0/0
-{-# INLINE m_NaN #-}
+-- | Euler–Mascheroni constant (γ = 0.57721...)
+m_eulerMascheroni :: Double
+m_eulerMascheroni = 0.5772156649015328606065121
+{-# INLINE m_eulerMascheroni #-}
