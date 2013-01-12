@@ -46,8 +46,10 @@ import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluateEvenPolynomial)
-import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi,
-                                        m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
+import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
+                                       , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
+                                       , m_eulerMascheroni
+                                       )
 import Text.Printf
 
 
@@ -736,7 +738,7 @@ digamma x
     | x <= 0 && fromIntegral (truncate x) == x = m_neg_inf
     -- Jeffery's reflection formula
     | x < 0     = digamma (1 - x) + pi / tan (negate pi * x)
-    | x <= 1e-6 = digamma1 - 1/x + trigamma1 * x
+    | x <= 1e-6 = - γ - 1/x + trigamma1 * x
     | x' < c    = r
     -- De Moivre's expansion
     | otherwise = let s = 1/x'
@@ -750,6 +752,7 @@ digamma x
                                    ,  391/32760
                                    ]
   where
+    γ  = m_eulerMascheroni
     c  = 12
     -- Reduce to digamma (x + n) where (x + n) >= c
     (r, x') = reduce 0 x
@@ -758,8 +761,7 @@ digamma x
           | y < c     = reduce (s - 1 / y) (y + 1)
           | otherwise = (s, y)
 
-digamma1, trigamma1 :: Double
-digamma1  = -0.5772156649015328606065121 -- Euler-Mascheroni constant
+trigamma1 :: Double
 trigamma1 = 1.6449340668482264365 -- pi**2 / 6
 
 
