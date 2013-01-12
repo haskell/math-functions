@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 -- |
 -- Module    : Numeric.Polynomial
 -- Copyright : (c) 2012 Aleksey Khudyakov
@@ -23,10 +22,10 @@ import           Data.Vector.Generic  (Vector)
 -- from lowest. In pseudocode:
 --
 -- > evaluateOddPolynomial x [1,2,3] = 1 + 2*x + 3*x^2
-evaluatePolynomial :: (Vector v Double)
-                   => Double    -- ^ /x/
-                   -> v Double  -- ^ Coefficients
-                   -> Double
+evaluatePolynomial :: (Vector v a, Num a)
+                   => a    -- ^ /x/
+                   -> v a  -- ^ Coefficients
+                   -> a
 {-# INLINE evaluatePolynomial #-}
 evaluatePolynomial x coefs
   = G.foldr (\a r -> a + r*x) 0 coefs
@@ -35,10 +34,10 @@ evaluatePolynomial x coefs
 -- Coefficients starts from lowest. In pseudocode:
 --
 -- > evaluateOddPolynomial x [1,2,3] = 1 + 2*x^2 + 3*x^4
-evaluateEvenPolynomial :: (Vector v Double)
-                       => Double    -- ^ /x/
-                       -> v Double  -- ^ Coefficients
-                       -> Double
+evaluateEvenPolynomial :: (Vector v a, Num a)
+                       => a    -- ^ /x/
+                       -> v a  -- ^ Coefficients
+                       -> a
 {-# INLINE evaluateEvenPolynomial #-}
 evaluateEvenPolynomial x coefs
   = G.foldr (\a r -> a + r*x2) 0 coefs
@@ -48,10 +47,10 @@ evaluateEvenPolynomial x coefs
 -- Coefficients starts from lowest. In pseudocode:
 --
 -- > evaluateOddPolynomial x [1,2,3] = 1*x + 2*x^3 + 3*x^5
-evaluateOddPolynomial :: (Vector v Double)
-                       => Double    -- ^ /x/
-                       -> v Double  -- ^ Coefficients
-                       -> Double
+evaluateOddPolynomial :: (Vector v a, Num a)
+                       => a    -- ^ /x/
+                       -> v a  -- ^ Coefficients
+                       -> a
 {-# INLINE evaluateOddPolynomial #-}
 evaluateOddPolynomial x coefs
   = x * G.foldr (\a r -> a + r*x2) 0 coefs
