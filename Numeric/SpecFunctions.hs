@@ -82,12 +82,10 @@ invErf p = invErfc (1 - p)
 invErfc :: Double -- ^ /p/ ∈ [0,2]
         -> Double
 invErfc p
-  | p == 2    = m_neg_inf
-  | p == 0    = m_pos_inf
-  | p > 2     = failure
-  | p < 0     = failure
-  | p <= 1    =  r
-  | otherwise = -r
+  | p == 2        = m_neg_inf
+  | p == 0        = m_pos_inf
+  | p >0 && p < 2 = if p <= 1 then r else -r
+  | otherwise     = modErr $ "invErfc: p must be in [0,2] got " ++ show p
   where
     pp = if p <= 1 then p else 2 - p
     t  = sqrt $ -2 * log( 0.5 * pp)
@@ -101,8 +99,7 @@ invErfc p
       | otherwise = let err = erfc x - pp
                         x'  = x + err / (1.12837916709551257 * exp(-x * x) - x * err) -- // Halley
                     in loop (j+1) x'
-    --
-    failure = modErr $ "invErfc: p must be in [0,2] got " ++ show p
+
 
 
 ----------------------------------------------------------------
