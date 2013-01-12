@@ -47,6 +47,7 @@ import qualified Data.Vector.Unboxed as U
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.MathFunctions.Constants (m_epsilon, m_sqrt_2_pi, m_ln_sqrt_2_pi,
                                         m_NaN, m_neg_inf, m_pos_inf, m_sqrt_2)
+import Text.Printf
 
 
 ----------------------------------------------------------------
@@ -83,8 +84,8 @@ invErfc :: Double -- ^ /p/ ∈ [0,2]
 invErfc p
   | p == 2    = m_neg_inf
   | p == 0    = m_pos_inf
-  | p > 2     = error $ "Numeric.SpecFunctions.invErfc: p must be in [0,2] got " ++ show p
-  | p < 0     = error $ "Numeric.SpecFunctions.invErfc: p must be in [0,2] got " ++ show p
+  | p > 2     = failure
+  | p < 0     = failure
   | p <= 1    =  r
   | otherwise = -r
   where
@@ -98,10 +99,10 @@ invErfc p
     loop !j !x
       | j >= 2    = x
       | otherwise = let err = erfc x - pp
-                        x'  = x + err / (1.12837916709551257 * exp(-sqr x) - x * err) -- // Halley
+                        x'  = x + err / (1.12837916709551257 * exp(-x * x) - x * err) -- // Halley
                     in loop (j+1) x'
-    sqr x = x * x
-
+    --
+    failure = modErr $ "invErfc: p must be in [0,2] got " ++ show p
 
 
 ----------------------------------------------------------------
@@ -285,9 +286,9 @@ invIncompleteGamma :: Double    -- ^ /s/ ∈ (0,∞)
                    -> Double
 invIncompleteGamma a p
   | a <= 0         =
-      error $ "Numeric.SpecFunctions.invIncompleteGamma: a must be positive. Got: " ++ show a
+      modErr $ printf "invIncompleteGamma: a must be positive. a=%g p=%g" a p
   | p < 0 || p > 1 =
-      error $ "Numeric.SpecFunctions.invIncompleteGamma: p must be in [0,1] range. Got: " ++ show p
+      modErr $ printf "invIncompleteGamma: p must be in [0,1] range. a=%g p=%g" a p
   | p == 0         = 0
   | p == 1         = 1 / 0
   | otherwise      = loop 0 guess
@@ -378,9 +379,10 @@ incompleteBeta_ :: Double -- ^ logarithm of beta function for given /p/ and /q/
                 -> Double -- ^ /x/, must lie in [0,1] range
                 -> Double
 incompleteBeta_ beta p q x
-  | p <= 0 || q <= 0            = error $ "Numeric.SpecFunctions.incompleteBeta_: p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
-  | x <  0 || x >  1 || isNaN x = error $ "Numeric.SpecFunctions.incompletBeta_: x out of [0,1] range. got "
-                                  ++ show p ++ " " ++ show q ++ " " ++ show x
+  | p <= 0 || q <= 0            =
+      modErr $ printf "incompleteBeta_: p <= 0 || q <= 0. p=%g q=%g x=%g" p q x
+  | x <  0 || x >  1 || isNaN x =
+      modErr $ printf "incompletBeta_: x out of [0,1] range. p=%g q=%g x=%g" p q x
   | x == 0 || x == 1            = x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
@@ -466,10 +468,10 @@ invIncompleteBeta :: Double     -- ^ /p/ > 0
                   -> Double     -- ^ /a/ ∈ [0,1]
                   -> Double
 invIncompleteBeta p q a
-  | p <= 0 || q <= 0 = error $ "Numeric.SpecFunctions.invIncompleteBeta p <= 0 || q <= 0. p=" ++ show p ++ " q=" ++ show q
-  | a <  0 || a >  1 = error $ "Numeric.SpecFunctions.invIncompleteBeta x must be in [0,1]. Got "
-                       ++ show p ++ " " ++ show q ++ " "
-                       ++ show a
+  | p <= 0 || q <= 0 =
+      modErr $ printf "invIncompleteBeta p <= 0 || q <= 0.  p=%g q=%g a=%g" p q a
+  | a <  0 || a >  1 =
+      modErr $ printf "invIncompleteBeta x must be in [0,1].  p=%g q=%g a=%g" p q a
   | a == 0 || a == 1 = a
   | a > 0.5          = 1 - invIncompleteBetaWorker (logBeta p q) q p (1 - a)
   | otherwise        =     invIncompleteBetaWorker (logBeta p q) p q  a
@@ -610,7 +612,7 @@ log1p x
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.
 log2 :: Int -> Int
 log2 v0
-    | v0 <= 0   = error $ "Numeric.SpecFunctions.log2: negative input, got " ++ show v0
+    | v0 <= 0   = modErr $ "log2: negative input, got " ++ show v0
     | otherwise = go 5 0 v0
   where
     go !i !r !v | i == -1        = r
@@ -750,6 +752,10 @@ digamma x
 digamma1, trigamma1 :: Double
 digamma1  = -0.5772156649015328606065121 -- Euler-Mascheroni constant
 trigamma1 = 1.6449340668482264365 -- pi**2 / 6
+
+
+modErr :: String -> a
+modErr msg = error $ "Numeric.SpecFunctions." ++ msg
 
 -- $references
 --
