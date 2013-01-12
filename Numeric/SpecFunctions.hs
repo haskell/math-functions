@@ -729,6 +729,12 @@ n `choose` k
 digamma :: Double -> Double
 digamma x
     | isNaN x || isInfinite x                  = m_NaN
+    -- FIXME:
+    --   This is ugly. We are testing here that number is in fact
+    --   integer. It's somewhat tricky question to answer. When ε for
+    --   given number becomes 1 or greater every number is represents
+    --   an integer. We also must make sure that excess precision
+    --   won't bite us.
     | x <= 0 && fromIntegral (truncate x) == x = m_neg_inf
     | x < 0     = -- Jeffery's reflection formula
                   digamma (1 - x) + pi / tan (negate pi * x)
