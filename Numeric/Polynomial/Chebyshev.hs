@@ -48,8 +48,10 @@ chebyshev x a = fini . G.foldr' step (C 0 0) . G.tail $ a
 data B = B {-# UNPACK #-} !Double {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 
 -- | Evaluate a Chebyshev polynomial of the first kind. Uses Broucke's
--- ECHEB algorithm, and his convention for coefficient handling, and so
--- gives different results than 'chebyshev' for the same inputs.
+-- ECHEB algorithm, and his convention for coefficient handling. It
+-- treat 0th coefficient different so
+--
+-- > chebyshev x [a0,a1,a2...] == chebyshevBroucke [2*a0,a1,a2...]
 chebyshevBroucke :: (G.Vector v Double) =>
              Double      -- ^ Parameter of each function.
           -> v Double    -- ^ Coefficients of each polynomial term, in increasing order.
