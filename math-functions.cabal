@@ -14,6 +14,16 @@ description:
   This library provides implementations of special mathematical
   functions and Chebyshev polynomials.  These functions are often
   useful in statistical and numerical computing.
+  .
+  Changes in 0.1.2
+  .
+  * Error function and its inverse added.
+  .
+  * Digamma function added
+  .
+  * Evaluation of polynomials using Horner's method added.
+  .
+  * Crash bug in the inverse incomplete beta fixed.
 extra-source-files:
   README.markdown
   tests/*.hs
