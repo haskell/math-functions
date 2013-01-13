@@ -23,8 +23,14 @@ tests = testGroup "Chebyshev polynomials"
       testCheb [a0,a1,a2,a3] x
   , testProperty "Chebyshev 4" $ \a0 a1 a2 a3 a4 (Ch x) ->
        testCheb [a0,a1,a2,a3,a4] x
+  , testProperty "Broucke" $ testBroucke
   ]
   where
+
+testBroucke _      []     = True
+testBroucke (Ch x) (c:cs) = let c1 = chebyshev        x (fromList $ c : cs)
+                                cb = chebyshevBroucke x (fromList $ c*2 : cs)
+                            in eq 1e-15 c1 cb
 
 testCheb :: [Double] -> Double -> Property
 testCheb as x
@@ -59,4 +65,4 @@ newtype Ch = Ch Double
              deriving Show
 instance Arbitrary Ch  where
   arbitrary = do x <- arbitrary
-                 return $ Ch $ 2 * (snd . properFraction) x - 1
+                 return $ Ch $ 2 * (abs . snd . properFraction) x - 1
