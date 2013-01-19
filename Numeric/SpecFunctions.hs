@@ -236,7 +236,10 @@ incompleteGamma p x
     | isNaN p || isNaN x = m_NaN
     | x < 0 || p <= 0    = m_pos_inf
     | x == 0             = 0
-    | p >= 1000          = norm (3 * sqrt p * ((x/p) ** (1/3) + 1/(9*p) - 1))
+    -- For very large `p' normal approximation gives <1e-10 error
+    | p >= 2e5           = norm (3 * sqrt p * ((x/p) ** (1/3) + 1/(9*p) - 1))
+    | p >= 500           = approx
+    -- Dubious approximation
     | x >= 1e8           = 1
     | x <= 1 || x < p    = let a = p * log x - x - logGamma (p + 1)
                                g = a + log (pearson p 1 1)
@@ -244,7 +247,26 @@ incompleteGamma p x
     | otherwise          = let g = p * log x - x - logGamma p + log cf
                            in if g > limit then 1 - exp g else 1
   where
+    -- CDF for standard normal distributions
     norm a = 0.5 * erfc (- a / m_sqrt_2)
+    -- For large values of `p' we use 18-point Gauss-Legendre
+    -- integration.
+    approx
+      | ans > 0   = 1 - ans
+      | otherwise = -ans
+      where
+        -- Set upper limit for integration
+        xu | x > p1    =         (p1 + 11.5*sqrtP1) `max` (x + 6*sqrtP1)
+           | otherwise = max 0 $ (p1 -  7.5*sqrtP1) `min` (x - 5*sqrtP1)
+        s = U.sum $ U.zipWith go coefY coefW
+        go y w = let t = x + (xu - x)*y
+                 in w * exp( -(t-p1) + p1*(log t - lnP1) )
+        ans = s * (xu - x) * exp( p1 * (lnP1 - 1) - logGamma p)
+        --
+        p1     = p - 1
+        lnP1   = log  p1
+        sqrtP1 = sqrt p1
+    --
     pearson !a !c !g
         | c' <= tolerance = g'
         | otherwise       = pearson a' c' g'
