@@ -18,6 +18,15 @@ main = defaultMain
     benchmarkLogGamma logGamma
   , bgroup "logGammaL" $
     benchmarkLogGamma logGammaL
+  , bgroup "incompleteGamma" $
+      [ bench (show p) $ nf (incompleteGamma p) p
+      | p <- [ 0.1
+             , 1,   3
+             , 10,  30
+             , 100, 300
+             , 999, 1000
+             ]
+      ]
   , bgroup "factorial"
     [ bench (show n) $ nf factorial n
     | n <- [ 0, 1, 3, 6, 9, 11, 15
