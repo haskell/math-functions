@@ -739,7 +739,7 @@ digamma x
     --   given number becomes 1 or greater every number is represents
     --   an integer. We also must make sure that excess precision
     --   won't bite us.
-    | x <= 0 && fromIntegral (truncate x) == x = m_neg_inf
+    | x <= 0 && fromIntegral (truncate x :: Int64) == x = m_neg_inf
     -- Jeffery's reflection formula
     | x < 0     = digamma (1 - x) + pi / tan (negate pi * x)
     | x <= 1e-6 = - γ - 1/x + trigamma1 * x
