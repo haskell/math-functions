@@ -45,7 +45,7 @@ import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
-import Numeric.Polynomial              (evaluateEvenPolynomial)
+import Numeric.Polynomial              (evaluateEvenPolynomial,evaluateOddPolynomial)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
                                        , m_eulerMascheroni
@@ -665,12 +665,11 @@ stirlingError n
                     (i,0) -> sfe `U.unsafeIndex` i
                     _     -> logGamma (n+1.0) - (n+0.5) * log n + n -
                              m_ln_sqrt_2_pi
-  | n > 500     = (s0-s1/nn)/n
-  | n > 80      = (s0-(s1-s2/nn)/nn)/n
-  | n > 35      = (s0-(s1-(s2-s3/nn)/nn)/nn)/n
-  | otherwise   = (s0-(s1-(s2-(s3-s4/nn)/nn)/nn)/nn)/n
+  | n > 500     = evaluateOddPolynomial (1/n) $ U.fromList [s0,-s1]
+  | n > 80      = evaluateOddPolynomial (1/n) $ U.fromList [s0,-s1,s2]
+  | n > 35      = evaluateOddPolynomial (1/n) $ U.fromList [s0,-s1,s2,-s3]
+  | otherwise   = evaluateOddPolynomial (1/n) $ U.fromList [s0,-s1,s2,-s3,s4]
   where
-    nn = n*n
     s0 = 0.083333333333333333333        -- 1/12
     s1 = 0.00277777777777777777778      -- 1/360
     s2 = 0.00079365079365079365079365   -- 1/1260
