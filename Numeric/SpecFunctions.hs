@@ -646,6 +646,7 @@ factorial n
 -- 16 decimal digits of precision.
 logFactorial :: Int -> Double
 logFactorial n
+    | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
     | n <= 14   = log (factorial n)
     | otherwise = (x - 0.5) * log x - x + 9.1893853320467e-1 + z / x
     where x = fromIntegral n + 1
