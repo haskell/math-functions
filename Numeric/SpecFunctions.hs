@@ -648,7 +648,7 @@ logFactorial :: Int -> Double
 logFactorial n
     | n <= 14   = log (factorial n)
     | otherwise = (x - 0.5) * log x - x + 9.1893853320467e-1 + z / x
-    where x = fromIntegral (n + 1)
+    where x = fromIntegral n + 1
           y = 1 / (x * x)
           z = ((-(5.95238095238e-4 * y) + 7.936500793651e-4) * y -
                2.7777777777778e-3) * y + 8.3333333333333e-2
