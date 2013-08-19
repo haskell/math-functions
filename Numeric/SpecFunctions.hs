@@ -492,12 +492,12 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
       -- We cannot continue at this point so we simply return `x'
       | x == 0 || x == 1             = x
       -- When derivative becomes infinite we cannot continue
-      -- iterations. It cat only happen in vicinity of 0 or 1.  It's
+      -- iterations. It can only happen in vicinity of 0 or 1. It's
       -- hardly possible to get good answer in such circumstances but
       -- `x' is already reasonable.
       | isInfinite f'                = x
       -- Iterations limit reached. Most of the time solution will
-      -- converge to answer because of discetenes of Double. But
+      -- converge to answer because of discreteness of Double. But
       -- solution have good precision already.
       | i >= 1000                    = x
       -- Solution converges
@@ -509,7 +509,7 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
         f'  = exp $ a1 * log x + b1 * log (1 - x) - beta
         u   = f / f'
         dx  = u / (1 - 0.5 * min 1 (u * (a1 / x - b1 / (1 - x))))
-        -- Next approximation. If Halley step leas us out of [0,1]
+        -- Next approximation. If Halley step leads us out of [0,1]
         -- range we revert to bisection.
         x'  | z < 0     = x / 2
             | z > 1     = (x + 1) / 2
@@ -518,14 +518,14 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
     -- Calculate initial guess. Approximations from AS64, AS109 and
     -- Numerical recipes are used.
     --
-    -- Equations are refered to by name of paper and number e.g. [AS64 2]
+    -- Equations are referred to by name of paper and number e.g. [AS64 2]
     -- In AS64 papers equations are not numbered so they are refered
     -- to by number of appearance starting from definition of
     -- incomplete beta.
     guess
       -- In this region we use approximation from AS109 (Carter
       -- approximation). It's reasonably good (2 iterations on
-      -- average) and never crashes.
+      -- average)
       | a > 1 && b > 1 =
           let r = (y*y - 3) / 6
               s = 1 / (2*a - 1)
