@@ -499,7 +499,7 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
       -- Iterations limit reached. Most of the time solution will
       -- converge to answer because of discreteness of Double. But
       -- solution have good precision already.
-      | i >= 1000                    = x
+      | i >= 10                      = x
       -- Solution converges
       | abs dx <= 16 * m_epsilon * x = x'
       | otherwise                    = loop (i+1) x'
