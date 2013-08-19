@@ -644,15 +644,16 @@ factorial n
 
 -- | Compute the natural logarithm of the factorial function.  Gives
 -- 16 decimal digits of precision.
-logFactorial :: Int -> Double
+logFactorial :: Integral a => a -> Double
 logFactorial n
     | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
-    | n <= 14   = log (factorial n)
+    | n <= 14   = log $ factorial $ fromIntegral n
     | otherwise = (x - 0.5) * log x - x + 9.1893853320467e-1 + z / x
     where x = fromIntegral n + 1
           y = 1 / (x * x)
           z = ((-(5.95238095238e-4 * y) + 7.936500793651e-4) * y -
                2.7777777777778e-3) * y + 8.3333333333333e-2
+{-# SPECIALIZE logFactorial :: Int -> Double #-}
 
 -- | Calculate the error term of the Stirling approximation.  This is
 -- only defined for non-negative values.
