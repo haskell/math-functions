@@ -47,8 +47,8 @@ evaluateEvenPolynomial :: (Vector v a, Num a)
                        -> a
 {-# INLINE evaluateEvenPolynomial #-}
 evaluateEvenPolynomial x
-  = G.foldr (\a r -> a + r*x2) 0
-  where x2 = x * x
+  = evaluatePolynomial (x*x)
+
 
 -- | Evaluate polynomial with only odd powers using Horner's method.
 -- Coefficients starts from lowest. In pseudocode:
@@ -60,8 +60,8 @@ evaluateOddPolynomial :: (Vector v a, Num a)
                        -> a
 {-# INLINE evaluateOddPolynomial #-}
 evaluateOddPolynomial x coefs
-  = x * G.foldr (\a r -> a + r*x2) 0 coefs
-  where x2 = x * x
+  = x * evaluatePolynomial (x*x) coefs
+
 
 
 
