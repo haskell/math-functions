@@ -14,18 +14,26 @@ benchmarkLogGamma logG =
   where tics = 3
 {-# INLINE benchmarkLogGamma #-}
 
-coefs_1,coefs_10,coefs_100,coefs_1000 :: U.Vector Double
-coefs_1    = U.replicate 1    1.4
-coefs_10   = U.replicate 10   1.2
-coefs_100  = U.replicate 100  1.2
-coefs_1000 = U.replicate 1000 1.2
-{-# NOINLINE coefs_1    #-}
-{-# NOINLINE coefs_10   #-}
-{-# NOINLINE coefs_100  #-}
-{-# NOINLINE coefs_1000 #-}
+
+-- Power of polynomial to be evaluated (In other words length of coefficients vector)
+coef_size :: [Int]
+coef_size = [ 1,2,3,4,5,6,7,8,9
+            , 10,    30
+            , 100,   300
+            , 1000,  3000
+            , 10000, 30000
+            ]
+{-# INLINE coef_size #-}
+
+-- Precalculated coefficients
+coef_list :: [U.Vector Double]
+coef_list = [ U.replicate n 1.2 | n <- coef_size]
+{-# NOINLINE coef_list #-}
+
+
 
 main :: IO ()
-main = defaultMain 
+main = defaultMain
   [ bgroup "logGamma" $
     benchmarkLogGamma logGamma
   , bgroup "logGammaL" $
@@ -69,13 +77,8 @@ main = defaultMain
              ]
       ]
   , bgroup "poly"
-      [ bench "vector_1"      $ nf (\x -> evaluatePolynomial x coefs_1  ) 1
-      , bench "vector_10"     $ nf (\x -> evaluatePolynomial x coefs_10 ) 1
-      , bench "vector_100"    $ nf (\x -> evaluatePolynomial x coefs_100) 1
-      , bench "vector_1000"   $ nf (\x -> evaluatePolynomial x coefs_1000) 1
-      , bench "unpacked_1"    $ nf (\x -> evaluatePolynomialL x [1..1]   ) (1::Double)
-      , bench "unpacked_10"   $ nf (\x -> evaluatePolynomialL x [1..10]  ) (1::Double)
-      , bench "unpacked_100"  $ nf (\x -> evaluatePolynomialL x [1..100] ) (1::Double)
-      , bench "unpacked_1000" $ nf (\x -> evaluatePolynomialL x [1..1000]) (1::Double)
-      ]
+      $  [ bench ("vector_"++show (U.length coefs)) $ nf (\x -> evaluatePolynomial x coefs) (1 :: Double)
+         | coefs <- coef_list ]
+      ++ [ bench ("unpacked_"++show n) $ nf (\x -> evaluatePolynomialL x (map fromIntegral [1..n])) (1 :: Double)
+         | n <- coef_size ]
   ]
