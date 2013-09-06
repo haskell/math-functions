@@ -9,12 +9,19 @@
 --
 -- Function for evaluating polynomials using Horher's method.
 module Numeric.Polynomial (
+    -- * Polynomials
     evaluatePolynomial
   , evaluateEvenPolynomial
   , evaluateOddPolynomial
+    -- ** Lists
+    -- $list
+  , evaluatePolynomialL
+  , evaluateEvenPolynomialL
+  , evaluateOddPolynomialL
   ) where
 
 import qualified Data.Vector.Generic as G
+import qualified Data.Vector         as V
 import           Data.Vector.Generic  (Vector)
 
 
@@ -27,8 +34,8 @@ evaluatePolynomial :: (Vector v a, Num a)
                    -> v a  -- ^ Coefficients
                    -> a
 {-# INLINE evaluatePolynomial #-}
-evaluatePolynomial x coefs
-  = G.foldr (\a r -> a + r*x) 0 coefs
+evaluatePolynomial x
+  = G.foldr (\a r -> a + r*x) 0
 
 -- | Evaluate polynomial with only even powers using Horner's method.
 -- Coefficients starts from lowest. In pseudocode:
@@ -39,8 +46,8 @@ evaluateEvenPolynomial :: (Vector v a, Num a)
                        -> v a  -- ^ Coefficients
                        -> a
 {-# INLINE evaluateEvenPolynomial #-}
-evaluateEvenPolynomial x coefs
-  = G.foldr (\a r -> a + r*x2) 0 coefs
+evaluateEvenPolynomial x
+  = G.foldr (\a r -> a + r*x2) 0
   where x2 = x * x
 
 -- | Evaluate polynomial with only odd powers using Horner's method.
@@ -55,3 +62,24 @@ evaluateOddPolynomial :: (Vector v a, Num a)
 evaluateOddPolynomial x coefs
   = x * G.foldr (\a r -> a + r*x2) 0 coefs
   where x2 = x * x
+
+
+
+-- $lists
+--
+-- When all coefficients are known statically it's more convenient to
+-- pass coefficient in a list instad of vector. Functions below
+-- provide just that functionality. If list is known statically it
+-- will be inlined anyway.
+
+evaluatePolynomialL :: (Num a) => a -> [a] -> a
+evaluatePolynomialL x = evaluatePolynomial x . V.fromList
+{-# INLINE evaluatePolynomialL #-}
+
+evaluateEvenPolynomialL :: (Num a) => a -> [a] -> a
+evaluateEvenPolynomialL x = evaluateEvenPolynomial x . V.fromList
+{-# INLINE evaluateEvenPolynomialL #-}
+
+evaluateOddPolynomialL :: (Num a) => a -> [a] -> a
+evaluateOddPolynomialL x = evaluateOddPolynomial x . V.fromList
+{-# INLINE evaluateOddPolynomialL #-}

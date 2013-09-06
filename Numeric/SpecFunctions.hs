@@ -45,7 +45,7 @@ import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
-import Numeric.Polynomial              (evaluateEvenPolynomial)
+import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolynomialL)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
                                        , m_eulerMascheroni
@@ -492,14 +492,14 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
       -- We cannot continue at this point so we simply return `x'
       | x == 0 || x == 1             = x
       -- When derivative becomes infinite we cannot continue
-      -- iterations. It cat only happen in vicinity of 0 or 1.  It's
+      -- iterations. It can only happen in vicinity of 0 or 1. It's
       -- hardly possible to get good answer in such circumstances but
       -- `x' is already reasonable.
       | isInfinite f'                = x
       -- Iterations limit reached. Most of the time solution will
-      -- converge to answer because of discetenes of Double. But
+      -- converge to answer because of discreteness of Double. But
       -- solution have good precision already.
-      | i >= 1000                    = x
+      | i >= 10                      = x
       -- Solution converges
       | abs dx <= 16 * m_epsilon * x = x'
       | otherwise                    = loop (i+1) x'
@@ -509,7 +509,7 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
         f'  = exp $ a1 * log x + b1 * log (1 - x) - beta
         u   = f / f'
         dx  = u / (1 - 0.5 * min 1 (u * (a1 / x - b1 / (1 - x))))
-        -- Next approximation. If Halley step leas us out of [0,1]
+        -- Next approximation. If Halley step leads us out of [0,1]
         -- range we revert to bisection.
         x'  | z < 0     = x / 2
             | z > 1     = (x + 1) / 2
@@ -518,14 +518,14 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
     -- Calculate initial guess. Approximations from AS64, AS109 and
     -- Numerical recipes are used.
     --
-    -- Equations are refered to by name of paper and number e.g. [AS64 2]
+    -- Equations are referred to by name of paper and number e.g. [AS64 2]
     -- In AS64 papers equations are not numbered so they are refered
     -- to by number of appearance starting from definition of
     -- incomplete beta.
     guess
       -- In this region we use approximation from AS109 (Carter
       -- approximation). It's reasonably good (2 iterations on
-      -- average) and never crashes.
+      -- average)
       | a > 1 && b > 1 =
           let r = (y*y - 3) / 6
               s = 1 / (2*a - 1)
@@ -644,14 +644,16 @@ factorial n
 
 -- | Compute the natural logarithm of the factorial function.  Gives
 -- 16 decimal digits of precision.
-logFactorial :: Int -> Double
+logFactorial :: Integral a => a -> Double
 logFactorial n
-    | n <= 14   = log (factorial n)
+    | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
+    | n <= 14   = log $ factorial $ fromIntegral n
     | otherwise = (x - 0.5) * log x - x + 9.1893853320467e-1 + z / x
-    where x = fromIntegral (n + 1)
+    where x = fromIntegral n + 1
           y = 1 / (x * x)
           z = ((-(5.95238095238e-4 * y) + 7.936500793651e-4) * y -
                2.7777777777778e-3) * y + 8.3333333333333e-2
+{-# SPECIALIZE logFactorial :: Int -> Double #-}
 
 -- | Calculate the error term of the Stirling approximation.  This is
 -- only defined for non-negative values.
@@ -663,12 +665,11 @@ stirlingError n
                     (i,0) -> sfe `U.unsafeIndex` i
                     _     -> logGamma (n+1.0) - (n+0.5) * log n + n -
                              m_ln_sqrt_2_pi
-  | n > 500     = (s0-s1/nn)/n
-  | n > 80      = (s0-(s1-s2/nn)/nn)/n
-  | n > 35      = (s0-(s1-(s2-s3/nn)/nn)/nn)/n
-  | otherwise   = (s0-(s1-(s2-(s3-s4/nn)/nn)/nn)/nn)/n
+  | n > 500     = evaluateOddPolynomialL (1/n) [s0,-s1]
+  | n > 80      = evaluateOddPolynomialL (1/n) [s0,-s1,s2]
+  | n > 35      = evaluateOddPolynomialL (1/n) [s0,-s1,s2,-s3]
+  | otherwise   = evaluateOddPolynomialL (1/n) [s0,-s1,s2,-s3,s4]
   where
-    nn = n*n
     s0 = 0.083333333333333333333        -- 1/12
     s1 = 0.00277777777777777777778      -- 1/360
     s2 = 0.00079365079365079365079365   -- 1/1260
@@ -746,15 +747,15 @@ digamma x
     | x' < c    = r
     -- De Moivre's expansion
     | otherwise = let s = 1/x'
-                  in  evaluateEvenPolynomial s $
-                        U.fromList [   r + log x' - 0.5 * s
-                                   , - 1/12
-                                   ,   1/120
-                                   , - 1/252
-                                   ,   1/240
-                                   , - 1/132
-                                   ,  391/32760
-                                   ]
+                  in  evaluateEvenPolynomialL s
+                        [   r + log x' - 0.5 * s
+                        , - 1/12
+                        ,   1/120
+                        , - 1/252
+                        ,   1/240
+                        , - 1/132
+                        ,  391/32760
+                        ]
   where
     γ  = m_eulerMascheroni
     c  = 12

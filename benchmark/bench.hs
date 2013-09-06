@@ -1,5 +1,7 @@
 import Criterion.Main
+import qualified Data.Vector.Unboxed as U
 import Numeric.SpecFunctions
+import Numeric.Polynomial
 import Text.Printf
 
 -- Uniformly sample logGamma performance between 10^-6 to 10^6
@@ -11,6 +13,16 @@ benchmarkLogGamma logG =
   ]
   where tics = 3
 {-# INLINE benchmarkLogGamma #-}
+
+coefs_1,coefs_10,coefs_100,coefs_1000 :: U.Vector Double
+coefs_1    = U.replicate 1    1.4
+coefs_10   = U.replicate 10   1.2
+coefs_100  = U.replicate 100  1.2
+coefs_1000 = U.replicate 1000 1.2
+{-# NOINLINE coefs_1    #-}
+{-# NOINLINE coefs_10   #-}
+{-# NOINLINE coefs_100  #-}
+{-# NOINLINE coefs_1000 #-}
 
 main :: IO ()
 main = defaultMain 
@@ -55,5 +67,15 @@ main = defaultMain
              ,  10
              ,  100
              ]
+      ]
+  , bgroup "poly"
+      [ bench "vector_1"      $ nf (\x -> evaluatePolynomial x coefs_1  ) 1
+      , bench "vector_10"     $ nf (\x -> evaluatePolynomial x coefs_10 ) 1
+      , bench "vector_100"    $ nf (\x -> evaluatePolynomial x coefs_100) 1
+      , bench "vector_1000"   $ nf (\x -> evaluatePolynomial x coefs_1000) 1
+      , bench "unpacked_1"    $ nf (\x -> evaluatePolynomialL x [1..1]   ) (1::Double)
+      , bench "unpacked_10"   $ nf (\x -> evaluatePolynomialL x [1..10]  ) (1::Double)
+      , bench "unpacked_100"  $ nf (\x -> evaluatePolynomialL x [1..100] ) (1::Double)
+      , bench "unpacked_1000" $ nf (\x -> evaluatePolynomialL x [1..1000]) (1::Double)
       ]
   ]
