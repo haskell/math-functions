@@ -1,0 +1,9 @@
+Changes in 0.1.3
+
+  * Error function and its inverse added.
+
+  * Digamma function added
+
+  * Evaluation of polynomials using Horner's method added.
+
+  * Crash bug in the inverse incomplete beta fixed.
