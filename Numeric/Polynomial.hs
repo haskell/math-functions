@@ -34,8 +34,9 @@ evaluatePolynomial :: (Vector v a, Num a)
                    -> v a  -- ^ Coefficients
                    -> a
 {-# INLINE evaluatePolynomial #-}
-evaluatePolynomial x
-  = G.foldr (\a r -> a + r*x) 0
+evaluatePolynomial x v
+  | G.null v  = 0
+  | otherwise = G.foldr1 (\a r -> a + r*x) v
 
 -- | Evaluate polynomial with only even powers using Horner's method.
 -- Coefficients starts from lowest. In pseudocode:
