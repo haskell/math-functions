@@ -7,6 +7,7 @@ author:         Bryan O'Sullivan <bos@serpentine.com>,
                 Aleksey Khudyakov <alexey.skladnoy@gmail.com>
 maintainer:     Bryan O'Sullivan <bos@serpentine.com>
 homepage:       https://github.com/bos/math-functions
+bug-reports:    https://github.com/bos/math-functions/issues
 category:       Math, Numeric
 build-type:     Simple
 synopsis:       Special functions and Chebyshev polynomials
