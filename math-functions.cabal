@@ -26,6 +26,7 @@ extra-source-files:
 library
   ghc-options:          -Wall
   build-depends:        base >=3 && <5,
+                        deepseq,
                         erf >= 2,
                         vector >= 0.7,
                         vector-th-unbox
