@@ -47,7 +47,7 @@ import Data.Data (Typeable, Data)
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
 
-#if __GLASGOW_HASKELL == 704
+#if __GLASGOW_HASKELL__ == 704
 import Data.Vector.Generic (Vector(..))
 import Data.Vector.Generic.Mutable (MVector(..))
 #endif
