@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, MultiParamTypeClasses,
+{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, MultiParamTypeClasses,
     TemplateHaskell, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
@@ -46,6 +46,11 @@ import Control.DeepSeq (NFData(..))
 import Data.Data (Typeable, Data)
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
+
+#if __GLASGOW_HASKELL == 704
+import Data.Vector.Generic (Vector(..))
+import Data.Vector.Generic.Mutable (MVector(..))
+#endif
 
 -- | A class for summation of floating point numbers.
 class Summation s where
