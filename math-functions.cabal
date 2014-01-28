@@ -26,18 +26,20 @@ extra-source-files:
 library
   ghc-options:          -Wall
   build-depends:        base >=3 && <5,
+                        erf >= 2,
                         vector >= 0.7,
-                        erf >= 2
-  exposed-modules:      
-    Numeric.SpecFunctions
-    Numeric.SpecFunctions.Extra
+                        vector-th-unbox
+  exposed-modules:
+    Numeric.MathFunctions.Constants
     Numeric.Polynomial
     Numeric.Polynomial.Chebyshev
-    Numeric.MathFunctions.Constants
+    Numeric.SpecFunctions
+    Numeric.SpecFunctions.Extra
+    Numeric.Sum
 
 test-suite tests
-  buildable:      False
   type:           exitcode-stdio-1.0
+  ghc-options:    -Wall -threaded
   hs-source-dirs: tests
   main-is:        tests.hs
   other-modules:
@@ -45,6 +47,7 @@ test-suite tests
     Tests.Chebyshev
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
+    Tests.Sum
   build-depends:
     math-functions,
     base >=3 && <5,
