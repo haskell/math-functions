@@ -1,3 +1,9 @@
+-*- text -*-
+
+Changes in 0.1.5
+
+  * Numeric.Sum: new module adds accurate floating point summation.
+
 Changes in 0.1.4
 
   * logFactorial type is genberalized. It accepts any `Integral' type
