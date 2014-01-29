@@ -1,9 +1,9 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, MultiParamTypeClasses,
-    TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, FlexibleContexts,
+    MultiParamTypeClasses, TemplateHaskell, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
 -- Module    : Numeric.Sum
--- Copyright : (c) 2013 Bryan O'Sullivan
+-- Copyright : (c) 2014 Bryan O'Sullivan
 -- License   : BSD3
 --
 -- Maintainer  : bos@serpentine.com
@@ -23,6 +23,7 @@
 module Numeric.Sum (
     -- * Summation type class
       Summation(..)
+    , sumVector
     -- ** Usage
     -- $usage
 
@@ -46,9 +47,9 @@ import Control.DeepSeq (NFData(..))
 import Data.Data (Typeable, Data)
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
+import Data.Vector.Generic (Vector(..), foldl')
 
 #if __GLASGOW_HASKELL__ == 704
-import Data.Vector.Generic (Vector(..))
 import Data.Vector.Generic.Mutable (MVector(..))
 #endif
 
@@ -169,6 +170,12 @@ kb2Add (KB2Sum sum c cc) x = KB2Sum sum' c' cc'
 -- | Return the result of an order-2 Kahan-Babuška sum.
 kb2 :: KB2Sum -> Double
 kb2 (KB2Sum sum c cc) = sum + c + cc
+
+-- | /O(n)/ Sum a vector of values.
+sumVector :: (Vector v Double, Summation s) =>
+             (s -> Double) -> v Double -> Double
+sumVector f = f . foldl' add zero
+{-# INLINE sumVector #-}
 
 -- $usage
 --
