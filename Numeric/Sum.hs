@@ -11,15 +11,16 @@
 -- Portability : portable
 --
 -- Functions for summing floating point numbers more accurately than
--- the standard 'sum' function.
+-- the naive 'Prelude.sum' function and its counterparts in the
+-- @vector@ package and elsewhere.
 --
--- When used with floating point numbers, in the worst case, the 'sum'
--- function accumulates numeric error at a rate proportional to the
--- number of values being summed. The algorithms in this module
--- implement different methods of /compensated summation/, which
--- reduce the accumulation of numeric error so that it either grows
--- much more slowly than the number of inputs (e.g. logarithmically),
--- or remains constant.
+-- When used with floating point numbers, in the worst case, the
+-- 'Prelude.sum' function accumulates numeric error at a rate
+-- proportional to the number of values being summed. The algorithms
+-- in this module implement different methods of /compensated
+-- summation/, which reduce the accumulation of numeric error so that
+-- it either grows much more slowly than the number of inputs
+-- (e.g. logarithmically), or remains constant.
 module Numeric.Sum (
     -- * Summation type class
       Summation(..)
@@ -35,11 +36,13 @@ module Numeric.Sum (
     , KB2Sum(..)
     , kb2
 
-    -- * Kahan summation
+    -- * Less desirable approaches
+
+    -- ** Kahan summation
     , KahanSum(..)
     , kahan
 
-    -- * Pairwise summation
+    -- ** Pairwise summation
     , pairwiseSum
 
     -- * References
@@ -48,6 +51,7 @@ module Numeric.Sum (
 
 import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
+import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
 import Data.Vector.Generic (Vector(..), foldl')
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
@@ -86,7 +90,8 @@ instance Summation Double where
 -- accurate than naive summation for small-magnitude inputs.
 --
 -- This summation method is included for completeness. Its use is not
--- recommended.  Prefer 'KBNSum' for almost all purposes.
+-- recommended.  In practice, 'KBNSum' is both 30% faster and more
+-- accurate.
 data KahanSum = KahanSum {-# UNPACK #-} !Double {-# UNPACK #-} !Double
               deriving (Eq, Show, Typeable, Data)
 
@@ -140,10 +145,10 @@ kbnAdd (KBNSum sum c) x = KBNSum sum' c'
 kbn :: KBNSum -> Double
 kbn (KBNSum sum c) = sum + c
 
--- | Second-order Kahan-Babuška summation. This is a little more
--- computationally costly than Kahan-Babuška-Neumaier summation, but
--- its advantage is that it can lose less precision (albeit in
--- admittedly obscure cases).
+-- | Second-order Kahan-Babuška summation.  This is more
+-- computationally costly than Kahan-Babuška-Neumaier summation,
+-- running at about a third the speed.  Its advantage is that it can
+-- lose less precision (in admittedly obscure cases).
 --
 -- This method compensates for error in both the sum and the
 -- first-order compensation term, hence the use of \"second order\" in
@@ -186,21 +191,22 @@ sumVector f = f . foldl' add zero
 
 -- | /O(n)/ Sum a vector of values using pairwise summation.
 --
--- This approach is faster than Kahan-Babuška-Neumaier summation, but
--- instead of having roughly constant error regardless of the size of
--- the input vector, its accumulated error grows with /O(log n)/.
+-- This approach is perhaps 10% faster than 'KBNSum', but has poorer
+-- bounds on its error growth.  Instead of having roughly constant
+-- error regardless of the size of the input vector, in the worst case
+-- its accumulated error grows with /O(log n)/.
 pairwiseSum :: (Vector v Double) => v Double -> Double
 pairwiseSum v
-  | len <= 128 = G.sum v
+  | len <= 256 = G.sum v
   | otherwise  = uncurry (+) . (pairwiseSum *** pairwiseSum) .
-                 G.splitAt (len `quot` 2) $ v
+                 G.splitAt (len `shiftR` 1) $ v
   where len = G.length v
 {-# SPECIALIZE pairwiseSum :: V.Vector Double -> Double #-}
 {-# SPECIALIZE pairwiseSum :: U.Vector Double -> Double #-}
 
 -- $usage
 --
--- These summation algorithms are intended to be used via the
+-- Most of these summation algorithms are intended to be used via the
 -- 'Summation' typeclass interface. Explicit type annotations should
 -- not be necessary, as the use of a function such as 'kbn' or 'kb2'
 -- to extract the final sum out of a 'Summation' instance gives the
@@ -211,8 +217,8 @@ pairwiseSum v
 -- computes the sum of elements in a list.
 --
 -- @
--- sumList :: [Double] -> Double
--- sumList = loop 'zero'
+-- sillySumList :: [Double] -> Double
+-- sillySumList = loop 'zero'
 --   where loop s []     = 'kbn' s
 --         loop s (x:xs) = 'seq' s' loop s' xs
 --           where s'    = 'add' s x
@@ -220,6 +226,14 @@ pairwiseSum v
 --
 -- In most instances, you can simply use the much more general 'sum'
 -- function instead of writing a summation function by hand.
+--
+-- @
+-- -- Avoid ambiguity around which sum function we are using.
+-- import Prelude hiding (sum)
+-- --
+-- betterSumList :: [Double] -> Double
+-- betterSumList xs = 'sum' 'kbn' xs
+-- @
 
 -- Note well the use of 'seq' in the example above to force the
 -- evaluation of intermediate values.  If you must write a summation
