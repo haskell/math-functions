@@ -39,15 +39,22 @@ module Numeric.Sum (
     , KahanSum(..)
     , kahan
 
+    -- * Pairwise summation
+    , pairwiseSum
+
     -- * References
     -- $references
     ) where
 
+import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
 import Data.Data (Typeable, Data)
+import Data.Vector.Generic (Vector(..), foldl')
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
-import Data.Vector.Generic (Vector(..), foldl')
+import qualified Data.Vector as V
+import qualified Data.Vector.Generic as G
+import qualified Data.Vector.Unboxed as U
 
 #if __GLASGOW_HASKELL__ == 704
 import Data.Vector.Generic.Mutable (MVector(..))
@@ -177,6 +184,20 @@ sumVector :: (Vector v Double, Summation s) =>
 sumVector f = f . foldl' add zero
 {-# INLINE sumVector #-}
 
+-- | /O(n)/ Sum a vector of values using pairwise summation.
+--
+-- This approach is faster than Kahan-Babuška-Neumaier summation, but
+-- instead of having roughly constant error regardless of the size of
+-- the input vector, its accumulated error grows with /O(log n)/.
+pairwiseSum :: (Vector v Double) => v Double -> Double
+pairwiseSum v
+  | len <= 128 = G.sum v
+  | otherwise  = uncurry (+) . (pairwiseSum *** pairwiseSum) .
+                 G.splitAt (len `quot` 2) $ v
+  where len = G.length v
+{-# SPECIALIZE pairwiseSum :: V.Vector Double -> Double #-}
+{-# SPECIALIZE pairwiseSum :: U.Vector Double -> Double #-}
+
 -- $usage
 --
 -- These summation algorithms are intended to be used via the
@@ -224,3 +245,6 @@ sumVector f = f . foldl' add zero
 --
 -- * Klein, A. (2006), A Generalized
 --   Kahan-Babuška-Summation-Algorithm. /Computing/ 76(3):279-293.
+--
+-- * Higham, N.J. (1993), The accuracy of floating point
+--   summation. /SIAM Journal on Scientific Computing/ 14(4):783–799.

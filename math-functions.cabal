@@ -17,11 +17,12 @@ description:
   useful in statistical and numerical computing.
 
 extra-source-files:
+  ChangeLog
   README.markdown
+  benchmark/*.hs
   tests/*.hs
   tests/Tests/*.hs
   tests/Tests/SpecFunctions/gen.py
-  ChangeLog
 
 library
   ghc-options:          -Wall
