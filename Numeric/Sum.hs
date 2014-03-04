@@ -54,15 +54,12 @@ import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
 import Data.Vector.Generic (Vector(..), foldl')
+import Data.Vector.Generic.Mutable (MVector(..))
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Unboxed as U
-
-#if __GLASGOW_HASKELL__ == 704
-import Data.Vector.Generic.Mutable (MVector(..))
-#endif
 
 -- | A class for summation of floating point numbers.
 class Summation s where
