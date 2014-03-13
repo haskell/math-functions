@@ -17,6 +17,7 @@ module Numeric.SpecFunctions (
   , invErfc
     -- * Gamma function
   , logGamma
+  , logGammaPdf
   , logGammaL
   , incompleteGamma
   , invIncompleteGamma
@@ -166,6 +167,15 @@ logGamma x
     r4_2 = 0.0692910599291889; r4_3 = 3.350343815022304
     r4_4 = 6.012459259764103
 
+
+-- | The log of the probability density function for the Gamma
+-- distribution. E.g. exp ($ logGammaPdf 6.2 0.12 50) ==
+-- 1.9537627064835354e-2 calculates the value of the pdf with shape
+-- and rate of 6.2 and 0.12 at 50.
+logGammaPdf :: Double -> Double -> Double -> Double
+logGammaPdf alpha beta x = unNorm - logGamma alpha
+  where
+    unNorm = alpha * (log beta) + (alpha - 1) * log x - beta * x
 
 
 data L = L {-# UNPACK #-} !Double {-# UNPACK #-} !Double
