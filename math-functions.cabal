@@ -24,8 +24,14 @@ extra-source-files:
   tests/Tests/*.hs
   tests/Tests/SpecFunctions/gen.py
 
+flag sse2
+  description: Does the target support SSE2?
+  default: True
+
 library
   ghc-options:          -Wall
+  if arch(i386) && flag(sse2)
+    ghc-options:        -msse2
   build-depends:        base >=3 && <5,
                         deepseq,
                         erf >= 2,
@@ -42,6 +48,9 @@ library
 test-suite tests
   type:           exitcode-stdio-1.0
   ghc-options:    -Wall -threaded
+  if arch(i386)
+    -- The Sum tests require SSE2 on i686 to pass (because of excess precision)
+    ghc-options:  -msse2
   hs-source-dirs: tests
   main-is:        tests.hs
   other-modules:
