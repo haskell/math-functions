@@ -24,14 +24,9 @@ extra-source-files:
   tests/Tests/*.hs
   tests/Tests/SpecFunctions/gen.py
 
-flag sse2
-  description: Does the target support SSE2?
-  default: True
 
 library
   ghc-options:          -Wall
-  if arch(i386) && flag(sse2)
-    ghc-options:        -msse2
   build-depends:        base >=3 && <5,
                         deepseq,
                         erf >= 2,
