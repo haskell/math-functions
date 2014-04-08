@@ -1,5 +1,9 @@
 -*- text -*-
 
+Changes in 0.1.5.3
+
+  * Fix for test suite on 32bit platform
+
 Changes in 0.1.5
 
   * Numeric.Sum: new module adds accurate floating point summation.
