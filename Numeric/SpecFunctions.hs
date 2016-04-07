@@ -35,6 +35,7 @@ module Numeric.SpecFunctions (
   , stirlingError
     -- * Combinatorics
   , choose
+  , logChoose
     -- * References
     -- $references
   ) where
@@ -697,13 +698,37 @@ stirlingError n
 -- Combinatorics
 ----------------------------------------------------------------
 
--- | Quickly compute the natural logarithm of /n/ @`choose`@ /k/, with
+-- |
+-- Quickly compute the natural logarithm of /n/ @`choose`@ /k/, with
 -- no checking.
+--
+-- Less numerically stable:
+--
+-- > exp $ lg (n+1) - lg (k+1) - lg (n-k+1)
+-- >   where lg = logGamma . fromIntegral
 logChooseFast :: Double -> Double -> Double
 logChooseFast n k = -log (n + 1) - logBeta (n - k + 1) (k + 1)
 
+-- | Calculate binomial coefficient using exact formula
+chooseExact :: Int -> Int -> Double
+n `chooseExact` k
+  = U.foldl' go 1 $ U.enumFromTo 1 k
+  where
+    go a i      = a * (nk + j) / j
+        where j = fromIntegral i :: Double
+    nk = fromIntegral (n - k)
+
+-- | Compute logarithm of the binomial coefficient.
+logChoose :: Int -> Int -> Double
+n `logChoose` k
+    | k > n     = (-1) / 0
+    | k' < 50   = log $ chooseExact n k'
+    | otherwise = logChooseFast (fromIntegral n) (fromIntegral k)
+  where
+    k'             = min k (n-k)
+
 -- | Compute the binomial coefficient /n/ @\``choose`\`@ /k/. For
--- values of /k/ > 30, this uses an approximation for performance
+-- values of /k/ > 50, this uses an approximation for performance
 -- reasons.  The approximation is accurate to 12 decimal places in the
 -- worst case
 --
@@ -713,18 +738,12 @@ logChooseFast n k = -log (n + 1) - logBeta (n - k + 1) (k + 1)
 choose :: Int -> Int -> Double
 n `choose` k
     | k  > n         = 0
-    | k' < 50        = U.foldl' go 1 . U.enumFromTo 1 $ k'
+    | k' < 50        = chooseExact n k'
     | approx < max64 = fromIntegral . round64 $ approx
     | otherwise      = approx
   where
     k'             = min k (n-k)
     approx         = exp $ logChooseFast (fromIntegral n) (fromIntegral k')
-                  -- Less numerically stable:
-                  -- exp $ lg (n+1) - lg (k+1) - lg (n-k+1)
-                  --   where lg = logGamma . fromIntegral
-    go a i         = a * (nk + j) / j
-        where j    = fromIntegral i :: Double
-    nk             = fromIntegral (n - k')
     max64          = fromIntegral (maxBound :: Int64)
     round64 x      = round x :: Int64
 
