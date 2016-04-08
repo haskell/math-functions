@@ -692,11 +692,13 @@ n `chooseExact` k
 -- | Compute logarithm of the binomial coefficient.
 logChoose :: Int -> Int -> Double
 n `logChoose` k
-    | k > n     = (-1) / 0
-    | k' < 50   = log $ chooseExact n k'
-    | otherwise = logChooseFast (fromIntegral n) (fromIntegral k)
+    | k  > n    = (-1) / 0
+      -- For very large N exact algorithm overflows double so we
+      -- switch to beta-function based one
+    | k' < 50 && (n < 20000000) = log $ chooseExact n k'
+    | otherwise                 = logChooseFast (fromIntegral n) (fromIntegral k)
   where
-    k'             = min k (n-k)
+    k' = min k (n-k)
 
 -- | Compute the binomial coefficient /n/ @\``choose`\`@ /k/. For
 -- values of /k/ > 50, this uses an approximation for performance
