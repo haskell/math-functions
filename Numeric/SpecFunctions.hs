@@ -26,6 +26,8 @@ module Numeric.SpecFunctions (
   , incompleteBeta
   , incompleteBeta_
   , invIncompleteBeta
+    -- * Sinc
+  , sinc
     -- * Logarithm
   , log1p
   , log2

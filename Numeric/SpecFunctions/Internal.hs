@@ -539,6 +539,23 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
 
 
 
+----------------------------------------------------------------
+-- Sinc function
+----------------------------------------------------------------
+
+-- | Compute sinc function @sin(x)\/x@
+sinc :: Double -> Double
+sinc x
+  | abs x < eps_0 = 1
+  | abs x < eps_2 = 1 - x2/6
+  | abs x < eps_4 = 1 - x2/6 + x2*x2/120
+  | otherwise     = sin x / x
+  where
+    x2    = x*x
+    eps_0 = m_epsilon             -- ε
+    eps_2 = 1.4901161193847656e-8 -- sqrt ε
+    eps_4 = 1.220703125e-4        -- ε ^ (1/4)
+
 
 ----------------------------------------------------------------
 -- Logarithm
