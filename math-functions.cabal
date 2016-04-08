@@ -39,6 +39,8 @@ library
     Numeric.SpecFunctions
     Numeric.SpecFunctions.Extra
     Numeric.Sum
+  other-modules:
+    Numeric.SpecFunctions.Internal
 
 test-suite tests
   type:           exitcode-stdio-1.0
