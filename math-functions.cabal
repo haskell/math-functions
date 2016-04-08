@@ -17,7 +17,7 @@ description:
   useful in statistical and numerical computing.
 
 extra-source-files:
-  ChangeLog
+  changelog.md
   README.markdown
   benchmark/*.hs
   tests/*.hs

@@ -10,7 +10,7 @@ Changes in 0.1.5
 
 Changes in 0.1.4
 
-  * logFactorial type is genberalized. It accepts any `Integral' type
+  * logFactorial type is genberalized. It accepts any `Integral` type
 
   * Evaluation of polynomials using Horner's method where coefficients
     are store in lists added
