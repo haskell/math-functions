@@ -9,10 +9,13 @@
 --
 -- Less common mathematical functions.
 module Numeric.SpecFunctions.Extra (
-  bd0
+    bd0
+  , chooseExact
+  , logChooseFast
   ) where
 
 import Numeric.MathFunctions.Constants (m_NaN)
+import Numeric.SpecFunctions.Internal  (chooseExact,logChooseFast)
 
 -- | Evaluate the deviance term @x log(x/np) + np - x@.
 bd0 :: Double                   -- ^ @x@
