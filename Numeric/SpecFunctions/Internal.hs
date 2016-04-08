@@ -588,7 +588,7 @@ log1p x
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.
 log2 :: Int -> Int
 log2 v0
-    | v0 <= 0   = modErr $ "log2: negative input, got " ++ show v0
+    | v0 <= 0   = modErr $ "log2: nonpositive input, got " ++ show v0
     | otherwise = go 5 0 v0
   where
     go !i !r !v | i == -1        = r
