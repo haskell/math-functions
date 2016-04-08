@@ -1,4 +1,10 @@
--*- text -*-
+Changes in 0.1.6.0
+
+  * `logChoose` added for calculation of logarithm of binomial coefficient
+
+  * `chooseExact` and `logChooseFast` added
+
+  * `sinc` added
 
 Changes in 0.1.5.3
 
