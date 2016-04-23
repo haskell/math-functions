@@ -76,6 +76,11 @@ main = defaultMain
              ,  100
              ]
       ]
+  , bgroup "sinc" $
+        bench "sin" (nf sin (0.55 :: Double))
+      : [ bench (show x) $ nf sinc x
+        | x <- [0, 1e-6, 1e-3,  0.5]
+        ]
   , bgroup "poly"
       $  [ bench ("vector_"++show (U.length coefs)) $ nf (\x -> evaluatePolynomial x coefs) (1 :: Double)
          | coefs <- coef_list ]
