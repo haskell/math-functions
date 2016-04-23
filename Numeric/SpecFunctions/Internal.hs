@@ -553,6 +553,7 @@ sinc x
   where
     ax    = abs x
     x2    = x*x
+    -- For explanation of choice see `doc/sinc.hs'
     eps_0 = 1.8250120749944284e-8 -- sqrt (6ε/4)
     eps_2 = 1.4284346431400855e-4 --   (30ε)**(1/4) / 2
     eps_4 = 4.043633626430947e-3  -- (1206ε)**(1/6) / 2
