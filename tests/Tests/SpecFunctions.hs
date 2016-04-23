@@ -78,7 +78,7 @@ tests = testGroup "Special functions"
             ]
   , testAssertion "choose is expected to precise at 1e-12 level"
       $ and [ eq 1e-12 (choose (fromIntegral n) (fromIntegral k)) (fromIntegral $ choose' n k)
-            | n <- [0..300], k <- [0..n]]
+            | n <- [0..1000], k <- [0..n]]
     ----------------------------------------------------------------
     -- Self tests
   , testProperty "Self-test: 0 <= range01 <= 1" $ \x -> let f = range01 x in f <= 1 && f >= 0
