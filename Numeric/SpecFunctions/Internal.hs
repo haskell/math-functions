@@ -639,11 +639,14 @@ logFactorial :: Integral a => a -> Double
 logFactorial n
     | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
     | n <= 14   = log $ factorial $ fromIntegral n
-    | otherwise = (x - 0.5) * log x - x + 9.1893853320467e-1 + z / x
+    -- N.B. Γ(n+1) = n!
+    --
+    -- We use here asymptotic series for gamma function. See
+    -- http://mathworld.wolfram.com/StirlingsSeries.html
+    | otherwise = (x - 0.5) * log x - x
+                + m_ln_sqrt_2_pi
+                + evaluateOddPolynomialL (1/x) [1/12, -1/360, 1/1260, -1/1680]
     where x = fromIntegral n + 1
-          y = 1 / (x * x)
-          z = ((-(5.95238095238e-4 * y) + 7.936500793651e-4) * y -
-               2.7777777777778e-3) * y + 8.3333333333333e-2
 {-# SPECIALIZE logFactorial :: Int -> Double #-}
 
 -- | Calculate the error term of the Stirling approximation.  This is
