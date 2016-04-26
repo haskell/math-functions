@@ -55,6 +55,7 @@ test-suite tests
   other-modules:
     Tests.Helpers
     Tests.Chebyshev
+    Tests.Comparison
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
     Tests.Sum
