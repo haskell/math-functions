@@ -118,11 +118,11 @@ incompleteGammaAt1Check (abs -> x) =
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
 invIGammaIsInverse (abs -> a) (range01 -> p) =
-  a > 0 && p > 0 && p < 1  ==> ( printTestCase ("a  = " ++ show a )
-                               $ printTestCase ("p  = " ++ show p )
-                               $ printTestCase ("x  = " ++ show x )
-                               $ printTestCase ("p' = " ++ show p')
-                               $ printTestCase ("Δp = " ++ show (p - p'))
+  a > 0 && p > 0 && p < 1  ==> ( counterexample ("a  = " ++ show a )
+                               $ counterexample ("p  = " ++ show p )
+                               $ counterexample ("x  = " ++ show x )
+                               $ counterexample ("p' = " ++ show p')
+                               $ counterexample ("Δp = " ++ show (p - p'))
                                $ abs (p - p') <= 1e-12
                                )
   where
@@ -132,9 +132,9 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
 -- invErfc is inverse of erfc
 invErfcIsInverse :: Double -> Property
 invErfcIsInverse ((*2) . range01 -> p)
-  = printTestCase ("p  = " ++ show p )
-  $ printTestCase ("x  = " ++ show x )
-  $ printTestCase ("p' = " ++ show p')
+  = counterexample ("p  = " ++ show p )
+  $ counterexample ("x  = " ++ show x )
+  $ counterexample ("p' = " ++ show p')
   $ abs (p - p') <= 1e-14
   where
     x  = invErfc p
@@ -143,9 +143,9 @@ invErfcIsInverse ((*2) . range01 -> p)
 -- invErf is inverse of erf
 invErfIsInverse :: Double -> Property
 invErfIsInverse a
-  = printTestCase ("p  = " ++ show p )
-  $ printTestCase ("x  = " ++ show x )
-  $ printTestCase ("p' = " ++ show p')
+  = counterexample ("p  = " ++ show p )
+  $ counterexample ("x  = " ++ show x )
+  $ counterexample ("p' = " ++ show p')
   $ abs (p - p') <= 1e-14
   where
     x  = invErf p
@@ -161,12 +161,12 @@ incompleteBetaInRange (abs -> p) (abs -> q) (range01 -> x) =
 -- invIncompleteBeta is inverse of incompleteBeta
 invIBetaIsInverse :: Double -> Double -> Double -> Property
 invIBetaIsInverse (abs -> p) (abs -> q) (range01 -> x) =
-  p > 0 && q > 0  ==> ( printTestCase ("p   = " ++ show p )
-                      $ printTestCase ("q   = " ++ show q )
-                      $ printTestCase ("x   = " ++ show x )
-                      $ printTestCase ("x'  = " ++ show x')
-                      $ printTestCase ("a   = " ++ show a)
-                      $ printTestCase ("err = " ++ (show $ abs $ (x - x') / x))
+  p > 0 && q > 0  ==> ( counterexample ("p   = " ++ show p )
+                      $ counterexample ("q   = " ++ show q )
+                      $ counterexample ("x   = " ++ show x )
+                      $ counterexample ("x'  = " ++ show x')
+                      $ counterexample ("a   = " ++ show a)
+                      $ counterexample ("err = " ++ (show $ abs $ (x - x') / x))
                       $ abs (x - x') <= 1e-12
                       )
   where
