@@ -54,7 +54,6 @@ import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
 import Data.Vector.Generic (Vector(..), foldl')
-import Data.Vector.Generic.Mutable (MVector(..))
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 import qualified Data.Foldable as F
 import qualified Data.Vector as V
