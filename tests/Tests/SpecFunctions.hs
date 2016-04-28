@@ -7,13 +7,14 @@ module Tests.SpecFunctions (
 import qualified Data.Vector as V
 import           Data.Vector   ((!))
 
-import Test.QuickCheck  hiding (choose)
+import Test.QuickCheck  hiding (choose,within)
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 
 import Tests.Helpers
 import Tests.SpecFunctions.Tables
 import Numeric.SpecFunctions
+import Numeric.MathFunctions.Comparison (within)
 
 
 tests :: Test
@@ -78,6 +79,11 @@ tests = testGroup "Special functions"
             ]
   , testAssertion "choose is expected to precise at 1e-12 level"
       $ and [ eq 1e-12 (choose (fromIntegral n) (fromIntegral k)) (fromIntegral $ choose' n k)
+            | n <- [0..1000], k <- [0..n]]
+  , testAssertion "logChoose == log . choose"
+      $ and [ let n' = fromIntegral n
+                  k' = fromIntegral k
+              in within 2 (logChoose n' k') (log $ choose n' k')
             | n <- [0..1000], k <- [0..n]]
     ----------------------------------------------------------------
     -- Self tests
