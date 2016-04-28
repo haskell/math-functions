@@ -62,8 +62,12 @@ test-suite tests
   build-depends:
     math-functions,
     base >=3 && <5,
+    deepseq,
+    primitive,
     vector >= 0.7,
+    vector-th-unbox,
     ieee754 >= 0.7.3,
+    erf,
     HUnit      >= 1.2,
     QuickCheck >= 2.4,
     test-framework,
