@@ -1,7 +1,8 @@
 Changes in 0.1.7.0
 
-  * Module `Statistics.Comparison` moved to `Numeric.MathFunctions.Comparison`.
-    Old implementation if `within` compared negative numbers incorretly.
+  * Module `statistics: Statistics.Function.Comparison` moved to
+    `Numeric.MathFunctions.Comparison`. Old implementation if `within` compared
+    negative numbers incorretly.
 
   * `addUlps` and `ulpDistance` added
 
