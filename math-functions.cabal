@@ -66,7 +66,6 @@ test-suite tests
     primitive,
     vector >= 0.7,
     vector-th-unbox,
-    ieee754 >= 0.7.3,
     erf,
     HUnit      >= 1.2,
     QuickCheck >= 2.4,

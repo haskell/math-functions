@@ -7,7 +7,6 @@ module Tests.Helpers (
   , eqC
     -- * Generic QC tests
   , monotonicallyIncreases
-  , monotonicallyIncreasesIEEE
     -- * HUnit helpers
   , testAssertion
   , testEquality
@@ -15,8 +14,6 @@ module Tests.Helpers (
 
 import Data.Complex
 import Data.Typeable
-
-import qualified Numeric.IEEE    as IEEE
 
 import qualified Test.HUnit      as HU
 import Test.Framework
@@ -69,19 +66,7 @@ eqC eps a@(ar :+ ai) b@(br :+ bi)
 monotonicallyIncreases :: (Ord a, Ord b) => (a -> b) -> a -> a -> Bool
 monotonicallyIncreases f x1 x2 = f (min x1 x2) <= f (max x1 x2)
 
--- Check that function is nondecreasing taking rounding errors into
--- account.
---
--- In fact funstion is allowed to decrease less than one ulp in order
--- to guard againist problems with excess precision. On x86 FPU works
--- with 80-bit numbers but doubles are 64-bit so rounding happens
--- whenever values are moved from registers to memory
-monotonicallyIncreasesIEEE :: (Ord a, IEEE.IEEE b)  => (a -> b) -> a -> a -> Bool
-monotonicallyIncreasesIEEE f x1 x2 =
-  y1 <= y2 || (y1 - y2) < y2 * IEEE.epsilon
-  where
-    y1 = f (min x1 x2)
-    y2 = f (max x1 x2)
+
 
 ----------------------------------------------------------------
 -- HUnit helpers
