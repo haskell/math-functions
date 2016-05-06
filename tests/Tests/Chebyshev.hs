@@ -7,7 +7,7 @@ module Tests.Chebyshev (
 import Data.Vector.Unboxed                  (fromList)
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
-import Test.QuickCheck                      (Arbitrary(..),printTestCase,Property)
+import Test.QuickCheck                      (Arbitrary(..),counterexample,Property)
 
 import Tests.Helpers
 import Numeric.Polynomial.Chebyshev
@@ -38,9 +38,9 @@ testBroucke (Ch x) (c:cs) = let c1 = chebyshev        x (fromList $ c : cs)
 
 testCheb :: [Double] -> Double -> Property
 testCheb as x
-  = printTestCase (">>> Exact   = " ++ show exact)
-  $ printTestCase (">>> Numeric = " ++ show num  )
-  $ printTestCase (">>> rel.err.= " ++ show err  )
+  = counterexample (">>> Exact   = " ++ show exact)
+  $ counterexample (">>> Numeric = " ++ show num  )
+  $ counterexample (">>> rel.err.= " ++ show err  )
   $ eq 1e-12 num exact
   where
     exact = evalCheb as x
