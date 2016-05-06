@@ -21,6 +21,7 @@ tests = testGroup "Comparison"
   , testAssertion "eps distance" $ ulpDistance 1 (1+m_epsilon) == 1
   , testAssertion "eps add"      $ addUlps 1 1 == 1 + m_epsilon
     --
+  , testProperty  "relativeError sym"     $ \x y -> relativeError x y == relativeError y x
   , testAssertion "relativeError inf   1" $ isNaN $ relativeError inf 1
   , testAssertion "relativeError 1   inf" $ isNaN $ relativeError 1 inf
   , testAssertion "relativeError -inf  1" $ isNaN $ relativeError (-inf) 1
