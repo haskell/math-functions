@@ -7,12 +7,17 @@
 -- Stability   : experimental
 -- Portability : portable
 --
+-- Functions for approximate comparison of floating point numbers.
+--
 -- Approximate floating point comparison, based on Bruce Dawson's
 -- \"Comparing floating point numbers\":
 -- <http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm>
 module Numeric.MathFunctions.Comparison
-    (
-      addUlps
+    ( -- * Relative erros
+      relativeError
+    , eqRelErr
+      -- * Ulps-based comparison
+    , addUlps
     , ulpDistance
     , within
     ) where
@@ -23,6 +28,38 @@ import Data.Word (Word64)
 import Data.Int (Int64)
 
 
+
+----------------------------------------------------------------
+-- Ulps-based comparison
+----------------------------------------------------------------
+
+-- |
+-- Calculate relative error of two numbers:
+--
+-- > |a - b| / max |a| |b|
+--
+-- It lies in [0,1) interval for numbers with same sign and (1,2] for
+-- numbers with different sign. If both arguments are zero or negative
+-- zero function returns 0. If at least one argument is transfinite it
+-- returns NaN
+relativeError :: Double -> Double -> Double
+relativeError a b
+  | a == 0 && b == 0 = 0
+  | otherwise        = abs (a - b) / max (abs a) (abs b)
+
+-- | Check that relative error between two numbers @a@ and @b@. If
+-- 'relativeError' returns NaN it returns @False@.
+eqRelErr :: Double -- ^ @eps@ relative error should be in [0,1) range
+         -> Double -- ^ @a@
+         -> Double -- ^ @b@
+         -> Bool
+eqRelErr eps a b = relativeError a b < eps
+
+
+
+----------------------------------------------------------------
+-- Ulps-based comparison
+----------------------------------------------------------------
 
 -- |
 -- Add N ULPs (units of least precision) to @Double@ number.
