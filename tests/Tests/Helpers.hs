@@ -19,6 +19,7 @@ import qualified Test.HUnit      as HU
 import Test.Framework
 import Test.Framework.Providers.HUnit
 
+import Numeric.MathFunctions.Comparison
 
 
 
@@ -40,9 +41,7 @@ typeName = show . typeOf . typeParam
 --   which are almost zero.
 eq :: Double                    -- ^ Relative error
    -> Double -> Double -> Bool
-eq eps a b 
-  | a == 0 && b == 0 = True
-  | otherwise        = abs (a - b) <= eps * max (abs a) (abs b)
+eq = eqRelErr
 
 -- | Approximate equality for 'Complex Double'
 eqC :: Double                   -- ^ Relative error
