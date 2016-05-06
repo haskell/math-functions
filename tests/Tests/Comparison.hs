@@ -18,6 +18,7 @@ tests = testGroup "Comparison"
   , testProperty "addUlps sym"     $ \i x -> x == (addUlps (-i) . addUlps i) x
   , testProperty "ulpDistance==0"  $ \x   -> ulpDistance x x == 0
   , testProperty "ulpDistance sym" $ \x y -> ulpDistance x y == ulpDistance y x
+  , testProperty "ulpDistance/addUlps" $ \x i -> ulpDistance x (addUlps i x) == fromIntegral (abs i)
     -- Test that code is correct for m_epsilon
   , testAssertion "eps distance" $ ulpDistance 1 (1+m_epsilon) == 1
   , testAssertion "eps add"      $ addUlps 1 1 == 1 + m_epsilon
