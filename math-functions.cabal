@@ -68,7 +68,7 @@ test-suite tests
     vector-th-unbox,
     erf,
     HUnit      >= 1.2,
-    QuickCheck >= 2.4,
+    QuickCheck >= 2.7,
     test-framework,
     test-framework-hunit,
     test-framework-quickcheck2
