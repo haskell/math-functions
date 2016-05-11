@@ -2,9 +2,11 @@ Changes in 0.1.7.0
 
   * Module `statistics: Statistics.Function.Comparison` moved to
     `Numeric.MathFunctions.Comparison`. Old implementation if `within` compared
-    negative numbers incorretly.
+    negative numbers incorrectly.
 
-  * `addUlps` and `ulpDistance` added
+  * `addUlps` and `ulpDistance` added to `Numeric.MathFunctions.Comparison`.
+
+  * `relativeError` and `eqRelErr` added to `Numeric.MathFunctions.Comparison`.
 
   * Precision of `logFactorial` is slightly improved.
 
