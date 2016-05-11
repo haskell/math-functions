@@ -55,6 +55,9 @@ import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
 import Data.Vector.Generic (Vector(..), foldl')
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
+-- Needed for GHC 7.2 & 7.4 to derive Unbox instances
+import Data.Vector.Generic.Mutable (MVector(..))
+
 import qualified Data.Foldable as F
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
