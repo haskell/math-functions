@@ -1,6 +1,6 @@
 name:           math-functions
 version:        0.1.7.0
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 license:        BSD3
 license-file:   LICENSE
 author:         Bryan O'Sullivan <bos@serpentine.com>,
@@ -26,6 +26,17 @@ extra-source-files:
   doc/sinc.hs
 
 library
+  default-language: Haskell2010
+  other-extensions:
+    BangPatterns
+    CPP
+    DeriveDataTypeable
+    FlexibleContexts
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    TemplateHaskell
+    TypeFamilies
+
   ghc-options:          -Wall
   build-depends:        base >=3 && <5,
                         deepseq,
@@ -45,6 +56,9 @@ library
     Numeric.SpecFunctions.Internal
 
 test-suite tests
+  default-language: Haskell2010
+  other-extensions: ViewPatterns
+
   type:           exitcode-stdio-1.0
   ghc-options:    -Wall -threaded
   if arch(i386)
