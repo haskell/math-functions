@@ -394,8 +394,8 @@ incompleteBetaApprox beta p q x
     p1    = p - 1
     q1    = q - 1
     mu    = p / (p + q)
-    lnmu  = log mu
-    lnmuc = log (1 - mu)
+    lnmu  = log     mu
+    lnmuc = log1p (-mu)
     -- Upper limit for integration
     xu = max 0 $ min (mu - 10*t) (x - 5*t)
        where
@@ -478,7 +478,7 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
       where
         -- Calculate Halley step.
         f   = incompleteBeta_ beta a b x - p
-        f'  = exp $ a1 * log x + b1 * log (1 - x) - beta
+        f'  = exp $ a1 * log x + b1 * log1p (-x) - beta
         u   = f / f'
         dx  = u / (1 - 0.5 * min 1 (u * (a1 / x - b1 / (1 - x))))
         -- Next approximation. If Halley step leads us out of [0,1]
