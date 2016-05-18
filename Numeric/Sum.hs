@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, CPP, DeriveDataTypeable, FlexibleContexts,
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleContexts,
     MultiParamTypeClasses, TemplateHaskell, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
