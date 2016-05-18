@@ -615,7 +615,9 @@ log2 v0
                                    in go (i-1) (r .|. si) (v `shiftR` si)
                 | otherwise      = go (i-1) r v
     b = U.unsafeIndex bv
-    !bv = U.fromList [0x2, 0xc, 0xf0, 0xff00, 0xffff0000, 0xffffffff00000000]
+    !bv = U.fromList [ 0x02, 0x0c, 0xf0, 0xff00
+                     , fromIntegral (0xffff0000 :: Word)
+                     , fromIntegral (0xffffffff00000000 :: Word)]
     !sv = U.fromList [1,2,4,8,16,32]
 
 
