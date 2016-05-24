@@ -154,7 +154,7 @@ data L = L {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 logGammaL :: Double -> Double
 logGammaL x
     | x <= 0    = m_pos_inf
-    -- Lanroz approximation loses precision for small arguments
+    -- Lanczos approximation loses precision for small arguments
     | x <= 1e-3 = logGamma x
     | otherwise = fini . U.foldl' go (L 0 (x+7)) $ a
     where fini (L l _) = log (l+a0) + log m_sqrt_2_pi - x65 + (x-0.5) * log x65
