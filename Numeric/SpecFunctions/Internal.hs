@@ -524,9 +524,9 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
              u   = exp( b * lnb ) / b
              w   = t + u
       where
-        -- Formula [2]
+        -- Formula [AS64 2]
         ratio = (4*a + 2*b - 2) / chi2
-        -- Quantile of chi-squared distribution. Formula [3].
+        -- Quantile of chi-squared distribution. Formula [AS64 3].
         chi2 = 2 * b * (1 - t + y * sqrt t) ** 3
           where
             t   = 1 / (9 * b)
