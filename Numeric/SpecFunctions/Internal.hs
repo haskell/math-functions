@@ -376,7 +376,7 @@ incompleteBetaWorker beta p q x
     cx  = 1 - x
     -- Loop
     loop !psq (ns :: Int) ai term betain
-      | done      = betain' * exp( p * log x + (q - 1) * log cx - beta) / p
+      | done      = betain' * x**p * cx**(q - 1) / exp beta / p
       | otherwise = loop psq' (ns - 1) (ai + 1) term' betain'
       where
         -- New values
