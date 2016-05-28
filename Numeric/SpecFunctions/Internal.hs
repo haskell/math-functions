@@ -345,9 +345,16 @@ logBeta :: Double -> Double -> Double
 logBeta a b
     | p < 0     = m_NaN
     | p == 0    = m_pos_inf
-    | p >= 10   = log q * (-0.5) + m_ln_sqrt_2_pi + logGammaCorrection p + c +
-                  (p - 0.5) * log ppq + q * log1p(-ppq)
-    | q >= 10   = logGamma p + c + p - p * log pq + (q - 0.5) * log1p(-ppq)
+    | p >= 10   = log q * (-0.5)
+                + m_ln_sqrt_2_pi
+                + logGammaCorrection p
+                + c
+                + (p - 0.5) * log ppq + q * log1p(-ppq)
+    | q >= 10   = logGamma p
+                + c
+                + p
+                - p * log pq
+                + (q - 0.5) * log1p(-ppq)
     | otherwise = logGamma p + logGamma q - logGamma pq
     where
       p   = min a b
