@@ -27,9 +27,12 @@ import qualified Data.Vector.Generic as G
 -- A Chebyshev polynomial of the first kind is defined by the
 -- following recurrence:
 --
--- > t 0 _ = 1
--- > t 1 x = x
--- > t n x = 2 * x * t (n-1) x - t (n-2) x
+-- \[\begin{aligned}
+-- T_0(x)     &= 1 \\
+-- T_1(x)     &= x \\
+-- T_{n+1}(x) &= 2xT_n(x) - T_{n-1}(x) \\
+-- \end{aligned}
+-- \]
 
 data C = C {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 
