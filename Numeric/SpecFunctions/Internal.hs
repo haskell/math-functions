@@ -31,18 +31,38 @@ import Text.Printf
 
 -- | Error function.
 --
--- > erf -∞ = -1
--- > erf  0 =  0
--- > erf +∞ =  1
+-- \[
+-- \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_{0}^{x} \exp(-t^2) dt
+-- \]
+--
+-- Function limits are:
+--
+-- \[
+-- \begin{aligned}
+--  &\operatorname{erf}(-\infty) &=& -1 \\
+--  &\operatorname{erf}(0)       &=& \phantom{-}\,0 \\
+--  &\operatorname{erf}(+\infty) &=& \phantom{-}\,1 \\
+-- \end{aligned}
+-- \]
 erf :: Double -> Double
 {-# INLINE erf #-}
 erf = Erf.erf
 
 -- | Complementary error function.
 --
--- > erfc -∞ = 2
--- > erfc  0 = 1
--- > errc +∞ = 0
+-- \[
+-- \operatorname{erfc}(x) = 1 - \operatorname{erf}(x)
+-- \]
+--
+-- Function limits are:
+--
+-- \[
+-- \begin{aligned}
+--  &\operatorname{erf}(-\infty) &=&\, 2 \\
+--  &\operatorname{erf}(0)       &=&\, 1 \\
+--  &\operatorname{erf}(+\infty) &=&\, 0 \\
+-- \end{aligned}
+-- \]
 erfc :: Double -> Double
 {-# INLINE erfc #-}
 erfc = Erf.erfc
@@ -83,12 +103,15 @@ invErfc p
 
 data L = L {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 
--- | Compute the logarithm of the gamma function, &#915;(/x/).  Uses a
--- Lanczos approximation.
+-- | Compute the logarithm of the gamma function, Γ(/x/).
 --
--- This function is slower than 'logGamma', but gives 14 or more
--- significant decimal digits of accuracy, except around /x/ = 1 and
--- /x/ = 2, where the function goes to zero.
+-- \[
+-- \Gamma(x) = \int_0^{\infty}t^{x-1}e^{-t}\,dt = (x - 1)!
+-- \]
+--
+-- This implementation uses Lanczos approximation. It gives 14 or more
+-- significant decimal digits, except around /x/ = 1 and /x/ = 2,
+-- where the function goes to zero.
 --
 -- Returns &#8734; if the input is outside of the range (0 < /x/
 -- &#8804; 1e305).
@@ -117,6 +140,7 @@ logGamma x
                      , 676.5203681218835
                      ]
 
+-- | Synonym for 'logGamma'. Retained for compatibility
 logGammaL :: Double -> Double
 logGammaL = logGamma
 
@@ -147,9 +171,14 @@ logGammaCorrection x
 
 
 -- | Compute the normalized lower incomplete gamma function
--- γ(/s/,/x/). Normalization means that
--- γ(/s/,∞)=1. Uses Algorithm AS 239 by Shea.
-incompleteGamma :: Double       -- ^ /s/ ∈ (0,∞)
+-- γ(/z/,/x/). Normalization means that γ(/z/,∞)=1
+--
+-- \[
+-- \gamma(z,x) = \frac{1}{\Gamma(z)}\int_0^{x}t^{z-1}e^{-t}\,dt
+-- \]
+--
+-- Uses Algorithm AS 239 by Shea.
+incompleteGamma :: Double       -- ^ /z/ ∈ (0,∞)
                 -> Double       -- ^ /x/ ∈ (0,∞)
                 -> Double
 incompleteGamma p x
@@ -219,11 +248,11 @@ incompleteGamma p x
 -- Adapted from Numerical Recipes §6.2.1
 
 -- | Inverse incomplete gamma function. It's approximately inverse of
---   'incompleteGamma' for the same /s/. So following equality
+--   'incompleteGamma' for the same /z/. So following equality
 --   approximately holds:
 --
--- > invIncompleteGamma s . incompleteGamma s = id
-invIncompleteGamma :: Double    -- ^ /s/ ∈ (0,∞)
+-- > invIncompleteGamma z . incompleteGamma z ≈ id
+invIncompleteGamma :: Double    -- ^ /z/ ∈ (0,∞)
                    -> Double    -- ^ /p/ ∈ [0,1]
                    -> Double
 invIncompleteGamma a p
@@ -289,7 +318,14 @@ invIncompleteGamma a p
 ----------------------------------------------------------------
 
 -- | Compute the natural logarithm of the beta function.
-logBeta :: Double -> Double -> Double
+--
+-- \[
+-- B(a,b) = \int_0^1 t^{a-1}(1-t)^{1-b}\,dt = \frac{\Gamma{a}\Gamma{b}}{\Gamma{a+b}}
+-- \]
+logBeta
+  :: Double                     -- ^ /a/ > 0
+  -> Double                     -- ^ /b/ > 0
+  -> Double
 logBeta a b
     | p < 0     = m_NaN
     | p == 0    = m_pos_inf
@@ -311,11 +347,16 @@ logBeta a b
       pq  = p + q
       c   = logGammaCorrection q - logGammaCorrection pq
 
--- | Regularized incomplete beta function. Uses algorithm AS63 by
--- Majumder and Bhattachrjee and quadrature approximation for large
--- /p/ and /q/.
-incompleteBeta :: Double -- ^ /p/ > 0
-               -> Double -- ^ /q/ > 0
+-- | Regularized incomplete beta function.
+--
+-- \[
+-- I(x;a,b) = \frac{1}{B(a,b)} \int_0^x t^{a-1}(1-t)^{1-b}\,dt
+-- \]
+--
+-- Uses algorithm AS63 by Majumder and Bhattachrjee and quadrature
+-- approximation for large /p/ and /q/.
+incompleteBeta :: Double -- ^ /a/ > 0
+               -> Double -- ^ /b/ > 0
                -> Double -- ^ /x/, must lie in [0,1] range
                -> Double
 incompleteBeta p q = incompleteBeta_ (logBeta p q) p q
@@ -323,8 +364,8 @@ incompleteBeta p q = incompleteBeta_ (logBeta p q) p q
 -- | Regularized incomplete beta function. Same as 'incompleteBeta'
 -- but also takes logarithm of beta function as parameter.
 incompleteBeta_ :: Double -- ^ logarithm of beta function for given /p/ and /q/
-                -> Double -- ^ /p/ > 0
-                -> Double -- ^ /q/ > 0
+                -> Double -- ^ /a/ > 0
+                -> Double -- ^ /b/ > 0
                 -> Double -- ^ /x/, must lie in [0,1] range
                 -> Double
 incompleteBeta_ beta p q x
@@ -394,9 +435,9 @@ incompleteBetaWorker beta p q x
 -- | Compute inverse of regularized incomplete beta function. Uses
 -- initial approximation from AS109, AS64 and Halley method to solve
 -- equation.
-invIncompleteBeta :: Double     -- ^ /p/ > 0
-                  -> Double     -- ^ /q/ > 0
-                  -> Double     -- ^ /a/ ∈ [0,1]
+invIncompleteBeta :: Double     -- ^ /a/ > 0
+                  -> Double     -- ^ /b/ > 0
+                  -> Double     -- ^ /x/ ∈ [0,1]
                   -> Double
 invIncompleteBeta p q a
   | p <= 0 || q <= 0 =
@@ -699,9 +740,14 @@ n `choose` k
     max64          = fromIntegral (maxBound :: Int64)
     round64 x      = round x :: Int64
 
--- | Compute ψ0(/x/), the first logarithmic derivative of the gamma
--- function. Uses Algorithm AS 103 by Bernardo, based on Minka's C
--- implementation.
+-- | Compute ψ(/x/), the first logarithmic derivative of the gamma
+--   function.
+--
+-- \[
+-- \psi(x) = \frac{d}{dx} \ln \left(\Gamma(x)\right) = \frac{\Gamma'(x)}{\Gamma(x)}
+-- \]
+--
+-- Uses Algorithm AS 103 by Bernardo, based on Minka's C implementation.
 digamma :: Double -> Double
 digamma x
     | isNaN x || isInfinite x                  = m_NaN
