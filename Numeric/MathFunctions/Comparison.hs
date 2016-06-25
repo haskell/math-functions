@@ -36,7 +36,7 @@ import Data.Int (Int64)
 -- |
 -- Calculate relative error of two numbers:
 --
--- > |a - b| / max |a| |b|
+-- \[ \frac{|a - b|}{\max(|a|,|b|)} \]
 --
 -- It lies in [0,1) interval for numbers with same sign and (1,2] for
 -- numbers with different sign. If both arguments are zero or negative
@@ -49,9 +49,9 @@ relativeError a b
 
 -- | Check that relative error between two numbers @a@ and @b@. If
 -- 'relativeError' returns NaN it returns @False@.
-eqRelErr :: Double -- ^ @eps@ relative error should be in [0,1) range
-         -> Double -- ^ @a@
-         -> Double -- ^ @b@
+eqRelErr :: Double -- ^ /eps/ relative error should be in [0,1) range
+         -> Double -- ^ /a/
+         -> Double -- ^ /b/
          -> Bool
 eqRelErr eps a b = relativeError a b < eps
 
