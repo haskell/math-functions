@@ -201,8 +201,9 @@ incompleteGamma p x
     -- For large values of `p' we use 18-point Gauss-Legendre
     -- integration.
     approx
-      | ans > 0   = 1 - ans
-      | otherwise = -ans
+      | ans >  0           = 1 - ans
+      | ans == 0 && x > p1 = 1 - ans
+      | otherwise          = -ans
       where
         -- Set upper limit for integration
         xu | x > p1    =         (p1 + 11.5*sqrtP1) `max` (x + 6*sqrtP1)
