@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns, ScopedTypeVariables, ForeignFunctionInterface #-}
 -- |
 -- Module    : Numeric.SpecFunctions.Internal
 -- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
@@ -599,6 +599,13 @@ log1p x
                0.55480701209082887983041321697279e-15,
               -0.10324619158271569595141333961932e-15
              ]
+
+-- | Compute @exp x - 1@ without loss of accuracy for x near zero.
+expm1 :: Double -> Double
+expm1 = c_expm1
+
+foreign import ccall "expm1" c_expm1 :: Double -> Double
+
 
 
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.

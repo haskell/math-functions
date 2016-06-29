@@ -30,6 +30,8 @@ module Numeric.SpecFunctions (
     -- * Logarithm
   , log1p
   , log2
+    -- * Exponent
+  , expm1
     -- * Factorial
   , factorial
   , logFactorial
