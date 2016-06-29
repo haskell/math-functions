@@ -13,7 +13,6 @@ module Numeric.SpecFunctions.Internal where
 
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
-import qualified Data.Number.Erf     as Erf (erfc,erf)
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
@@ -46,7 +45,7 @@ import Text.Printf
 -- \]
 erf :: Double -> Double
 {-# INLINE erf #-}
-erf = Erf.erf
+erf = c_erf
 
 -- | Complementary error function.
 --
@@ -65,7 +64,10 @@ erf = Erf.erf
 -- \]
 erfc :: Double -> Double
 {-# INLINE erfc #-}
-erfc = Erf.erfc
+erfc = c_erfc
+
+foreign import ccall "erf"  c_erf  :: Double -> Double
+foreign import ccall "erfc" c_erfc :: Double -> Double
 
 
 -- | Inverse of 'erf'.
