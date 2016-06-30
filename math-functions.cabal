@@ -50,6 +50,7 @@ library
     Numeric.Polynomial.Chebyshev
     Numeric.SpecFunctions
     Numeric.SpecFunctions.Extra
+    Numeric.Series
     Numeric.Sum
   other-modules:
     Numeric.SpecFunctions.Internal

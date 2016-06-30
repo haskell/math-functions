@@ -29,6 +29,7 @@ module Numeric.SpecFunctions (
   , sinc
     -- * Logarithm
   , log1p
+  , log1pmx
   , log2
     -- * Exponent
   , expm1

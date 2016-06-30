@@ -17,6 +17,7 @@ import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolynomialL)
+import Numeric.Series                  (sumPowerSeries,enumSeriesFrom)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
                                        , m_eulerMascheroni
@@ -605,6 +606,17 @@ log1p x
                0.55480701209082887983041321697279e-15,
               -0.10324619158271569595141333961932e-15
              ]
+
+-- | Compute log(1+x)-x:
+log1pmx :: Double -> Double
+log1pmx x
+  | x <  -1        = error "Domain error"
+  | x == -1        = m_neg_inf
+  | ax > 0.95      = log(1 + x) - x
+  | ax < m_epsilon = -(x * x) /2
+  | otherwise      = - x * x * sumPowerSeries (-x) (recip <$> enumSeriesFrom 2)
+  where
+   ax = abs x
 
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
