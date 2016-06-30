@@ -147,11 +147,15 @@ logGammaL :: Double -> Double
 logGammaL = logGamma
 
 
--- | Compute the log gamma correction factor for @x@ &#8805; 10.  This
--- correction factor is suitable for an alternate (but less
--- numerically accurate) definition of 'logGamma':
+-- |
+-- Compute the log gamma correction factor for Stirling
+-- approximation for @x@ &#8805; 10.  This correction factor is
+-- suitable for an alternate (but less numerically accurate)
+-- definition of 'logGamma':
 --
--- >lgg x = 0.5 * log(2*pi) + (x-0.5) * log x - x + logGammaCorrection x
+-- \[
+-- \log\Gamma(x) = \frac{1}{2}\log(2\pi) + (x-\frac{1}{2})\log x - x + \operatorname{logGammaCorrection}(x)
+-- \]
 logGammaCorrection :: Double -> Double
 logGammaCorrection x
     | x < 10    = m_NaN

@@ -13,10 +13,11 @@ module Numeric.SpecFunctions.Extra (
   , chooseExact
   , logChooseFast
   , logGammaAS245
+  , logGammaCorrection
   ) where
 
 import Numeric.MathFunctions.Constants (m_NaN,m_pos_inf)
-import Numeric.SpecFunctions.Internal  (chooseExact,logChooseFast)
+import Numeric.SpecFunctions.Internal  (chooseExact,logChooseFast,logGammaCorrection)
 
 -- | Evaluate the deviance term @x log(x/np) + np - x@.
 bd0 :: Double                   -- ^ @x@
