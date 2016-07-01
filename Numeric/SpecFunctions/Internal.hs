@@ -14,13 +14,13 @@ module Numeric.SpecFunctions.Internal where
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
 import qualified Data.Vector.Unboxed as U
+import           Data.Vector.Unboxed   ((!))
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolynomialL)
-import Numeric.Series                  (sumPowerSeries,enumSequenceFrom)
+import Numeric.Series                  (sumPowerSeries,enumSequenceFrom,scanSequence,evalContFractionB)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
-                                       , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
-                                       , m_eulerMascheroni
+                                       , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_eulerMascheroni
                                        )
 import Text.Printf
 
@@ -188,68 +188,87 @@ logGammaCorrection x
 incompleteGamma :: Double       -- ^ /z/ ∈ (0,∞)
                 -> Double       -- ^ /x/ ∈ (0,∞)
                 -> Double
-incompleteGamma p x
-    | isNaN p || isNaN x = m_NaN
-    | x < 0 || p <= 0    = m_pos_inf
-    | x == 0             = 0
-    -- For very large `p' normal approximation gives <1e-10 error
-    | p >= 2e5           = norm (3 * sqrt p * ((x/p) ** (1/3) + 1/(9*p) - 1))
-    | p >= 500           = approx
-    -- Dubious approximation
-    | x >= 1e8           = 1
-    | x <= 1 || x < p    = let a = p * log x - x - logGamma (p + 1)
-                               g = a + log (pearson p 1 1)
-                           in if g > limit then exp g else 0
-    | otherwise          = let g = p * log x - x - logGamma p + log cf
-                           in if g > limit then 1 - exp g else 1
+-- Notation used:
+--  + P(a,x) - regularized lower incomplete gamma
+--  + Q(a,x) - regularized upper incomplete gamma
+incompleteGamma a x
+  | a <= 0 || x < 0 = error
+     $ "incompleteGamma: Domain error z=" ++ show a ++ " x=" ++ show x
+  | x == 0          = 0
+  -- For very small x we use following expansion for P:
+  --
+  -- See http://functions.wolfram.com/GammaBetaErf/GammaRegularized/06/01/05/01/01/
+  | x < sqrt m_epsilon && a > 1
+    = x**a / a / exp (logGammaL a) * (1 - a*x / (a + 1))
+  | x < 0.5 = case () of
+    _| (-0.4)/log x < a  -> taylorSeriesP
+     | otherwise         -> taylorSeriesComplQ
+  | x < 1.1 = case () of
+    _| 0.75*x < a        -> taylorSeriesP
+     | otherwise         -> taylorSeriesComplQ
+  | a > 20 && useTemme    = uniformExpansion
+  | x - (1 / (3 * x)) < a = taylorSeriesP
+  | otherwise             = contFraction
   where
-    -- CDF for standard normal distributions
-    norm a = 0.5 * erfc (- a / m_sqrt_2)
-    -- For large values of `p' we use 18-point Gauss-Legendre
-    -- integration.
-    approx
-      | ans >  0           = 1 - ans
-      | ans == 0 && x > p1 = 1 - ans
-      | otherwise          = -ans
-      where
-        -- Set upper limit for integration
-        xu | x > p1    =         (p1 + 11.5*sqrtP1) `max` (x + 6*sqrtP1)
-           | otherwise = max 0 $ (p1 -  7.5*sqrtP1) `min` (x - 5*sqrtP1)
-        s = U.sum $ U.zipWith go coefY coefW
-        go y w = let t = x + (xu - x)*y
-                 in w * exp( -(t-p1) + p1*(log t - lnP1) )
-        ans = s * (xu - x) * exp( p1 * (lnP1 - 1) - logGamma p)
-        --
-        p1     = p - 1
-        lnP1   = log  p1
-        sqrtP1 = sqrt p1
+    mu = (x - a) / a
+    useTemme = (a > 200 && 20/a > mu*mu)
+            || (abs mu < 0.4)
+    -- Gautschi's algorithm.
     --
-    pearson !a !c !g
-        | c' <= tolerance = g'
-        | otherwise       = pearson a' c' g'
-        where a' = a + 1
-              c' = c * x / a'
-              g' = g + c'
-    cf = let a = 1 - p
-             b = a + x + 1
-             p3 = x + 1
-             p4 = x * b
-         in contFrac a b 0 1 x p3 p4 (p3/p4)
-    contFrac !a !b !c !p1 !p2 !p3 !p4 !g
-        | abs (g - rn) <= min tolerance (tolerance * rn) = g
-        | otherwise = contFrac a' b' c' (f p3) (f p4) (f p5) (f p6) rn
-        where a' = a + 1
-              b' = b + 2
-              c' = c + 1
-              an = a' * c'
-              p5 = b' * p3 - an * p1
-              p6 = b' * p4 - an * p2
-              rn = p5 / p6
-              f n | abs p5 > overflow = n / overflow
-                  | otherwise         = n
-    limit     = -88
-    tolerance = 1e-14
-    overflow  = 1e37
+    -- Evaluate series for P(a,x). See [Temme1994] Eq. 5.5
+    --
+    -- FIXME: Term `exp (log x * z - x - logGamma (z+1))` doesn't give full precision
+    taylorSeriesP
+      = sumPowerSeries x (scanSequence (/) 1 $ enumSequenceFrom (a+1))
+      * exp (log x * a - x - logGamma (a+1))
+    -- Series for 1-Q(a,x). See [Temme1994] Eq. 5.5
+    taylorSeriesComplQ
+      = sumPowerSeries (-x) (scanSequence (/) 1 (enumSequenceFrom 1) / enumSequenceFrom a)
+      * x**a / exp(logGammaL a)
+    -- Legendre continued fractions
+    contFraction = 1 - ( x**a * exp(-x)
+                       / (evalContFractionB frac * exp (logGammaL a))
+                       )
+      where
+        frac = (\k -> (k*(a-k), x - a + 2*k + 1)) <$> enumSequenceFrom 0
+    -- Evaluation based on uniform expansions. See [Temme1994] 5.2
+    uniformExpansion =
+      let -- Coefficients f_m in paper
+          fm :: U.Vector Double
+          fm = U.fromList [ 1.00000000000000000000e+00
+                          ,-3.33333333333333370341e-01
+                          , 8.33333333333333287074e-02
+                          ,-1.48148148148148153802e-02
+                          , 1.15740740740740734316e-03
+                          , 3.52733686067019369930e-04
+                          ,-1.78755144032921825352e-04
+                          , 3.91926317852243766954e-05
+                          ,-2.18544851067999240532e-06
+                          ,-1.85406221071515996597e-06
+                          , 8.29671134095308545622e-07
+                          ,-1.76659527368260808474e-07
+                          , 6.70785354340149841119e-09
+                          , 1.02618097842403069078e-08
+                          ,-4.38203601845335376897e-09
+                          , 9.14769958223679020897e-10
+                          ,-2.55141939949462514346e-11
+                          ,-5.83077213255042560744e-11
+                          , 2.43619480206674150369e-11
+                          ,-5.02766928011417632057e-12
+                          , 1.10043920319561347525e-13
+                          , 3.37176326240098513631e-13
+                          ]
+          y   = - log1pmx mu
+          eta = sqrt (2 * y) * signum mu
+          -- Evaluate S_α (Eq. 5.9)
+          loop !_  !_  u 0 = u
+          loop bm1 bm0 u i = let t  = (fm ! i) + (fromIntegral i + 1)*bm1 / a
+                                 u' = eta * u + t
+                             in  loop bm0 t u' (i-1)
+          s_a = let n = U.length fm
+                in  loop (fm ! (n-1)) (fm ! (n-2)) 0 (n-3)
+                  / exp (logGammaCorrection a)
+      in 1/2 * erfc(-eta*sqrt(a/2)) - exp(-(a*y)) / sqrt (2*pi*a) * s_a
 
 
 

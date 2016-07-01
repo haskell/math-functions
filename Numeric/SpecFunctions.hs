@@ -83,6 +83,7 @@ import Numeric.SpecFunctions.Internal
 --   Vol. 22, No. 3 (1973), pp. 411-414
 --   <http://www.jstor.org/pss/2346798>
 --
--- * Shea, B. (1988) Algorithm AS 239: Chi-squared and incomplete
---   gamma integral. /Applied Statistics/
---   37(3):466&#8211;473. <http://www.jstor.org/stable/2347328>
+-- * Temme, N.M. (1994) A set of algorithms for the incomplete gamma
+--   functions. /Probability in the Engineering and Informational
+--   Sciences/, 8, 1994, 291-307. Printed in the U.S.A.
+
