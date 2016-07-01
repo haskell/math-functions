@@ -17,7 +17,7 @@ import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolynomialL)
-import Numeric.Series                  (sumPowerSeries,enumSeriesFrom)
+import Numeric.Series                  (sumPowerSeries,enumSequenceFrom)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_sqrt_2
                                        , m_eulerMascheroni
@@ -614,7 +614,7 @@ log1pmx x
   | x == -1        = m_neg_inf
   | ax > 0.95      = log(1 + x) - x
   | ax < m_epsilon = -(x * x) /2
-  | otherwise      = - x * x * sumPowerSeries (-x) (recip <$> enumSeriesFrom 2)
+  | otherwise      = - x * x * sumPowerSeries (-x) (recip <$> enumSequenceFrom 2)
   where
    ax = abs x
 

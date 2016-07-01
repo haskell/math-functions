@@ -1,18 +1,27 @@
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 -- |
--- Functions for working with series
+-- Module    : Numeric.Series
+-- Copyright : (c) 2016 Alexey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : alexey.skladnoy@gmail.com, bos@serpentine.com
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Functions for working with infinite sequences. In particular
+-- summation of series and evaluation of continued fractions.
 module Numeric.Series (
-    -- * Data type for series
-    Series(..)
+    -- * Data type for infinite sequences.
+    Sequence(..)
     -- * Constructors
-  , enumSeriesFrom
-  , enumSeriesFromStep
-  , scanSeries
-    -- * Evaluation of series
+  , enumSequenceFrom
+  , enumSequenceFromStep
+  , scanSequence
+    -- * Summation of series
   , sumSeries
   , sumPowerSeries
-  , seriesToList
+  , sequenceToList
     -- * Evaluation of continued fractions
   , evalModLentz
   ) where
@@ -27,23 +36,23 @@ import Numeric.MathFunctions.Constants (m_epsilon)
 
 -- | Infinite series. It's represented as opaque state and step
 --   function.
-data Series a = forall s. Series s (s -> (a,s))
+data Sequence a = forall s. Sequence s (s -> (a,s))
 
-instance Functor Series where
-  fmap f (Series s0 step) = Series s0 (\s -> let (a,s') = step s in (f a, s'))
+instance Functor Sequence where
+  fmap f (Sequence s0 step) = Sequence s0 (\s -> let (a,s') = step s in (f a, s'))
   {-# INLINE fmap #-}
 
-instance Applicative Series where
-  pure a = Series () (\() -> (a,()))
-  Series sA fA <*> Series sB fB = Series (sA,sB) $ \(!sa,!sb) ->
+instance Applicative Sequence where
+  pure a = Sequence () (\() -> (a,()))
+  Sequence sA fA <*> Sequence sB fB = Sequence (sA,sB) $ \(!sa,!sb) ->
     let (a,sa') = fA sa
         (b,sb') = fB sb
     in (a b, (sa',sb'))
   {-# INLINE pure  #-}
   {-# INLINE (<*>) #-}
 
--- | Elementwise operations with series
-instance Num a => Num (Series a) where
+-- | Elementwise operations with sequences
+instance Num a => Num (Sequence a) where
   (+) = liftA2 (+)
   (*) = liftA2 (*)
   (-) = liftA2 (-)
@@ -57,8 +66,8 @@ instance Num a => Num (Series a) where
   {-# INLINE signum      #-}
   {-# INLINE fromInteger #-}
 
--- | Elementwise operations with series
-instance Fractional a => Fractional (Series a) where
+-- | Elementwise operations with sequences
+instance Fractional a => Fractional (Sequence a) where
   (/)          = liftA2 (/)
   recip        = fmap recip
   fromRational = pure . fromRational
@@ -72,24 +81,24 @@ instance Fractional a => Fractional (Series a) where
 -- Constructors
 ----------------------------------------------------------------
 
--- | @enumSeriesFrom x@ generate series:
+-- | @enumSequenceFrom x@ generate sequence:
 --
 -- \[ a_n = x + n \]
-enumSeriesFrom :: Num a => a -> Series a
-enumSeriesFrom i = Series i (\n -> (n,n+1))
-{-# INLINE enumSeriesFrom #-}
+enumSequenceFrom :: Num a => a -> Sequence a
+enumSequenceFrom i = Sequence i (\n -> (n,n+1))
+{-# INLINE enumSequenceFrom #-}
 
--- | @enumSeriesFromStep x d@ generate series:
+-- | @enumSequenceFromStep x d@ generate sequence:
 --
 -- \[ a_n = x + nd \]
-enumSeriesFromStep :: Num a => a -> a -> Series a
-enumSeriesFromStep n d = Series n (\i -> (i,i+d))
-{-# INLINE enumSeriesFromStep #-}
+enumSequenceFromStep :: Num a => a -> a -> Sequence a
+enumSequenceFromStep n d = Sequence n (\i -> (i,i+d))
+{-# INLINE enumSequenceFromStep #-}
 
--- | Analog of 'scanl' for series.
-scanSeries :: (b -> a -> b) -> b -> Series a -> Series b
-{-# INLINE scanSeries #-}
-scanSeries f b0 (Series s0 step) = Series (b0,s0) $ \(b,s) ->
+-- | Analog of 'scanl' for sequence.
+scanSequence :: (b -> a -> b) -> b -> Sequence a -> Sequence b
+{-# INLINE scanSequence #-}
+scanSequence f b0 (Sequence s0 step) = Sequence (b0,s0) $ \(b,s) ->
   let (a,s') = step s
       b'     = f b a
   in (b,(b',s'))
@@ -103,11 +112,14 @@ scanSeries f b0 (Series s0 step) = Series (b0,s0) $ \(b,s) ->
 --
 -- \[ \sum_{i=0}^\infty a_i \]
 --
--- Calculation is stopped when next value in series is less than
--- ε·sum.
-sumSeries :: Series Double -> Double
+-- Summation is stopped when
+--
+-- \[ a_{n+1} < \varepsilon\sum_{i=0}^n a_i \]
+--
+-- where ε is machine precision ('m_epsilon')
+sumSeries :: Sequence Double -> Double
 {-# INLINE sumSeries #-}
-sumSeries (Series sInit step)
+sumSeries (Sequence sInit step)
   = go x0 s0
   where 
     (x0,s0) = step sInit
@@ -122,13 +134,13 @@ sumSeries (Series sInit step)
 --
 -- Calculation is stopped when next value in series is less than
 -- ε·sum.
-sumPowerSeries :: Double -> Series Double -> Double
-sumPowerSeries x ser = sumSeries $ liftA2 (*) (scanSeries (*) 1 (pure x)) ser
+sumPowerSeries :: Double -> Sequence Double -> Double
+sumPowerSeries x ser = sumSeries $ liftA2 (*) (scanSequence (*) 1 (pure x)) ser
 {-# INLINE sumPowerSeries #-}
 
 -- | Convert series to infinite list
-seriesToList :: Series a -> [a]
-seriesToList (Series s f) = unfoldr (Just . f) s
+sequenceToList :: Sequence a -> [a]
+sequenceToList (Sequence s f) = unfoldr (Just . f) s
 
 
 
@@ -138,7 +150,7 @@ seriesToList (Series s f) = unfoldr (Just . f) s
 
 -- |
 -- Evaluate continued fraction using modified Lentz algorithm.
--- Series contain pairs (a[i],b[i]) which form following expression:
+-- Sequence contain pairs (a[i],b[i]) which form following expression:
 --
 -- \[
 -- b_0 + \frac{a_1}{b_1+\frac{a_2}{b_2+\frac{a_3}{b_3 + \cdots}}}
@@ -146,9 +158,9 @@ seriesToList (Series s f) = unfoldr (Just . f) s
 --
 -- Modified Lentz algorithm is described in Numerical recipes 5.2
 -- "Evaluation of Continued Fractions"
-evalModLentz :: Series (Double,Double) -> Double
+evalModLentz :: Sequence (Double,Double) -> Double
 {-# INLINE evalModLentz #-}
-evalModLentz (Series sInit step)
+evalModLentz (Sequence sInit step)
   = let ((_,b0),s0) = step sInit
         f0          = maskZero b0
     in  go f0 f0 0 s0
