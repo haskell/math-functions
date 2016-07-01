@@ -30,6 +30,7 @@ data Series a = forall s. Series s (s -> (a,s))
 
 instance Functor Series where
   fmap f (Series s0 step) = Series s0 (\s -> let (a,s') = step s in (f a, s'))
+  {-# INLINE fmap #-}
 
 instance Applicative Series where
   pure a = Series () (\_ -> (a,()))
@@ -37,6 +38,8 @@ instance Applicative Series where
     let (a,sa') = fA sa
         (b,sb') = fB sb
     in (a b, (sa',sb'))
+  {-# INLINE pure  #-}
+  {-# INLINE (<*>) #-}
 
 next :: Series a -> (a,Series a)
 {-# INLINE next #-}
@@ -69,6 +72,7 @@ scanSeries f b0 (Series s0 step) = Series (b0,s0) $ \(b,s) ->
 ----------------------------------------------------------------
 
 sumSeries :: Series Double -> Double
+{-# INLINE sumSeries #-}
 sumSeries ser0
   = go x0 ser
   where 
@@ -80,6 +84,7 @@ sumSeries ser0
 
 sumPowerSeries :: Double -> Series Double -> Double
 sumPowerSeries x ser = sumSeries $ liftA2 (*) (scanSeries (*) 1 (pure x)) ser
+{-# INLINE sumPowerSeries #-}
             
 seriesToList :: Series a -> [a]
 seriesToList (Series s f) = unfoldr (Just . f) s
@@ -91,6 +96,7 @@ seriesToList (Series s f) = unfoldr (Just . f) s
 ----------------------------------------------------------------
 
 evalModLentz :: Series (Double,Double) -> Double
+{-# INLINE evalModLentz #-}
 evalModLentz ser0
   = let ((_,b0), ser) = next ser0
         f0            = maskZero b0
