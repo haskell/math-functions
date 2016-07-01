@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 -- |
 -- Code for working with series
@@ -33,8 +34,8 @@ instance Functor Series where
   {-# INLINE fmap #-}
 
 instance Applicative Series where
-  pure a = Series () (\_ -> (a,()))
-  Series sA fA <*> Series sB fB = Series (sA,sB) $ \(sa,sb) ->
+  pure a = Series () (\() -> (a,()))
+  Series sA fA <*> Series sB fB = Series (sA,sB) $ \(!sa,!sb) ->
     let (a,sa') = fA sa
         (b,sb') = fB sb
     in (a b, (sa',sb'))
@@ -49,7 +50,7 @@ next (Series s f) = case f s of
 
 ----------------------------------------------------------------
 -- Constructors
-----------------------------------------------------------------0
+----------------------------------------------------------------
 
 enumSeriesFrom :: Num a => a -> Series a
 enumSeriesFrom i = Series i (\n -> (n,n+1))
@@ -73,14 +74,14 @@ scanSeries f b0 (Series s0 step) = Series (b0,s0) $ \(b,s) ->
 
 sumSeries :: Series Double -> Double
 {-# INLINE sumSeries #-}
-sumSeries ser0
-  = go x0 ser
+sumSeries (Series sInit step)
+  = go x0 s0
   where 
-    (x0,ser) = next ser0
+    (x0,s0) = step sInit
     go x s | abs (d/x) < m_epsilon = x'
            | otherwise             = go x' s'
-      where (d,s') = next s
-            x' = x + d
+      where (d,s') = step s
+            x'     = x + d
 
 sumPowerSeries :: Double -> Series Double -> Double
 sumPowerSeries x ser = sumSeries $ liftA2 (*) (scanSeries (*) 1 (pure x)) ser
@@ -97,20 +98,20 @@ seriesToList (Series s f) = unfoldr (Just . f) s
 
 evalModLentz :: Series (Double,Double) -> Double
 {-# INLINE evalModLentz #-}
-evalModLentz ser0
-  = let ((_,b0), ser) = next ser0
-        f0            = maskZero b0
-    in  go f0 f0 0 ser
+evalModLentz (Series sInit step)
+  = let ((_,b0),s0) = step sInit
+        f0          = maskZero b0
+    in  go f0 f0 0 s0
   where
     tiny = 1e-60
     maskZero 0 = tiny
     maskZero x = x
     
-    go f c d ser
+    go f c d s
       | abs (delta - 1) < m_epsilon = f'
-      | otherwise                   = go f' c' d' ser'
+      | otherwise                   = go f' c' d' s'
       where     
-          ((a,b),ser') = next ser
+          ((a,b),s') = step s
           d'    = recip $ maskZero $ b + a*d
           c'    = maskZero $ b + a/c 
           delta = c'*d'
