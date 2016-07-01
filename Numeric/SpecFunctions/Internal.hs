@@ -195,6 +195,7 @@ incompleteGamma a x
   | a <= 0 || x < 0 = error
      $ "incompleteGamma: Domain error z=" ++ show a ++ " x=" ++ show x
   | x == 0          = 0
+  | x == m_pos_inf  = 1
   -- For very small x we use following expansion for P:
   --
   -- See http://functions.wolfram.com/GammaBetaErf/GammaRegularized/06/01/05/01/01/
