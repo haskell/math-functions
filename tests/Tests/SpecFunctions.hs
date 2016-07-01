@@ -14,8 +14,8 @@ import Test.Framework.Providers.QuickCheck2
 import Tests.Helpers
 import Tests.SpecFunctions.Tables
 import Numeric.SpecFunctions
-import Numeric.MathFunctions.Comparison (within)
-
+import Numeric.MathFunctions.Comparison (within,relativeError)
+import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
 tests :: Test
 tests = testGroup "Special functions"
@@ -24,8 +24,8 @@ tests = testGroup "Special functions"
   , testProperty "gamma(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
   , testProperty "0 <= gamma <= 1"               $ incompleteGammaInRange
   , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
+  , testProperty "invIncompleteGamma = gamma^-1" $ invIGammaIsInverse
   -- XXX FIXME DISABLED due to failures
-  -- , testProperty "invIncompleteGamma = gamma^-1" $ invIGammaIsInverse
   -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
   , testProperty "gamma - increases" $
       \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
@@ -118,16 +118,22 @@ incompleteGammaAt1Check (abs -> x) =
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
 invIGammaIsInverse (abs -> a) (range01 -> p) =
-  a > 0 && p > 0 && p < 1  ==> ( counterexample ("a  = " ++ show a )
-                               $ counterexample ("p  = " ++ show p )
-                               $ counterexample ("x  = " ++ show x )
-                               $ counterexample ("p' = " ++ show p')
-                               $ counterexample ("Δp = " ++ show (p - p'))
-                               $ abs (p - p') <= 1e-12
-                               )
+  a > m_tiny && p > m_tiny && p < 1  ==>
+    ( counterexample ("a    = " ++ show a )
+    $ counterexample ("p    = " ++ show p )
+    $ counterexample ("x    = " ++ show x )
+    $ counterexample ("p'   = " ++ show p')
+    $ counterexample ("err  = " ++ show (relativeError p p'))
+    $ counterexample ("pred = " ++ show δ)
+    $ relativeError p p' < δ
+    )
   where
     x  = invIncompleteGamma a p
+    f' = exp ( log x * (a-1) - x - logGamma a)
     p' = incompleteGamma    a x
+    -- FIXME: 128 is big constant. It should be replaced by something
+    --        smaller when #42 is fixed
+    δ  = (m_epsilon/2) * (256 + 1 * (1 + abs (x * f' / p)))
 
 -- invErfc is inverse of erfc
 invErfcIsInverse :: Double -> Property
