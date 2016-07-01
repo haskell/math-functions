@@ -23,7 +23,7 @@ module Numeric.Series (
   , sumPowerSeries
   , sequenceToList
     -- * Evaluation of continued fractions
-  , evalModLentz
+  , evalContFractionB
   ) where
 
 import Control.Applicative
@@ -158,9 +158,9 @@ sequenceToList (Sequence s f) = unfoldr (Just . f) s
 --
 -- Modified Lentz algorithm is described in Numerical recipes 5.2
 -- "Evaluation of Continued Fractions"
-evalModLentz :: Sequence (Double,Double) -> Double
-{-# INLINE evalModLentz #-}
-evalModLentz (Sequence sInit step)
+evalContFractionB :: Sequence (Double,Double) -> Double
+{-# INLINE evalContFractionB #-}
+evalContFractionB (Sequence sInit step)
   = let ((_,b0),s0) = step sInit
         f0          = maskZero b0
     in  go f0 f0 0 s0
