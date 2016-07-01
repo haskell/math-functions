@@ -227,8 +227,8 @@ incompleteGamma a x
       = sumPowerSeries (-x) (scanSequence (/) 1 (enumSequenceFrom 1) / enumSequenceFrom a)
       * x**a / exp(logGammaL a)
     -- Legendre continued fractions
-    contFraction = 1 - ( x**a * exp(-x)
-                       / (evalContFractionB frac * exp (logGammaL a))
+    contFraction = 1 - ( exp ( log x * a - x - logGamma a )
+                       / evalContFractionB frac
                        )
       where
         frac = (\k -> (k*(a-k), x - a + 2*k + 1)) <$> enumSequenceFrom 0
