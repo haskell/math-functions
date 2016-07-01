@@ -123,8 +123,8 @@ sumSeries (Sequence sInit step)
   = go x0 s0
   where 
     (x0,s0) = step sInit
-    go x s | abs (d/x) < m_epsilon = x'
-           | otherwise             = go x' s'
+    go x s | abs (d/x) >= m_epsilon = go x' s'
+           | otherwise              = x'
       where (d,s') = step s
             x'     = x + d
 
@@ -170,9 +170,9 @@ evalContFractionB (Sequence sInit step)
     maskZero x = x
     
     go f c d s
-      | abs (delta - 1) < m_epsilon = f'
-      | otherwise                   = go f' c' d' s'
-      where     
+      | abs (delta - 1) >= m_epsilon = go f' c' d' s'
+      | otherwise                    = f'
+      where
           ((a,b),s') = step s
           d'    = recip $ maskZero $ b + a*d
           c'    = maskZero $ b + a/c 
