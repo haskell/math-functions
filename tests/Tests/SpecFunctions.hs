@@ -27,8 +27,8 @@ tests = testGroup "Special functions"
   -- XXX FIXME DISABLED due to failures
   -- , testProperty "invIncompleteGamma = gamma^-1" $ invIGammaIsInverse
   -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
-  -- , testProperty "gamma - increases"             $
-  --     \s x y -> s > 0 && x > 0 && y > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
+  , testProperty "gamma - increases" $
+      \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
   , testProperty "invErfc = erfc^-1"         $ invErfcIsInverse
   , testProperty "invErf  = erf^-1"          $ invErfIsInverse
     -- Unit tests
