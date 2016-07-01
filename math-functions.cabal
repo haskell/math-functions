@@ -37,7 +37,7 @@ library
     TemplateHaskell
     TypeFamilies
 
-  ghc-options:          -Wall
+  ghc-options:          -Wall -O2
   build-depends:        base >=3 && <5,
                         deepseq,
                         vector >= 0.7,
