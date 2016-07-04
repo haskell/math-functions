@@ -21,6 +21,7 @@ import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolyn
 import Numeric.Series                  (sumPowerSeries,enumSequenceFrom,scanSequence,evalContFractionB)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_eulerMascheroni
+                                       , m_min_log
                                        )
 import Text.Printf
 
@@ -443,9 +444,15 @@ incompleteBetaWorker beta p q x
     -- Constants
     eps = 1e-15
     cx  = 1 - x
-    -- Loop
+    -- Common multiplies for expansion
+    --
+    -- If beta function becomes soo small it underflows we should
+    -- perform calculations in log-domain
+    factor | beta < m_min_log = exp( p * log x + (q - 1) * log cx - beta)
+           | otherwise        = x**p * cx**(q - 1) / exp beta
+    -- Soper's expansion of incomplete beta function
     loop !psq (ns :: Int) ai term betain
-      | done      = betain' * x**p * cx**(q - 1) / exp beta / p
+      | done      = betain' * factor / p
       | otherwise = loop psq' (ns - 1) (ai + 1) term' betain'
       where
         -- New values
