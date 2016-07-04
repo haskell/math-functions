@@ -19,6 +19,8 @@ module Numeric.MathFunctions.Constants
     , m_pos_inf
     , m_neg_inf
     , m_NaN
+    , m_max_log
+    , m_min_log
       -- * Mathematical constants
     , m_1_sqrt_2
     , m_2_sqrt_pi
@@ -32,11 +34,12 @@ module Numeric.MathFunctions.Constants
 -- IEE754 constants
 ----------------------------------------------------------------
 
--- | A very large number.
+-- | Largest representable finite value.
 m_huge :: Double
 m_huge = 1.7976931348623157e308
 {-# INLINE m_huge #-}
 
+-- | The smallest representable positive normalized value.
 m_tiny :: Double
 m_tiny = 2.2250738585072014e-308
 {-# INLINE m_tiny #-}
@@ -61,6 +64,15 @@ m_NaN :: Double
 m_NaN = 0/0
 {-# INLINE m_NaN #-}
 
+-- | Maximum possible finite value of @log x@
+m_max_log :: Double
+m_max_log = 709.782712893384
+{-# INLINE m_max_log #-}
+
+-- | Logarithm of smallest normalized double ('m_tiny')
+m_min_log :: Double
+m_min_log = -708.3964185322641
+{-# INLINE m_min_log #-}
 
 
 ----------------------------------------------------------------
