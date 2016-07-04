@@ -21,7 +21,7 @@ import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolyn
 import Numeric.Series                  (sumPowerSeries,enumSequenceFrom,scanSequence,evalContFractionB)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_eulerMascheroni
-                                       , m_min_log
+                                       , m_min_log, m_tiny
                                        )
 import Text.Printf
 
@@ -444,12 +444,19 @@ incompleteBetaWorker beta p q x
     -- Constants
     eps = 1e-15
     cx  = 1 - x
-    -- Common multiplies for expansion
+    -- Common multiplies for expansion. Accurate calculation is a bit
+    -- tricky. Performing calculation in log-domain leads to slight
+    -- loss of precision for small x, while using ** prone to
+    -- underflows.
     --
-    -- If beta function becomes soo small it underflows we should
-    -- perform calculations in log-domain
-    factor | beta < m_min_log = exp( p * log x + (q - 1) * log cx - beta)
-           | otherwise        = x**p * cx**(q - 1) / exp beta
+    -- If either beta function of x**p·(1-x)**(q-1) underflows we
+    -- switch to log domain. It could waste work but there's no easy
+    -- switch criterion.
+    factor
+      | beta < m_min_log || prod < m_tiny = exp( p * log x + (q - 1) * log cx - beta)
+      | otherwise                         = prod / exp beta
+      where
+        prod =  x**p * cx**(q - 1)
     -- Soper's expansion of incomplete beta function
     loop !psq (ns :: Int) ai term betain
       | done      = betain' * factor / p
