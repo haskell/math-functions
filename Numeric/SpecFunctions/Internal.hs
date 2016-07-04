@@ -400,7 +400,7 @@ incompleteBeta_ beta p q x
   | p <= 0 || q <= 0            =
       modErr $ printf "incompleteBeta_: p <= 0 || q <= 0. p=%g q=%g x=%g" p q x
   | x <  0 || x >  1 || isNaN x =
-      modErr $ printf "incompletBeta_: x out of [0,1] range. p=%g q=%g x=%g" p q x
+      modErr $ printf "incompleteBeta_: x out of [0,1] range. p=%g q=%g x=%g" p q x
   | x == 0 || x == 1            = x
   | p >= (p+q) * x   = incompleteBetaWorker beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
