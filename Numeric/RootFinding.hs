@@ -13,8 +13,8 @@ module Numeric.RootFinding
     (
       Root(..)
     , fromRoot
-    -- * Methods not requiring derivatives
     , ridders
+    , newtonRaphson
     -- * References
     -- $references
     ) where
@@ -118,6 +118,46 @@ ridders tol (lo,hi) f
         !fn  = f n
     !flo = f lo
     !fhi = f hi
+
+
+-- | Solve equation using Newton-Raphson iterations.
+--
+-- This method require both initial guess and bounds for root. If
+-- Newton step takes us out of bounds on root function reverts to
+-- bisection.
+newtonRaphson
+  :: Double
+     -- ^ Required precision
+  -> (Double,Double,Double)
+  -- ^ (lower bound, initial guess, upper bound). Iterations will no
+  -- go outside of the interval
+  -> (Double -> (Double,Double))
+  -- ^ Function to finds roots. It returns pair of function value and
+  -- its derivative
+  -> Root Double
+newtonRaphson !prec (!low,!guess,!hi) function
+  = go low guess hi
+  where
+    go !xMin !x !xMax
+      | f == 0              = Root x
+      | abs (dx / x) < prec = Root x
+      | otherwise           = go xMin' x' xMax'
+      where
+        (f,f') = function x
+        -- Calculate Newton-Raphson step
+        delta | f' == 0   = error "handle f'==0"
+              | otherwise = f / f'
+        -- Calculate new approximation and actual change of approximation
+        (dx,x') | z <= xMin = let d = 0.5*(x - xMin) in (d, x - d)
+                | z >= xMax = let d = 0.5*(x - xMax) in (d, x - d)
+                | otherwise = (delta, z)
+          where z = x - delta
+        -- Update root bracket
+        xMin' | dx < 0    = x
+              | otherwise = xMin
+        xMax' | dx > 0    = x
+              | otherwise = xMax
+
 
 
 -- $references
