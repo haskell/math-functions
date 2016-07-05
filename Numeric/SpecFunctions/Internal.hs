@@ -544,6 +544,19 @@ invIncBetaGuess :: Double -> Double -> Double -> Double -> Double
     -- to by number of appearance starting from definition of
     -- incomplete beta.
 invIncBetaGuess beta a b p
+  -- If both a and b are less than 1 incomplete beta have inflection
+  -- point.
+  --
+  -- > x = (1 - a) / (2 - a - b)
+  --
+  -- We approximate incomplete beta by neglecting one of factors under
+  -- integral and then rescaling result of integration into [0,1]
+  -- range.
+  | a < 1 && b < 1 = let x_infl = (1 - a) / (2 - a - b)
+                         p_infl = incompleteBeta a b x_infl
+                         x | p < p_infl = let xg = (a * p     * beta) ** (1/a) in xg / (1+xg)
+                           | otherwise  = let xg = (b * (1-p) * beta) ** (1/b) in 1 - xg/(1+xg)
+                     in x
   -- In this region we use approximation from AS109 (Carter
   -- approximation). It's reasonably good (2 iterations on
   -- average)
