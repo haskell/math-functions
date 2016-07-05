@@ -48,6 +48,7 @@ library
     Numeric.MathFunctions.Comparison
     Numeric.Polynomial
     Numeric.Polynomial.Chebyshev
+    Numeric.RootFinding
     Numeric.SpecFunctions
     Numeric.SpecFunctions.Extra
     Numeric.Series
