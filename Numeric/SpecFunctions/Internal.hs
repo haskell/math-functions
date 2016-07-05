@@ -518,7 +518,14 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
         f   = incompleteBeta_ beta a b x - p
         f'  = exp $ a1 * log x + b1 * log1p (-x) - beta
         u   = f / f'
-        dx  = u / (1 - 0.5 * min 1 (u * (a1 / x - b1 / (1 - x))))
+        -- We bound Halley correction to Newton-Raphson to (-1,1) range
+        corr | d > 1     = 1
+             | d < -1    = -1
+             | isNaN d   = 0
+             | otherwise = d
+          where
+            d = u * (a1 / x - b1 / (1 - x))
+        dx  = u / (1 - 0.5 * corr)
         -- Next approximation. If Halley step leads us out of [0,1]
         -- range we revert to bisection.
         x'  | z < 0     = x / 2
