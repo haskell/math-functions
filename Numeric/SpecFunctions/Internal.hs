@@ -493,7 +493,7 @@ invIncompleteBeta p q a
 
 invIncompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
 -- NOTE: p <= 0.5.
-invIncompleteBetaWorker beta a b p = loop (0::Int) guess
+invIncompleteBetaWorker beta a b p = loop (0::Int) (invIncBetaGuess beta a b p)
   where
     a1 = a - 1
     b1 = b - 1
@@ -532,6 +532,10 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
             | z > 1     = (x + 1) / 2
             | otherwise = z
             where z = x - dx
+
+
+-- Calculate initial guess for inverse incomplete beta function.
+invIncBetaGuess :: Double -> Double -> Double -> Double -> Double
     -- Calculate initial guess. Approximations from AS64, AS109 and
     -- Numerical recipes are used.
     --
@@ -539,48 +543,48 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) guess
     -- In AS64 papers equations are not numbered so they are refered
     -- to by number of appearance starting from definition of
     -- incomplete beta.
-    guess
-      -- In this region we use approximation from AS109 (Carter
-      -- approximation). It's reasonably good (2 iterations on
-      -- average)
-      | a > 1 && b > 1 =
-          let r = (y*y - 3) / 6
-              s = 1 / (2*a - 1)
-              t = 1 / (2*b - 1)
-              h = 2 / (s + t)
-              w = y * sqrt(h + r) / h - (t - s) * (r + 5/6 - 2 / (3 * h))
-          in a / (a + b * exp(2 * w))
-      -- Otherwise we revert to approximation from AS64 derived from
-      -- [AS64 2] when it's applicable.
-      --
-      -- It slightly reduces average number of iterations when `a' and
-      -- `b' have different magnitudes.
-      | chi2 > 0 && ratio > 1 = 1 - 2 / (ratio + 1)
-      -- If all else fails we use approximation from "Numerical
-      -- Recipes". It's very similar to approximations [AS64 4,5] but
-      -- it never goes out of [0,1] interval.
-      | otherwise = case () of
-          _| p < t / w  -> (a * p * w) ** (1/a)
-           | otherwise  -> 1 - (b * (1 - p) * w) ** (1/b)
-           where
-             lna = log $ a / (a+b)
-             lnb = log $ b / (a+b)
-             t   = exp( a * lna ) / a
-             u   = exp( b * lnb ) / b
-             w   = t + u
+invIncBetaGuess beta a b p
+  -- In this region we use approximation from AS109 (Carter
+  -- approximation). It's reasonably good (2 iterations on
+  -- average)
+  | a > 1 && b > 1 =
+      let r = (y*y - 3) / 6
+          s = 1 / (2*a - 1)
+          t = 1 / (2*b - 1)
+          h = 2 / (s + t)
+          w = y * sqrt(h + r) / h - (t - s) * (r + 5/6 - 2 / (3 * h))
+      in a / (a + b * exp(2 * w))
+  -- Otherwise we revert to approximation from AS64 derived from
+  -- [AS64 2] when it's applicable.
+  --
+  -- It slightly reduces average number of iterations when `a' and
+  -- `b' have different magnitudes.
+  | chi2 > 0 && ratio > 1 = 1 - 2 / (ratio + 1)
+  -- If all else fails we use approximation from "Numerical
+  -- Recipes". It's very similar to approximations [AS64 4,5] but
+  -- it never goes out of [0,1] interval.
+  | otherwise = case () of
+      _| p < t / w  -> (a * p * w) ** (1/a)
+       | otherwise  -> 1 - (b * (1 - p) * w) ** (1/b)
+       where
+         lna = log $ a / (a+b)
+         lnb = log $ b / (a+b)
+         t   = exp( a * lna ) / a
+         u   = exp( b * lnb ) / b
+         w   = t + u
+  where
+    -- Formula [AS64 2]
+    ratio = (4*a + 2*b - 2) / chi2
+    -- Quantile of chi-squared distribution. Formula [AS64 3].
+    chi2 = 2 * b * (1 - t + y * sqrt t) ** 3
       where
-        -- Formula [AS64 2]
-        ratio = (4*a + 2*b - 2) / chi2
-        -- Quantile of chi-squared distribution. Formula [AS64 3].
-        chi2 = 2 * b * (1 - t + y * sqrt t) ** 3
-          where
-            t   = 1 / (9 * b)
-        -- `y' is Hasting's approximation of p'th quantile of standard
-        -- normal distribution.
-        y   = r - ( 2.30753 + 0.27061 * r )
-                  / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
-          where
-            r = sqrt $ - 2 * log p
+        t   = 1 / (9 * b)
+    -- `y' is Hasting's approximation of p'th quantile of standard
+    -- normal distribution.
+    y   = r - ( 2.30753 + 0.27061 * r )
+              / ( 1.0 + ( 0.99229 + 0.04481 * r ) * r )
+      where
+        r = sqrt $ - 2 * log p
 
 
 
