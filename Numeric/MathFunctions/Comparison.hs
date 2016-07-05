@@ -19,6 +19,7 @@ module Numeric.MathFunctions.Comparison
       -- * Ulps-based comparison
     , addUlps
     , ulpDistance
+    , ulpDelta
     , within
     ) where
 
@@ -80,7 +81,8 @@ addUlps n a = runST $ do
 
 -- |
 -- Measure distance between two @Double@s in ULPs (units of least
--- precision).
+-- precision). Note that it's different from @abs (ulpDelta a b)@
+-- since it returns correct result even when 'ulpDelta' overflows.
 ulpDistance :: Double
             -> Double
             -> Word64
@@ -100,6 +102,31 @@ ulpDistance a b = runST $ do
       d  | ai > bi   = ai - bi
          | otherwise = bi - ai
   return $! d
+
+-- |
+-- Measure signed distance between two @Double@s in ULPs (units of least
+-- precision). Note that unlike 'ulpDistance' it can overflow.
+--
+-- > >>> ulpDelta 1 (1 + m_epsilon)
+-- > 1
+ulpDelta :: Double
+         -> Double
+         -> Int64
+ulpDelta a b = runST $ do
+  buf <- newByteArray 8
+  ai0 <- writeByteArray buf 0 a >> readByteArray buf 0
+  bi0 <- writeByteArray buf 0 b >> readByteArray buf 0
+  -- IEEE754 floats use most significant bit as sign bit (not
+  -- 2-complement) and we need to rearrange representations of float
+  -- number so that they could be compared lexicographically as
+  -- Word64.
+  let big     = 0x8000000000000000 :: Word64
+      order i | i < big   = i + big
+              | otherwise = maxBound - i
+      ai = order ai0
+      bi = order bi0
+  return $! fromIntegral $ bi - ai
+
 
 -- | Compare two 'Double' values for approximate equality, using
 -- Dawson's method.
