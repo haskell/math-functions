@@ -1,4 +1,4 @@
-Changes in 0.1.8.0
+Changes in 0.2.0.0
 
   * `logGamma` now uses Lancsoz approximation and same as `logGammaL`.  Old
      implementation of `logGamma` moved to `Numeric.SpecFunctions.Extra.logGammaAS245`.
