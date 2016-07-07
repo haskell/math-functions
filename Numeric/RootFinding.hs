@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, DeriveGeneric, CPP #-}
 -- |
 -- Module    : Numeric.RootFinding
 -- Copyright : (c) 2011 Bryan O'Sullivan
@@ -22,7 +22,9 @@ module Numeric.RootFinding
 import Control.Applicative              (Alternative(..), Applicative(..))
 import Control.Monad                    (MonadPlus(..), ap)
 import Data.Data                        (Data, Typeable)
+#if __GLASGOW_HASKELL__ >= 704
 import GHC.Generics                     (Generic)
+#endif
 import Numeric.MathFunctions.Comparison (within)
 
 
@@ -35,7 +37,11 @@ data Root a = NotBracketed
             -- error tolerance after the given number of iterations.
             | Root a
             -- ^ A root was successfully found.
-              deriving (Eq, Read, Show, Typeable, Data, Generic)
+              deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ >= 704
+                       , Generic
+#endif
+                       )
 
 
 instance Functor Root where
