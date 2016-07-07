@@ -11,8 +11,10 @@
 -- Internal module with implementation of special functions.
 module Numeric.SpecFunctions.Internal where
 
+import Control.Applicative
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
+import Data.Word       (Word)
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 
