@@ -562,14 +562,14 @@ invIncBetaGuess beta a b p
     in x
   -- If both a and b larger or equal that 1 but not too big we use
   -- same approximation as above but calculate it a bit differently
-  | a+b <= 6 && a>=1 && b>=1 =
+  | a+b <= 6 && a>1 && b>1 =
     let x_infl = (a - 1) / (a + b - 2)
         p_infl = incompleteBeta a b x_infl
         x | p < p_infl = exp ((log(p * a) + beta) / a)
           | otherwise  = 1 - exp((log((1-p) * b) + beta) / b)
     in x
   -- For small a and not too big b we use approximation from boost.
-  | b < 5 && a < 1 =
+  | b < 5 && a <= 1 =
     let x | p**(1/a) < 0.5 = (p * a * exp beta) ** (1/a)
           | otherwise      = 1 - (1 - p ** (b * exp beta))**(1/b)
     in x
