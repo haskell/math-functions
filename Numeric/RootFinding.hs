@@ -22,7 +22,7 @@ module Numeric.RootFinding
 import Control.Applicative              (Alternative(..), Applicative(..))
 import Control.Monad                    (MonadPlus(..), ap)
 import Data.Data                        (Data, Typeable)
-#if __GLASGOW_HASKELL__ >= 704
+#if __GLASGOW_HASKELL__ > 704
 import GHC.Generics                     (Generic)
 #endif
 import Numeric.MathFunctions.Comparison (within)
@@ -38,7 +38,7 @@ data Root a = NotBracketed
             | Root a
             -- ^ A root was successfully found.
               deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ >= 704
+#if __GLASGOW_HASKELL__ > 704
                        , Generic
 #endif
                        )

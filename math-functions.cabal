@@ -76,7 +76,7 @@ test-suite tests
     Tests.Sum
   build-depends:
     math-functions,
-    base >=3 && <5,
+    base >=4.5 && <5,
     deepseq,
     primitive,
     vector >= 0.7,
