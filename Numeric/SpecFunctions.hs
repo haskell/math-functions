@@ -83,6 +83,10 @@ import Numeric.SpecFunctions.Internal
 --   Vol. 22, No. 3 (1973), pp. 411-414
 --   <http://www.jstor.org/pss/2346798>
 --
+-- * Temme, N.M. (1992) Asymptotic inversion of the incomplete beta
+--   function. /Journal of Computational and Applied Mathematics
+--   41(1992) 145-157.
+--
 -- * Temme, N.M. (1994) A set of algorithms for the incomplete gamma
 --   functions. /Probability in the Engineering and Informational
 --   Sciences/, 8, 1994, 291-307. Printed in the U.S.A.

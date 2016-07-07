@@ -17,7 +17,8 @@ import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
-import Numeric.Polynomial              (evaluateEvenPolynomialL,evaluateOddPolynomialL)
+import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
+import Numeric.RootFinding             (Root(..), newtonRaphson)
 import Numeric.Series                  (sumPowerSeries,enumSequenceFrom,scanSequence,evalContFractionB)
 import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
                                        , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_eulerMascheroni
@@ -536,13 +537,12 @@ invIncompleteBetaWorker beta a b p = loop (0::Int) (invIncBetaGuess beta a b p)
 
 -- Calculate initial guess for inverse incomplete beta function.
 invIncBetaGuess :: Double -> Double -> Double -> Double -> Double
-    -- Calculate initial guess. Approximations from AS64, AS109 and
-    -- Numerical recipes are used.
-    --
-    -- Equations are referred to by name of paper and number e.g. [AS64 2]
-    -- In AS64 papers equations are not numbered so they are refered
-    -- to by number of appearance starting from definition of
-    -- incomplete beta.
+-- Calculate initial guess. for solving equation for inverse incomplete beta.
+-- It's really hodgepodge of different approximations accumulated over years.
+--
+-- Equations are referred to by name of paper and number e.g. [AS64 2]
+-- In AS64 papers equations are not numbered so they are refered to by
+-- number of appearance starting from definition of incomplete beta.
 invIncBetaGuess beta a b p
   -- If both a and b are less than 1 incomplete beta have inflection
   -- point.
@@ -552,14 +552,107 @@ invIncBetaGuess beta a b p
   -- We approximate incomplete beta by neglecting one of factors under
   -- integral and then rescaling result of integration into [0,1]
   -- range.
-  | a < 1 && b < 1 = let x_infl = (1 - a) / (2 - a - b)
-                         p_infl = incompleteBeta a b x_infl
-                         x | p < p_infl = let xg = (a * p     * beta) ** (1/a) in xg / (1+xg)
-                           | otherwise  = let xg = (b * (1-p) * beta) ** (1/b) in 1 - xg/(1+xg)
-                     in x
-  -- In this region we use approximation from AS109 (Carter
-  -- approximation). It's reasonably good (2 iterations on
-  -- average)
+  | a < 1 && b < 1 =
+    let x_infl = (1 - a) / (2 - a - b)
+        p_infl = incompleteBeta a b x_infl
+        x | p < p_infl = let xg = (a * p     * exp beta) ** (1/a) in xg / (1+xg)
+          | otherwise  = let xg = (b * (1-p) * exp beta) ** (1/b) in 1 - xg/(1+xg)
+    in x
+  -- If both a and b larger or equal that 1 but not too big we use
+  -- same approximation as above but calculate it a bit differently
+  | a+b <= 6 && a>=1 && b>=1 =
+    let x_infl = (a - 1) / (a + b - 2)
+        p_infl = incompleteBeta a b x_infl
+        x | p < p_infl = exp ((log(p * a) + beta) / a)
+          | otherwise  = 1 - exp((log((1-p) * b) + beta) / b)
+    in x
+  -- For small a and not too big b we use approximation from boost.
+  | b < 5 && a < 1 =
+    let x | p**(1/a) < 0.5 = (p * a * exp beta) ** (1/a)
+          | otherwise      = 1 - (1 - p ** (b * exp beta))**(1/b)
+    in x
+  -- When a>>b and both are large approximation from [Temme1992],
+  -- section 4 "the incomplete gamma function case" used. In this
+  -- region it greatly improves over other approximation (AS109, AS64,
+  -- "Numerical Recipes")
+  --
+  -- FIXME: It could be used when b>>a too but it require inverse of
+  --        upper incomplete gamma to be precise enough. In current
+  --        implementation it loses precision in horrible way (40
+  --        order of magnitude off for sufficiently small p)
+  | a+b > 5 &&  a/b > 4 =
+    let -- Calculate initial approximation to eta using eq 4.1
+        eta0 = invIncompleteGamma b (1-p) / a
+        mu   = b / a            -- Eq. 4.3
+        -- A lot of helpers for calculation of
+        w    = sqrt(1 + mu)     -- Eq. 4.9
+        w_2  = w * w
+        w_3  = w_2 * w
+        w_4  = w_2 * w_2
+        w_5  = w_3 * w_2
+        w_6  = w_3 * w_3
+        w_7  = w_4 * w_3
+        w_8  = w_4 * w_4
+        w_9  = w_5 * w_4
+        w_10 = w_5 * w_5
+        d    = eta0 - mu
+        d_2  = d * d
+        d_3  = d_2 * d
+        d_4  = d_2 * d_2
+        w1   = w + 1
+        w1_2 = w1 * w1
+        w1_3 = w1 * w1_2
+        w1_4 = w1_2 * w1_2
+        -- Evaluation of eq 4.10
+        e1 = (w + 2) * (w - 1) / (3 * w)
+           + (w_3 + 9 * w_2 + 21 * w + 5) * d
+             / (36 * w_2 * w1)
+           - (w_4 - 13 * w_3 + 69 * w_2 + 167 * w + 46) * d_2
+             / (1620 * w1_2 * w_3)
+           - (7 * w_5 + 21 * w_4 + 70 * w_3 + 26 * w_2 - 93 * w - 31) * d_3
+             / (6480 * w1_3 * w_4)
+           - (75 * w_6 + 202 * w_5 + 188 * w_4 - 888 * w_3 - 1345 * w_2 + 118 * w + 138) * d_4
+             / (272160 * w1_4 * w_5)
+        e2 = (28 * w_4 + 131 * w_3 + 402 * w_2 + 581 * w + 208) * (w - 1)
+             / (1620 * w1 * w_3)
+           - (35 * w_6 - 154 * w_5 - 623 * w_4 - 1636 * w_3 - 3983 * w_2 - 3514 * w - 925) * d
+             / (12960 * w1_2 * w_4)
+           - ( 2132 * w_7 + 7915 * w_6 + 16821 * w_5 + 35066 * w_4 + 87490 * w_3
+             + 141183 * w_2 + 95993 * w + 21640
+             ) * d_2
+             / (816480 * w_5 * w1_3)
+           - ( 11053 * w_8 + 53308 * w_7 + 117010 * w_6 + 163924 * w_5 + 116188 * w_4
+             - 258428 * w_3 - 677042 * w_2 - 481940 * w - 105497
+             ) * d_3
+             / (14696640 * w1_4 * w_6)
+        e3 = -( (3592 * w_7 + 8375 * w_6 - 1323 * w_5 - 29198 * w_4 - 89578 * w_3
+                - 154413 * w_2 - 116063 * w - 29632
+                ) * (w - 1)
+              )
+              / (816480 * w_5 * w1_2)
+           - ( 442043 * w_9 + 2054169 * w_8 + 3803094 * w_7 + 3470754 * w_6 + 2141568 * w_5
+             - 2393568 * w_4 - 19904934 * w_3 - 34714674 * w_2 - 23128299 * w - 5253353
+             ) * d
+             / (146966400 * w_6 * w1_3)
+           - ( 116932 * w_10 + 819281 * w_9 + 2378172 * w_8 + 4341330 * w_7 + 6806004 * w_6
+             + 10622748 * w_5 + 18739500 * w_4 + 30651894 * w_3 + 30869976 * w_2
+             + 15431867 * w + 2919016
+             ) * d_2
+             / (146966400 * w1_4 * w_7)
+        eta = evaluatePolynomialL (1/a) [eta0, e1, e2, e3]
+        -- Now we solve eq 4.2 to recover x using Newton iterations
+        u       = eta - mu * log eta + (1 + mu) * log(1 + mu) - mu
+        cross   = 1 / (1 + mu);
+        lower   = if eta < mu then cross else 0
+        upper   = if eta < mu then 1     else cross
+        x_guess = (lower + upper) / 2
+        func x  = ( u + log x + mu*log(1 - x)
+                  , 1/x - mu/(1-x)
+                  )
+        Root x0 = newtonRaphson 1e-8 (lower, x_guess, upper) func
+    in x0
+  -- For large a and b approximation from AS109 (Carter
+  -- approximation). It's reasonably good in this region
   | a > 1 && b > 1 =
       let r = (y*y - 3) / 6
           s = 1 / (2*a - 1)
