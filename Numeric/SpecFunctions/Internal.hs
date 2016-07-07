@@ -352,7 +352,7 @@ invIncompleteGamma a p
 -- | Compute the natural logarithm of the beta function.
 --
 -- \[
--- B(a,b) = \int_0^1 t^{a-1}(1-t)^{1-b}\,dt = \frac{\Gamma{a}\Gamma{b}}{\Gamma{a+b}}
+-- B(a,b) = \int_0^1 t^{a-1}(1-t)^{1-b}\,dt = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}
 -- \]
 logBeta
   :: Double                     -- ^ /a/ > 0
@@ -829,7 +829,9 @@ logFactorial n
 -- | Calculate the error term of the Stirling approximation.  This is
 -- only defined for non-negative values.
 --
--- > stirlingError @n@ = @log(n!) - log(sqrt(2*pi*n)*(n/e)^n)
+-- \[
+-- \operatorname{stirlingError}(n) = \log(n!) - \log(\sqrt{2\pi n}\frac{n}{e}^n)
+-- \]
 stirlingError :: Double -> Double
 stirlingError n
   | n <= 15.0   = case properFraction (n+n) of
