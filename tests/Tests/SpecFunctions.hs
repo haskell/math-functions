@@ -50,9 +50,8 @@ tests = testGroup "Special functions"
       $ and [ eq 1e-15 (logGammaL (fromIntegral n))
                        (logFactorial (n-1))
             | n <- [3..10000::Int]]
-    -- FIXME: Too low!
   , testAssertion "logGammaL is expected to be precise at 1e-10 level [fractional points]"
-      $ and [ eq 1e-10 (logGammaL x) lg | (x,lg) <- tableLogGamma ]
+      $ and [ eq (64*m_epsilon) (logGammaL x) lg | (x,lg) <- tableLogGamma ]
     -- FIXME: loss of precision when logBeta p q ≈ 0.
     --        Relative error doesn't work properly in this case.
   , testAssertion "logBeta is expected to be precise at 1e-6 level"
@@ -66,9 +65,8 @@ tests = testGroup "Special functions"
     -- Relative precision is lost when digamma(x) ≈ 0
   , testAssertion "digamma is expected to be precise at 1e-12"
       $ and [ eq 1e-12 r (digamma x) | (x,r) <- tableDigamma ]
-    -- FIXME: Why 1e-8? Is it due to poor precision of logBeta?
-  , testAssertion "incompleteBeta is expected to be precise at 1e-8 level"
-      $ and [ eq 1e-8 (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
+  , testAssertion "incompleteBeta is expected to be precise at 32*m_epsilon level"
+      $ and [ eq (32 * m_epsilon) (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
   , testAssertion "incompleteBeta with p > 3000 and q > 3000"
       $ and [ eq 1e-11 (incompleteBeta p q x) ib | (x,p,q,ib) <-
                  [ (0.495,  3001,  3001, 0.2192546757957825068677527085659175689142653854877723)
