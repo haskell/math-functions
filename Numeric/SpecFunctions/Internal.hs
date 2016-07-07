@@ -490,12 +490,10 @@ invIncompleteBeta p q a
   | a <  0 || a >  1 =
       modErr $ printf "invIncompleteBeta x must be in [0,1].  p=%g q=%g a=%g" p q a
   | a == 0 || a == 1 = a
-  | a > 0.5          = 1 - invIncompleteBetaWorker (logBeta p q) q p (1 - a)
-  | otherwise        =     invIncompleteBetaWorker (logBeta p q) p q  a
+  | otherwise        = invIncompleteBetaWorker (logBeta p q) p q  a
 
 
 invIncompleteBetaWorker :: Double -> Double -> Double -> Double -> Double
--- NOTE: p <= 0.5.
 invIncompleteBetaWorker beta a b p = loop (0::Int) (invIncBetaGuess beta a b p)
   where
     a1 = a - 1
