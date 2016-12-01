@@ -17,16 +17,14 @@ import Data.Int        (Int64)
 import Data.Word       (Word)
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
+import Text.Printf
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
 import Numeric.RootFinding             (Root(..), newtonRaphson)
-import Numeric.Series                  (sumPowerSeries,enumSequenceFrom,scanSequence,evalContFractionB)
-import Numeric.MathFunctions.Constants ( m_epsilon, m_NaN, m_neg_inf, m_pos_inf
-                                       , m_sqrt_2_pi, m_ln_sqrt_2_pi, m_eulerMascheroni
-                                       , m_min_log, m_tiny
-                                       )
-import Text.Printf
+import Numeric.Series
+import Numeric.MathFunctions.Constants
+
 
 
 ----------------------------------------------------------------
@@ -771,7 +769,14 @@ log1pmx x
 
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
-expm1 = c_expm1
+-- NOTE: this is simplest implementation and not terribly efficient.
+expm1 x
+  | x < (-37.42994775023705) = -1
+  | x > m_max_log            = m_pos_inf
+  | abs x > 0.5              = exp x - 1
+  | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
+                                                      (1 / scanSequence (*) 1 (enumSequenceFrom 2))
+
 
 foreign import ccall "expm1" c_expm1 :: Double -> Double
 
