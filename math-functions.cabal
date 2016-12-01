@@ -39,11 +39,13 @@ library
     DeriveGeneric
 
   ghc-options:          -Wall -O2
-  build-depends:        base >=4.5 && <5,
-                        deepseq,
-                        vector >= 0.7,
-                        primitive,
-                        vector-th-unbox
+  build-depends:        base >=4.5 && <5
+                      , deepseq
+                      , vector >= 0.7
+                      , primitive
+                      , vector-th-unbox
+  if flag(system-expm1) || !os(windows)
+    cpp-options: -DUSE_SYSTEM_EXPM1
   exposed-modules:
     Numeric.MathFunctions.Constants
     Numeric.MathFunctions.Comparison
@@ -56,6 +58,11 @@ library
     Numeric.Sum
   other-modules:
     Numeric.SpecFunctions.Internal
+
+flag system-expm1
+     description: Use expm1 provided by system. Only have effect on windows
+     default:     False
+     manual:      True
 
 test-suite tests
   default-language: Haskell2010

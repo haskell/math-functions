@@ -11,7 +11,7 @@
 -- Internal module with implementation of special functions.
 module Numeric.SpecFunctions.Internal where
 
-#if !MIN_VERSION_base(4,9,0)
+#if !MIN_VERSION_base(44,9,0)
 import Control.Applicative
 #endif
 import Data.Bits       ((.&.), (.|.), shiftR)
@@ -20,7 +20,7 @@ import Data.Word       (Word)
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(44,9,0)
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -722,7 +722,7 @@ sinc x
 ----------------------------------------------------------------
 
 -- GHC.Float provides log1p and expm1 since 4.9.0
-#if !MIN_VERSION_base(4,9,0)
+#if !MIN_VERSION_base(44,9,0)
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 -- for values of @x@ near zero, where use of @log(1+x)@ would lose
 -- precision.
@@ -764,6 +764,11 @@ log1p x
              ]
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
+#ifdef USE_SYSTEM_GHC
+expm1 = c_expm1
+
+foreign import ccall "expm1" c_expm1 :: Double -> Double
+#else
 -- NOTE: this is simplest implementation and not terribly efficient.
 expm1 x
   | x < (-37.42994775023705) = -1
@@ -771,9 +776,7 @@ expm1 x
   | abs x > 0.5              = exp x - 1
   | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
                                                       (1 / scanSequence (*) 1 (enumSequenceFrom 2))
-
--- foreign import ccall "expm1" c_expm1 :: Double -> Double
--- MIN_VERSION_base(4,9,0)
+#endif
 #endif
 
 -- | Compute log(1+x)-x:
