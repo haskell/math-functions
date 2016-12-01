@@ -9,11 +9,6 @@
 -- Portability : portable
 --
 -- Special functions and factorials.
---
--- Base starting from @4.9.0@ (GHC 8.0) provides 'log1p' and 'expm1'
--- as method of class 'Floating'. In this case we simply reexport
--- these function. Otherwise we provide our own with more restrictive
--- signature @Double → Double@.
 module Numeric.SpecFunctions (
     -- * Error function
     erf
@@ -34,6 +29,7 @@ module Numeric.SpecFunctions (
     -- * Sinc
   , sinc
     -- * Logarithm
+    -- $log1p
   , log1p
   , log1pmx
   , log2
@@ -55,6 +51,13 @@ import Numeric.SpecFunctions.Internal
 import GHC.Float (log1p, expm1)
 #endif
 
+
+-- $log1p
+--
+-- Base starting from @4.9.0@ (GHC 8.0) provides 'log1p' and 'expm1'
+-- as method of class 'Floating'. In this case we simply reexport
+-- these function. Otherwise we provide our own with more restrictive
+-- signature @Double → Double@.
 
 -- $references
 --
