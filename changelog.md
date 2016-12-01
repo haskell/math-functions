@@ -1,9 +1,17 @@
-Changes in 0.2.0.0
+## Changes in 0.2.1.0
+
+  * `log1p` and `expm1` are simply reexported from `GHC.Float`. They're methods
+     of `Floating` type class.
+
+  * On windows `expm1` is implemented in pure haskell for older GHCs.
+
+
+## Changes in 0.2.0.0
 
   * Bug fixes and documentation tweaks
 
 
-Changes in 0.2.0.0
+## Changes in 0.2.0.0
 
   * `logGamma` now uses Lancsoz approximation and same as `logGammaL`.  Old
      implementation of `logGamma` moved to `Numeric.SpecFunctions.Extra.logGammaAS245`.
@@ -36,7 +44,7 @@ Changes in 0.2.0.0
 
 
 
-Changes in 0.1.7.0
+## Changes in 0.1.7.0
 
   * Module `statistics: Statistics.Function.Comparison` moved to
     `Numeric.MathFunctions.Comparison`. Old implementation if `within` compared
@@ -49,7 +57,7 @@ Changes in 0.1.7.0
   * Precision of `logFactorial` is slightly improved.
 
 
-Changes in 0.1.6.0
+## Changes in 0.1.6.0
 
   * `logChoose` added for calculation of logarithm of binomial coefficient
 
@@ -58,17 +66,17 @@ Changes in 0.1.6.0
   * `sinc` added
 
 
-Changes in 0.1.5.3
+## Changes in 0.1.5.3
 
   * Fix for test suite on 32bit platform
 
 
-Changes in 0.1.5
+## Changes in 0.1.5
 
   * Numeric.Sum: new module adds accurate floating point summation.
 
 
-Changes in 0.1.4
+## Changes in 0.1.4
 
   * logFactorial type is genberalized. It accepts any `Integral` type
 
@@ -76,7 +84,7 @@ Changes in 0.1.4
     are store in lists added
 
 
-Changes in 0.1.3
+## Changes in 0.1.3
 
   * Error function and its inverse added.
 
