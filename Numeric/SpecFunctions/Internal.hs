@@ -11,7 +11,7 @@
 -- Internal module with implementation of special functions.
 module Numeric.SpecFunctions.Internal where
 
-#if !MIN_VERSION_base(44,9,0)
+#if !MIN_VERSION_base(4,9,0)
 import Control.Applicative
 #endif
 import Data.Bits       ((.&.), (.|.), shiftR)
@@ -20,7 +20,7 @@ import Data.Word       (Word)
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
-#if MIN_VERSION_base(44,9,0)
+#if MIN_VERSION_base(4,9,0)
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -722,7 +722,7 @@ sinc x
 ----------------------------------------------------------------
 
 -- GHC.Float provides log1p and expm1 since 4.9.0
-#if !MIN_VERSION_base(44,9,0)
+#if !MIN_VERSION_base(4,9,0)
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 -- for values of @x@ near zero, where use of @log(1+x)@ would lose
 -- precision.
