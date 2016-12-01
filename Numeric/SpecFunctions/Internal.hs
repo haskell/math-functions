@@ -762,9 +762,10 @@ log1p x
                0.55480701209082887983041321697279e-15,
               -0.10324619158271569595141333961932e-15
              ]
+
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
-#ifdef USE_SYSTEM_GHC
+#ifdef USE_SYSTEM_EXPM1
 expm1 = c_expm1
 
 foreign import ccall "expm1" c_expm1 :: Double -> Double
