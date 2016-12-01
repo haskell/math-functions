@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, ScopedTypeVariables, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, BangPatterns, ScopedTypeVariables, ForeignFunctionInterface #-}
 -- |
 -- Module    : Numeric.SpecFunctions.Internal
 -- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
@@ -11,13 +11,18 @@
 -- Internal module with implementation of special functions.
 module Numeric.SpecFunctions.Internal where
 
+#if !MIN_VERSION_base(4,9,0)
 import Control.Applicative
+#endif
 import Data.Bits       ((.&.), (.|.), shiftR)
 import Data.Int        (Int64)
 import Data.Word       (Word)
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
+#if MIN_VERSION_base(4,9,0)
+import GHC.Float (log1p,expm1)
+#endif
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
@@ -716,6 +721,8 @@ sinc x
 -- Logarithm
 ----------------------------------------------------------------
 
+-- GHC.Float provides log1p and expm1 since 4.9.0
+#if !MIN_VERSION_base(4,9,0)
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 -- for values of @x@ near zero, where use of @log(1+x)@ would lose
 -- precision.
@@ -755,6 +762,19 @@ log1p x
                0.55480701209082887983041321697279e-15,
               -0.10324619158271569595141333961932e-15
              ]
+-- | Compute @exp x - 1@ without loss of accuracy for x near zero.
+expm1 :: Double -> Double
+-- NOTE: this is simplest implementation and not terribly efficient.
+expm1 x
+  | x < (-37.42994775023705) = -1
+  | x > m_max_log            = m_pos_inf
+  | abs x > 0.5              = exp x - 1
+  | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
+                                                      (1 / scanSequence (*) 1 (enumSequenceFrom 2))
+
+-- foreign import ccall "expm1" c_expm1 :: Double -> Double
+-- MIN_VERSION_base(4,9,0)
+#endif
 
 -- | Compute log(1+x)-x:
 log1pmx :: Double -> Double
@@ -766,21 +786,6 @@ log1pmx x
   | otherwise      = - x * x * sumPowerSeries (-x) (recip <$> enumSequenceFrom 2)
   where
    ax = abs x
-
--- | Compute @exp x - 1@ without loss of accuracy for x near zero.
-expm1 :: Double -> Double
--- NOTE: this is simplest implementation and not terribly efficient.
-expm1 x
-  | x < (-37.42994775023705) = -1
-  | x > m_max_log            = m_pos_inf
-  | abs x > 0.5              = exp x - 1
-  | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
-                                                      (1 / scanSequence (*) 1 (enumSequenceFrom 2))
-
-
-foreign import ccall "expm1" c_expm1 :: Double -> Double
-
-
 
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.
 log2 :: Int -> Int
