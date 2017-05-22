@@ -1,5 +1,7 @@
 # math-functions: efficient, special purpose mathematical functions
 
+[![Build Status](https://travis-ci.org/Shimuuar/math-functions.png?branch=master)](https://travis-ci.org/Shimuuar/math-functions)
+
 This package provides a number of special-purpose mathematical
 functions used in statistical and numerical computing.
 
