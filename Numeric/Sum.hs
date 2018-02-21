@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleContexts,
-    MultiParamTypeClasses, TemplateHaskell, TypeFamilies #-}
+    MultiParamTypeClasses, TemplateHaskell, TypeFamilies, CPP #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
 -- Module    : Numeric.Sum
@@ -53,7 +53,11 @@ import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
-import Data.Vector.Generic (Vector(..), foldl')
+import Data.Monoid                  (Monoid(..))
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup               (Semigroup(..))
+#endif
+import Data.Vector.Generic          (Vector(..), foldl')
 import Data.Vector.Unboxed.Deriving (derivingUnbox)
 -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
 import Data.Vector.Generic.Mutable (MVector(..))
@@ -106,6 +110,15 @@ instance Summation KahanSum where
 instance NFData KahanSum where
     rnf !_ = ()
 
+instance Monoid KahanSum where
+  mempty = zero
+  s `mappend` KahanSum s' _ = add s s'
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup KahanSum where
+  (<>) = mappend
+#endif
+
 kahanAdd :: KahanSum -> Double -> KahanSum
 kahanAdd (KahanSum sum c) x = KahanSum sum' c'
   where sum' = sum + y
@@ -133,6 +146,15 @@ instance Summation KBNSum where
 
 instance NFData KBNSum where
     rnf !_ = ()
+
+instance Monoid KBNSum where
+  mempty = zero
+  s `mappend` KBNSum s' c' = add (add s s') c'
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup KBNSum where
+  (<>) = mappend
+#endif
 
 kbnAdd :: KBNSum -> Double -> KBNSum
 kbnAdd (KBNSum sum c) x = KBNSum sum' c'
@@ -168,6 +190,16 @@ instance Summation KB2Sum where
 
 instance NFData KB2Sum where
     rnf !_ = ()
+
+instance Monoid KB2Sum where
+  mempty = zero
+  s `mappend` KB2Sum s' c' cc' = add (add (add s s') c') cc'
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup KB2Sum where
+  (<>) = mappend
+#endif
+
 
 kb2Add :: KB2Sum -> Double -> KB2Sum
 kb2Add (KB2Sum sum c cc) x = KB2Sum sum' c' cc'
