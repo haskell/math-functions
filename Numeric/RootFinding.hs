@@ -10,10 +10,15 @@
 --
 -- Haskell functions for finding the roots of real functions of real arguments.
 module Numeric.RootFinding
-    (
+    ( -- * Data types
       Root(..)
     , fromRoot
+    , Tolerance(..)
+    , withinTolerance
+    -- * Ridders algorithm
+    , RiddersParam(..)
     , ridders
+    -- * Newton-Raphson algorithm
     , newtonRaphson
     -- * References
     -- $references
@@ -22,11 +27,17 @@ module Numeric.RootFinding
 import Control.Applicative              (Alternative(..), Applicative(..))
 import Control.Monad                    (MonadPlus(..), ap)
 import Data.Data                        (Data, Typeable)
+import Data.Default.Class
 #if __GLASGOW_HASKELL__ > 704
 import GHC.Generics                     (Generic)
 #endif
-import Numeric.MathFunctions.Comparison (within)
+import Numeric.MathFunctions.Comparison (within,eqRelErr)
+import Numeric.MathFunctions.Constants  (m_epsilon)
 
+
+----------------------------------------------------------------
+-- Data types
+----------------------------------------------------------------
 
 -- | The result of searching for a root of a mathematical function.
 data Root a = NotBracketed
@@ -81,6 +92,54 @@ fromRoot _ (Root a) = a
 fromRoot a _        = a
 
 
+-- | Error tolerance for finding root. It describes when root finding
+--   algorithm should stop trying to improve approximation.
+data Tolerance
+  = RelTol !Double
+    -- ^ Relative error tolerance. Given @RelTol ε@ two values are
+    --   considered approximately equal if
+    --   \[ |a - b| / |\operatorname{max}(a,b)} < \vareps \]
+  | AbsTol !Double
+    -- ^ Absolute error tolerance. Given @AbsTol δ@ two values are
+    --   considered approximately equal if \[ |a - b| < \delta \].
+    --   Note that @AbsTol 0@ could be used to require to find
+    --   approximation within machine precision.
+  deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ > 704
+           , Generic
+#endif
+           )
+
+withinTolerance :: Tolerance -> Double -> Double -> Bool
+withinTolerance (RelTol eps) a b = eqRelErr eps a b
+-- NOTE: `<=` is needed to allow 0 absolute tolerance which is used to
+--       describe precision of 1ulp
+withinTolerance (AbsTol tol) a b = abs (a - b) <= tol
+
+----------------------------------------------------------------
+-- Ridders algorithm
+----------------------------------------------------------------
+
+-- | Parameters for 'ridders' root finding
+data RiddersParam = RiddersParam
+  { riddersMaxIter :: !Int
+    -- ^ Maximum number of iterations.
+  , riddersTol     :: !Tolerance
+    -- ^ Error tolerance for root approximation.
+  }
+  deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ > 704
+           , Generic
+#endif
+           )
+
+instance Default RiddersParam where
+  def = RiddersParam
+        { riddersMaxIter = 100
+        , riddersTol     = RelTol (4 * m_epsilon)
+        }
+
+
 -- | Use the method of Ridders[Ridders1979] to compute a root of a
 --   function. It doesn't require derivative and provide quadratic
 --   convergence (number of significant digits grows quadratically
@@ -90,7 +149,7 @@ fromRoot a _        = a
 --   and upper bounds of the search (i.e. the root must be
 --   bracketed). If there's more that one root in the bracket
 --   iteration will converge to some root in the bracket.
-ridders :: Double
+ridders :: RiddersParam
         -- ^ Absolute error tolerance. Iterations will be stopped when
         --   difference between root and estimate is less than
         --   tolerance or when precision couldn't be improved further
@@ -100,7 +159,7 @@ ridders :: Double
         -> (Double -> Double)
         -- ^ Function to find the roots of.
         -> Root Double
-ridders tol (lo,hi) f
+ridders p (lo,hi) f
     | flo == 0    = Root lo
     | fhi == 0    = Root hi
     -- root is not bracketed
@@ -114,14 +173,14 @@ ridders tol (lo,hi) f
     --
     go !a !fa !b !fb !i
         -- Root is bracketed within 1 ulp. No improvement could be made
-        | within 1 a b       = Root a
+        | within 1 a b = Root a
         -- Root is found. Check that f(m) == 0 is nessesary to ensure
         -- that root is never passed to 'go'
-        | fm == 0            = Root m
-        | fn == 0            = Root n
-        | d < tol            = Root n
+        | fm == 0      = Root m
+        | fn == 0      = Root n
+        | withinTolerance (riddersTol p) a b = Root n
         -- Too many iterations performed. Fail
-        | i >= (100 :: Int)  = SearchFailed
+        | i >= riddersMaxIter p              = SearchFailed
         -- Ridder's approximation coincide with one of old bounds or
         -- went out of (a,b) range due to numerical problems. Revert
         -- to bisection
@@ -133,7 +192,6 @@ ridders tol (lo,hi) f
         | fn*fa < 0          = go a fa n fn (i+1)
         | otherwise          = go n fn b fb (i+1)
       where
-        d    = abs (b - a)
         dm   = (b - a) * 0.5
         -- Mean point
         !m   = a + dm
@@ -142,6 +200,11 @@ ridders tol (lo,hi) f
         !n   = m - signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
         !fn  = f n
 
+
+
+----------------------------------------------------------------
+-- Newton-Raphson algorithm
+----------------------------------------------------------------
 
 -- | Solve equation using Newton-Raphson iterations.
 --

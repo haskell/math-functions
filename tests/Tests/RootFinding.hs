@@ -1,6 +1,7 @@
 -- |
 module Tests.RootFinding ( tests ) where
 
+import Data.Default.Class
 import Test.Framework
 import Test.Framework.Providers.HUnit
 
@@ -11,9 +12,11 @@ import Tests.Helpers
 tests :: Test
 tests = testGroup "Root finding"
   [ testGroup "Ridders"
-    [ testAssertion "sin x - 0.525 [exact]"  $ testRiddersSin0_525 0
-    , testAssertion "sin x - 0.525 [1e-12]"  $ testRiddersSin0_525 1e-12
-    , testAssertion "sin x - 0.525 [1e-6]"   $ testRiddersSin0_525 1e-6
+    [ testAssertion "sin x - 0.525 [exact]"     $ testRiddersSin0_525 (AbsTol 0)
+    , testAssertion "sin x - 0.525 [abs 1e-12]" $ testRiddersSin0_525 (AbsTol 1e-12)
+    , testAssertion "sin x - 0.525 [abs 1e-6]"  $ testRiddersSin0_525 (AbsTol 1e-6)
+    , testAssertion "sin x - 0.525 [rel 1e-12]" $ testRiddersSin0_525 (RelTol 1e-12)
+    , testAssertion "sin x - 0.525 [rel 1e-6]"  $ testRiddersSin0_525 (RelTol 1e-6)
     ]
   , testGroup "Newton-Raphson"
     [ testAssertion "sin x - 0.525 [1e-12]"  $ testNewtonSin0_525 1e-12
@@ -23,10 +26,12 @@ tests = testGroup "Root finding"
   where
     -- Exact root for equation: sin x - 0.525 = 0
     exactRoot = 0.5527151130967832
+    --
     testRiddersSin0_525 tol
-      = abs (r - exactRoot) <= tol
+      = withinTolerance tol r exactRoot
       where
-        Root r = ridders tol (0, pi/2) (\x -> sin x - 0.525)
+        Root r = ridders def{riddersTol = tol} (0, pi/2) (\x -> sin x - 0.525)
+    --
     testNewtonSin0_525 tol
       = abs (r - exactRoot) <= tol * r
       where

@@ -39,11 +39,12 @@ library
     DeriveGeneric
 
   ghc-options:          -Wall -O2
-  build-depends:        base >=4.5 && <5
+  build-depends:        base                >= 4.5 && < 5
                       , deepseq
-                      , vector >= 0.7
+                      , data-default-class  >= 0.1.2.0
+                      , vector              >= 0.7
                       , primitive
-                      , vector-th-unbox
+                      , vector-th-unbox     >= 0.2.1.6
   if flag(system-expm1) || !os(windows)
     cpp-options: -DUSE_SYSTEM_EXPM1
   exposed-modules:
@@ -83,19 +84,19 @@ test-suite tests
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
     Tests.Sum
-  build-depends:
-    math-functions,
-    base >=4.5 && <5,
-    deepseq,
-    primitive,
-    vector >= 0.7,
-    vector-th-unbox,
-    erf,
-    HUnit      >= 1.2,
-    QuickCheck >= 2.7,
-    test-framework,
-    test-framework-hunit,
-    test-framework-quickcheck2
+  build-depends:    base >=4.5 && <5
+                  , math-functions
+                  , data-default-class  >= 0.1.2.0
+                  , deepseq
+                  , primitive
+                  , vector >= 0.7
+                  , vector-th-unbox
+                  , erf
+                  , HUnit      >= 1.2
+                  , QuickCheck >= 2.7
+                  , test-framework
+                  , test-framework-hunit
+                  , test-framework-quickcheck2
 
 source-repository head
   type:     git
