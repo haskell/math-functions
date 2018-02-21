@@ -103,9 +103,15 @@ ridders :: Double
 ridders tol (lo,hi) f
     | flo == 0    = Root lo
     | fhi == 0    = Root hi
-    | flo*fhi > 0 = NotBracketed -- root is not bracketed
-    | otherwise   = go lo flo hi fhi 0
+    -- root is not bracketed
+    | flo*fhi > 0 = NotBracketed
+    -- Ensure that a<b in iterations
+    | lo < hi     = go lo flo hi fhi 0
+    | otherwise   = go hi fhi lo flo 0
   where
+    !flo = f lo
+    !fhi = f hi
+    --
     go !a !fa !b !fb !i
         -- Root is bracketed within 1 ulp. No improvement could be made
         | within 1 a b       = Root a
@@ -116,9 +122,10 @@ ridders tol (lo,hi) f
         | d < tol            = Root n
         -- Too many iterations performed. Fail
         | i >= (100 :: Int)  = SearchFailed
-        -- Ridder's approximation coincide with one of old
-        -- bounds. Revert to bisection
-        | n == a || n == b   = case () of
+        -- Ridder's approximation coincide with one of old bounds or
+        -- went out of (a,b) range due to numerical problems. Revert
+        -- to bisection
+        | n <= a || n >= b   = case () of
           _| fm*fa < 0 -> go a fa m fm (i+1)
            | otherwise -> go m fm b fb (i+1)
         -- Proceed as usual
@@ -131,12 +138,9 @@ ridders tol (lo,hi) f
         -- Mean point
         !m   = a + dm
         !fm  = f m
-        --
-        !dn  = signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
-        !n   = m - signum dn * min (abs dn) (abs dm - 0.5 * tol)
+        -- Ridders update
+        !n   = m - signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
         !fn  = f n
-    !flo = f lo
-    !fhi = f hi
 
 
 -- | Solve equation using Newton-Raphson iterations.
