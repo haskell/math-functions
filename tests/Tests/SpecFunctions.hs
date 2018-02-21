@@ -10,6 +10,8 @@ import           Data.Vector   ((!))
 import Test.QuickCheck  hiding (choose,within)
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool)
 
 import Tests.Helpers
 import Tests.SpecFunctions.Tables
@@ -65,8 +67,16 @@ tests = testGroup "Special functions"
     -- Relative precision is lost when digamma(x) ≈ 0
   , testAssertion "digamma is expected to be precise at 1e-12"
       $ and [ eq 1e-12 r (digamma x) | (x,r) <- tableDigamma ]
-  , testAssertion "incompleteBeta is expected to be precise at 32*m_epsilon level"
-      $ and [ eq (32 * m_epsilon) (incompleteBeta p q x) ib | (p,q,x,ib) <- tableIncompleteBeta ]
+    --
+  , let deviations = [ ( "p=",p, "q=",q, "x=",x
+                       , "ib=",ib, "ib'=",ib'
+                       , "err=",relativeError ib ib' / m_epsilon)
+                     | (p,q,x,ib) <- tableIncompleteBeta
+                     , let ib' = incompleteBeta p q x
+                     , not $ eq (64 * m_epsilon) ib' ib
+                     ]
+    in testCase "incompleteBeta is expected to be precise at 32*m_epsilon level"
+     $ assertBool (unlines (map show deviations)) (null deviations)
   , testAssertion "incompleteBeta with p > 3000 and q > 3000"
       $ and [ eq 1e-11 (incompleteBeta p q x) ib | (x,p,q,ib) <-
                  [ (0.495,  3001,  3001, 0.2192546757957825068677527085659175689142653854877723)
@@ -82,7 +92,7 @@ tests = testGroup "Special functions"
       $ and [ let n' = fromIntegral n
                   k' = fromIntegral k
               in within 2 (logChoose n' k') (log $ choose n' k')
-            | n <- [0..1000], k <- [0..n]]
+            | n <- [0::Int .. 1000], k <- [0 .. n]]
     ----------------------------------------------------------------
     -- Self tests
   , testProperty "Self-test: 0 <= range01 <= 1" $ \x -> let f = range01 x in f <= 1 && f >= 0
