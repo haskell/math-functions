@@ -81,13 +81,24 @@ fromRoot _ (Root a) = a
 fromRoot a _        = a
 
 
--- | Use the method of Ridders to compute a root of a function.
+-- | Use the method of Ridders[Ridders1979] to compute a root of a
+--   function. It doesn't require derivative and provide quadratic
+--   convergence (number of significant digits grows quadratically
+--   with number of iterations).
 --
--- The function must have opposite signs when evaluated at the lower
--- and upper bounds of the search (i.e. the root must be bracketed).
-ridders :: Double               -- ^ Absolute error tolerance.
-        -> (Double,Double)      -- ^ Lower and upper bounds for the search.
-        -> (Double -> Double)   -- ^ Function to find the roots of.
+--   The function must have opposite signs when evaluated at the lower
+--   and upper bounds of the search (i.e. the root must be
+--   bracketed). If there's more that one root in the bracket
+--   iteration will converge to some root in the bracket.
+ridders :: Double
+        -- ^ Absolute error tolerance. Iterations will be stopped when
+        --   difference between root and estimate is less than
+        --   tolerance or when precision couldn't be improved further
+        --   (root is within 1 ulp).
+        -> (Double,Double)
+        -- ^ Lower and upper bounds for the search.
+        -> (Double -> Double)
+        -- ^ Function to find the roots of.
         -> Root Double
 ridders tol (lo,hi) f
     | flo == 0    = Root lo
@@ -117,8 +128,10 @@ ridders tol (lo,hi) f
       where
         d    = abs (b - a)
         dm   = (b - a) * 0.5
+        -- Mean point
         !m   = a + dm
         !fm  = f m
+        --
         !dn  = signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
         !n   = m - signum dn * min (abs dn) (abs dm - 0.5 * tol)
         !fn  = f n
@@ -171,3 +184,8 @@ newtonRaphson !prec (!low,!guess,!hi) function
 -- * Ridders, C.F.J. (1979) A new algorithm for computing a single
 --   root of a real continuous function.
 --   /IEEE Transactions on Circuits and Systems/ 26:979&#8211;980.
+--
+-- * Press W.H.; Teukolsky S.A.; Vetterling W.T.; Flannery B.P.
+--   (2007). \"Section 9.2.1. Ridders' Method\". /Numerical Recipes: The
+--   Art of Scientific Computing (3rd ed.)./ New York: Cambridge
+--   University Press. ISBN 978-0-521-88068-8.
