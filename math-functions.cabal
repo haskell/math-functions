@@ -79,6 +79,7 @@ test-suite tests
     Tests.Helpers
     Tests.Chebyshev
     Tests.Comparison
+    Tests.RootFinding
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
     Tests.Sum
