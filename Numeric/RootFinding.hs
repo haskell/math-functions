@@ -19,6 +19,7 @@ module Numeric.RootFinding
     , RiddersParam(..)
     , ridders
     -- * Newton-Raphson algorithm
+    , NewtonParam(..)
     , newtonRaphson
     -- * References
     -- $references
@@ -206,14 +207,34 @@ ridders p (lo,hi) f
 -- Newton-Raphson algorithm
 ----------------------------------------------------------------
 
+-- | Parameters for 'ridders' root finding
+data NewtonParam = NewtonParam
+  { newtonMaxIter :: !Int
+    -- ^ Maximum number of iterations.
+  , newtonTol     :: !Tolerance
+    -- ^ Error tolerance for root approximation.
+  }
+  deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ > 704
+           , Generic
+#endif
+           )
+
+instance Default NewtonParam where
+  def = NewtonParam
+        { newtonMaxIter = 50
+        , newtonTol     = RelTol (4 * m_epsilon)
+        }
+
+
 -- | Solve equation using Newton-Raphson iterations.
 --
 -- This method require both initial guess and bounds for root. If
 -- Newton step takes us out of bounds on root function reverts to
 -- bisection.
 newtonRaphson
-  :: Double
-     -- ^ Required precision
+  :: NewtonParam
+  -- ^ Required precision
   -> (Double,Double,Double)
   -- ^ (lower bound, initial guess, upper bound). Iterations will no
   -- go outside of the interval
@@ -221,19 +242,20 @@ newtonRaphson
   -- ^ Function to finds roots. It returns pair of function value and
   -- its derivative
   -> Root Double
-newtonRaphson !prec (!low,!guess,!hi) function
-  = go low guess hi
+newtonRaphson p (!low,!guess,!hi) function
+  = go low guess hi 0
   where
-    go !xMin !x !xMax
-      | f == 0              = Root x
-      | abs (dx / x) < prec = Root x
-      | otherwise           = go xMin' x' xMax'
+    go !xMin !x !xMax !i
+      | f  == 0                            = Root x
+      | f' == 0                            = SearchFailed
+      | withinTolerance (newtonTol p) x' x = Root x'
+      | i >= newtonMaxIter p               = SearchFailed
+      | otherwise                          = go xMin' x' xMax' (i+1)
       where
-        (f,f') = function x
         -- Calculate Newton-Raphson step
-        delta | f' == 0   = error "handle f'==0"
-              | otherwise = f / f'
-        -- Calculate new approximation and actual change of approximation
+        (f,f') = function x
+        delta  = f / f'
+        -- Calculate new approximation and check that we don't go out of the bracket
         (dx,x') | z <= xMin = let d = 0.5*(x - xMin) in (d, x - d)
                 | z >= xMax = let d = 0.5*(x - xMax) in (d, x - d)
                 | otherwise = (delta, z)

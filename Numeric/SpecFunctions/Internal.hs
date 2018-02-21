@@ -14,9 +14,10 @@ module Numeric.SpecFunctions.Internal where
 #if !MIN_VERSION_base(4,9,0)
 import Control.Applicative
 #endif
-import Data.Bits       ((.&.), (.|.), shiftR)
-import Data.Int        (Int64)
-import Data.Word       (Word)
+import Data.Bits          ((.&.), (.|.), shiftR)
+import Data.Int           (Int64)
+import Data.Word          (Word)
+import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
@@ -26,7 +27,7 @@ import GHC.Float (log1p,expm1)
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
 import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
-import Numeric.RootFinding             (Root(..), newtonRaphson)
+import Numeric.RootFinding             (Root(..), newtonRaphson, NewtonParam(..), Tolerance(..))
 import Numeric.Series
 import Numeric.MathFunctions.Constants
 
@@ -652,7 +653,7 @@ invIncBetaGuess beta a b p
         func x  = ( u + log x + mu*log(1 - x)
                   , 1/x - mu/(1-x)
                   )
-        Root x0 = newtonRaphson 1e-8 (lower, x_guess, upper) func
+        Root x0 = newtonRaphson def{newtonTol=RelTol 1e-8} (lower, x_guess, upper) func
     in x0
   -- For large a and b approximation from AS109 (Carter
   -- approximation). It's reasonably good in this region
