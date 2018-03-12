@@ -31,6 +31,7 @@ module Numeric.RootFinding
     -- * Newton-Raphson algorithm
     , NewtonParam(..)
     , newtonRaphson
+    , newtonRaphsonG
     -- * References
     -- $references
     ) where
@@ -319,14 +320,25 @@ instance Default NewtonParam where
         , newtonTol     = RelTol (4 * m_epsilon)
         }
 
+data instance IterationStep NewtonParam
+  = NewtonStep !Double !Double !Double
+  | NewtonRoot
+
+newtonRaphson
+  :: NewtonParam
+  -> (Double,Double,Double)
+  -> (Double -> (Double,Double))
+  -> Root () Double
+newtonRaphson = newtonRaphsonG
 
 -- | Solve equation using Newton-Raphson iterations.
 --
 -- This method require both initial guess and bounds for root. If
 -- Newton step takes us out of bounds on root function reverts to
 -- bisection.
-newtonRaphson
-  :: NewtonParam
+newtonRaphsonG
+  :: RootInformation NewtonParam ()
+  => NewtonParam
   -- ^ Required precision
   -> (Double,Double,Double)
   -- ^ (lower bound, initial guess, upper bound). Iterations will no
@@ -335,15 +347,15 @@ newtonRaphson
   -- ^ Function to finds roots. It returns pair of function value and
   -- its derivative
   -> Root () Double
-newtonRaphson p (!low,!guess,!hi) function
-  = go low guess hi 0
+newtonRaphsonG p (!low,!guess,!hi) function
+  = go low guess hi 0 () -- $ singletonRootInfo (NewtonStep low guess hi)
   where
-    go !xMin !x !xMax !i
+    go !xMin !x !xMax !i !acc
       | f  == 0                            = Root () x
       | f' == 0                            = SearchFailed ()
       | withinTolerance (newtonTol p) x' x = Root () x'
       | i >= newtonMaxIter p               = SearchFailed ()
-      | otherwise                          = go xMin' x' xMax' (i+1)
+      | otherwise                          = go xMin' x' xMax' (i+1) acc
       where
         -- Calculate Newton-Raphson step
         (f,f') = function x

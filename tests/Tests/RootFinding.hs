@@ -32,9 +32,9 @@ tests = testGroup "Root finding"
     testRiddersSin0_525 tol
       = withinTolerance tol r exactRoot
       where
-        Root r = ridders def{riddersTol = tol} (0, pi/2) (\x -> sin x - 0.525)
+        Root () r = ridders def{riddersTol = tol} (0, pi/2) (\x -> sin x - 0.525)
     --
     testNewtonSin0_525 tol
       = withinTolerance tol r exactRoot
       where
-        Root r = newtonRaphson def{newtonTol=tol} (0, pi/4, pi/2) (\x -> (sin x - 0.525, cos x))
+        Root () r = newtonRaphson def{newtonTol=tol} (0, pi/4, pi/2) (\x -> (sin x - 0.525, cos x))
