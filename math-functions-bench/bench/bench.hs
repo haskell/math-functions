@@ -74,7 +74,7 @@ main = defaultMain
              ,  1
              ,  10
              ,  100
-             ]
+             ] :: [Double]
       ]
   , bgroup "sinc" $
         bench "sin" (nf sin (0.55 :: Double))
