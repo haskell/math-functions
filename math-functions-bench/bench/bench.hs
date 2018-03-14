@@ -1,8 +1,13 @@
 import Criterion.Main
+import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
+import Text.Printf
+
 import Numeric.SpecFunctions
 import Numeric.Polynomial
-import Text.Printf
+import Numeric.RootFinding
+
+
 
 -- Uniformly sample logGamma performance between 10^-6 to 10^6
 benchmarkLogGamma logG =
@@ -86,4 +91,8 @@ main = defaultMain
          | coefs <- coef_list ]
       ++ [ bench ("unpacked_"++show n) $ nf (\x -> evaluatePolynomialL x (map fromIntegral [1..n])) (1 :: Double)
          | n <- coef_size ]
+  , bgroup "RootFinding"
+    [ bench "ridders sin" $ nf (ridders       def (0,pi/2))     (\x -> sin x - 0.525)
+    , bench "newton sin"  $ nf (newtonRaphson def (0,1.2,pi/2)) (\x -> (sin x - 0.525,cos x))
+    ]
   ]
