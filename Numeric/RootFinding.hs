@@ -38,6 +38,7 @@ module Numeric.RootFinding
 
 import Control.Applicative              (Alternative(..), Applicative(..))
 import Control.Monad                    (MonadPlus(..), ap)
+import Control.DeepSeq                  (NFData(..))
 import Data.Data                        (Data, Typeable)
 import Data.Monoid                      (Monoid(..))
 import Data.Default.Class
@@ -80,6 +81,11 @@ instance Monoid i => Monad (Root i) where
       Root i' b -> Root (mappend i i') b
       err       -> err
     return = Root mempty
+
+instance (NFData i, NFData a) => NFData (Root i a) where
+    rnf NotBracketed     = ()
+    rnf (SearchFailed i) = rnf i
+    rnf (Root i a)       = rnf i `seq` rnf a
 
 instance Monoid i => MonadPlus (Root i) where
     mzero = empty
