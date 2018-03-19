@@ -1,7 +1,9 @@
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveFoldable     #-}
 {-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveTraversable  #-}
 {-# LANGUAGE TypeFamilies       #-}
 -- |
 -- Module    : Numeric.RootFinding
@@ -41,6 +43,8 @@ import Control.Monad                    (MonadPlus(..), ap)
 import Control.DeepSeq                  (NFData(..))
 import Data.Data                        (Data, Typeable)
 import Data.Monoid                      (Monoid(..))
+import Data.Foldable                    (Foldable)
+import Data.Traversable                 (Traversable)
 import Data.Default.Class
 #if __GLASGOW_HASKELL__ > 704
 import GHC.Generics                     (Generic)
@@ -63,7 +67,7 @@ data Root a = NotBracketed
             -- error tolerance after the given number of iterations.
             | Root !a
             -- ^ A root was successfully found.
-              deriving (Eq, Read, Show, Typeable, Data
+              deriving (Eq, Read, Show, Typeable, Data, Foldable, Traversable
 #if __GLASGOW_HASKELL__ > 704
                        , Generic
 #endif

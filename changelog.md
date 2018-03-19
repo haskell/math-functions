@@ -6,6 +6,7 @@
     parameters are now tweakable. 2) Functions for getting list of iterations
     added.
 
+  * `Foldable` and `Traversable` instances for `Root` were added.
 
 ## Changes in 0.2.1.0
 
