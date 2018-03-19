@@ -19,7 +19,6 @@ description:
 extra-source-files:
   changelog.md
   README.markdown
-  benchmark/*.hs
   tests/*.hs
   tests/Tests/*.hs
   tests/Tests/SpecFunctions/gen.py
