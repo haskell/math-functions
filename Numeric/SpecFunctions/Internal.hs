@@ -653,7 +653,7 @@ invIncBetaGuess beta a b p
         func x  = ( u + log x + mu*log(1 - x)
                   , 1/x - mu/(1-x)
                   )
-        Root () x0 = newtonRaphson def{newtonTol=RelTol 1e-8} (lower, x_guess, upper) func
+        Root x0 = newtonRaphson def{newtonTol=RelTol 1e-8} (lower, x_guess, upper) func
     in x0
   -- For large a and b approximation from AS109 (Carter
   -- approximation). It's reasonably good in this region

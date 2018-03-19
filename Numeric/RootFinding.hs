@@ -1,8 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -10,28 +5,33 @@
 {-# LANGUAGE TypeFamilies       #-}
 -- |
 -- Module    : Numeric.RootFinding
--- Copyright : (c) 2011 Bryan O'Sullivan
+-- Copyright : (c) 2011 Bryan O'Sullivan, 2018 Alexey Khudyakov
 -- License   : BSD3
 --
 -- Maintainer  : bos@serpentine.com
 -- Stability   : experimental
 -- Portability : portable
 --
--- Haskell functions for finding the roots of real functions of real arguments.
+-- Haskell functions for finding the roots of real functions of real
+-- arguments. These algorithms are iterative so we provide both
+-- function returning root (or failure to find root) and list of
+-- iterations.
 module Numeric.RootFinding
     ( -- * Data types
       Root(..)
     , fromRoot
     , Tolerance(..)
     , withinTolerance
+    , IterationStep(..)
+    , findRoot
     -- * Ridders algorithm
     , RiddersParam(..)
     , ridders
-    , riddersG
+    , riddersIterations
     -- * Newton-Raphson algorithm
     , NewtonParam(..)
     , newtonRaphson
-    , newtonRaphsonG
+    , newtonRaphsonIterations
     -- * References
     -- $references
     ) where
@@ -49,67 +49,65 @@ import Numeric.MathFunctions.Comparison (within,eqRelErr)
 import Numeric.MathFunctions.Constants  (m_epsilon)
 
 
+
 ----------------------------------------------------------------
 -- Data types
 ----------------------------------------------------------------
 
 -- | The result of searching for a root of a mathematical function.
-data Root i a = NotBracketed
-              -- ^ The function does not have opposite signs when
-              -- evaluated at the lower and upper bounds of the search.
-              | SearchFailed !i
-              -- ^ The search failed to converge to within the given
-              -- error tolerance after the given number of iterations.
-              | Root !i !a
-              -- ^ A root was successfully found.
-                deriving (Eq, Read, Show, Typeable, Data
+data Root a = NotBracketed
+            -- ^ The function does not have opposite signs when
+            -- evaluated at the lower and upper bounds of the search.
+            | SearchFailed
+            -- ^ The search failed to converge to within the given
+            -- error tolerance after the given number of iterations.
+            | Root !a
+            -- ^ A root was successfully found.
+              deriving (Eq, Read, Show, Typeable, Data
 #if __GLASGOW_HASKELL__ > 704
                        , Generic
 #endif
                        )
 
+instance (NFData a) => NFData (Root a) where
+    rnf NotBracketed = ()
+    rnf SearchFailed = ()
+    rnf (Root a)     = rnf a
 
-instance Functor (Root i) where
-    fmap _ NotBracketed     = NotBracketed
-    fmap _ (SearchFailed i) = SearchFailed i
-    fmap f (Root i a)       = Root i (f a)
+instance Functor Root where
+    fmap _ NotBracketed = NotBracketed
+    fmap _ SearchFailed = SearchFailed
+    fmap f (Root a)     = Root (f a)
 
-instance Monoid i => Monad (Root i) where
-    NotBracketed   >>= _ = NotBracketed
-    SearchFailed i >>= _ = SearchFailed i
-    Root i a       >>= f = case f a of
-      Root i' b -> Root (mappend i i') b
-      err       -> err
-    return = Root mempty
-
-instance (NFData i, NFData a) => NFData (Root i a) where
-    rnf NotBracketed     = ()
-    rnf (SearchFailed i) = rnf i
-    rnf (Root i a)       = rnf i `seq` rnf a
-
-instance Monoid i => MonadPlus (Root i) where
-    mzero = empty
-    mplus = (<|>)
-
-instance Monoid i => Applicative (Root i) where
+instance Applicative Root where
     pure  = return
     (<*>) = ap
 
-instance Monoid i => Alternative (Root i) where
+instance Monad Root where
+    NotBracketed >>= _ = NotBracketed
+    SearchFailed >>= _ = SearchFailed
+    Root a       >>= f = f a
+    return = Root
+
+instance MonadPlus Root where
+    mzero = empty
+    mplus = (<|>)
+
+instance Alternative Root where
     empty = NotBracketed
     r@Root{}     <|> _            = r
     _            <|> r@Root{}     = r
     NotBracketed <|> r            = r
     r            <|> NotBracketed = r
-    r            <|> _            = r
+    _            <|> r            = r
 
 -- | Returns either the result of a search for a root, or the default
 -- value if the search failed.
-fromRoot :: a                   -- ^ Default value.
-         -> Root i a            -- ^ Result of search for a root.
+fromRoot :: a                 -- ^ Default value.
+         -> Root a            -- ^ Result of search for a root.
          -> a
-fromRoot _ (Root _ a) = a
-fromRoot a _          = a
+fromRoot _ (Root a) = a
+fromRoot a _        = a
 
 
 -- | Error tolerance for finding root. It describes when root finding
@@ -137,67 +135,29 @@ withinTolerance (RelTol eps) a b = eqRelErr eps a b
 withinTolerance (AbsTol tol) a b = abs (a - b) <= tol
 
 
+class IterationStep a where
+  rootMatches :: Tolerance -> a -> Maybe (Root Double)
+
+-- | Find root in lazy list of iterations
+findRoot :: IterationStep a
+  => Int                        -- ^ Maximum
+  -> Tolerance                  -- ^ Error tolerance
+  -> [a]
+  -> Root Double
+findRoot maxN tol = go 0
+  where
+    go !i _  | i >= maxN = SearchFailed
+    go !_ []             = SearchFailed
+    go  i (x:xs)  = case rootMatches tol x of
+      Just r  -> r
+      Nothing -> go (i+1) xs
+{-# INLINABLE  findRoot #-}
+{-# SPECIALIZE findRoot :: Int -> Tolerance -> [RiddersStep] -> Root Double #-}
+{-# SPECIALIZE findRoot :: Int -> Tolerance -> [NewtonStep]  -> Root Double #-}
+
 
 ----------------------------------------------------------------
 -- Attaching information to roots
-----------------------------------------------------------------
-
--- | Type class for attaching additional information to found
---   root. Since one may want to return number of iterations or full
---   trace in addition to found root we need to make root finding
---   functions polymorphic and provide several options: root only,
---   number of iterations, and full trace.
-class RootInformation alg i where
-  -- | Accumulator type for trace
-  type RootAcc alg i
-  finalizeRootInfo  :: Int -> RootAccum alg i -> i
-  singletonRootInfo :: IterationStep alg -> RootAccum alg i
-  addIteration      :: IterationStep alg -> RootAccum alg i -> RootAccum alg i
-
--- | Iteration step corresponding to given root-finding algorithm.
-data family IterationStep alg
-
-data RootTrace alg = RootTrace
-  { rootIterations :: Int
-  , rootTrace      :: [IterationStep alg]
-  }
-deriving instance Show (IterationStep alg) => Show (RootTrace alg)
-
-
--- | Newtype wrapper to restore injectivity
-newtype RootAccum alg i = RootAccum (RootAcc alg i)
-
--- | Do not provide any additional information
-instance RootInformation alg () where
-  type RootAcc alg () = ()
-  finalizeRootInfo  _ _ = ()
-  singletonRootInfo _   = RootAccum ()
-  addIteration      _ _ = RootAccum ()
-  {-# INLINE finalizeRootInfo  #-}
-  {-# INLINE singletonRootInfo #-}
-  {-# INLINE addIteration      #-}
-
--- | Only number of iterations
-instance RootInformation alg Int where
-  type RootAcc alg Int = ()
-  finalizeRootInfo  i _ = i
-  singletonRootInfo _   = RootAccum ()
-  addIteration      _ _ = RootAccum ()
-  {-# INLINE finalizeRootInfo  #-}
-  {-# INLINE singletonRootInfo #-}
-  {-# INLINE addIteration      #-}
-
--- | Return full trace of iterations
-instance RootInformation alg (RootTrace alg) where
-  type RootAcc alg (RootTrace alg) = [IterationStep alg] -> [IterationStep alg]
-  finalizeRootInfo  i (RootAccum acc) = RootTrace i (acc [])
-  singletonRootInfo a                 = RootAccum (a :)
-  addIteration      a (RootAccum f)   = RootAccum (f . (a:))
-
-
-
-----------------------------------------------------------------
--- Ridders algorithm
 ----------------------------------------------------------------
 
 -- | Parameters for 'ridders' root finding
@@ -220,14 +180,36 @@ instance Default RiddersParam where
         }
 
 -- | Single Ridders step. It's a bracket of root
-data instance IterationStep RiddersParam
-  = RiddersStep   Int !Double !Double
-  | RiddersBisect Int !Double !Double
-  | RiddersRoot   Int !Double
-  deriving (Show)
+data RiddersStep
+  = RiddersStep   !Double !Double
+  -- ^ Ridders step. Parameters are bracket for the root
+  | RiddersBisect !Double !Double
+  -- ^ Bisection step. It's fallback which is taken when Ridders
+  --   update takes us out of bracket
+  | RiddersRoot   !Double
+  -- ^ Root found
+  | RiddersNoBracket
+  -- ^ Root is not bracketed
+  deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ > 704
+           , Generic
+#endif
+           )
 
-ridders :: RiddersParam -> (Double,Double) -> (Double -> Double) -> Root () Double
-ridders = riddersG
+instance NFData RiddersStep where
+  rnf x = x `seq` ()
+
+instance IterationStep RiddersStep where
+  rootMatches tol r = case r of
+    RiddersRoot x               -> Just $ Root x
+    RiddersNoBracket            -> Just NotBracketed
+    RiddersStep a b
+      | withinTolerance tol a b -> Just $ Root ((a + b) / 2)
+      | otherwise               -> Nothing
+    RiddersBisect a b
+      | withinTolerance tol a b -> Just $ Root ((a + b) / 2)
+      | otherwise               -> Nothing
+
 
 -- | Use the method of Ridders[Ridders1979] to compute a root of a
 --   function. It doesn't require derivative and provide quadratic
@@ -238,69 +220,56 @@ ridders = riddersG
 --   and upper bounds of the search (i.e. the root must be
 --   bracketed). If there's more that one root in the bracket
 --   iteration will converge to some root in the bracket.
-riddersG
-  :: (RootInformation RiddersParam i)
-  => RiddersParam
-  -- ^ Absolute error tolerance. Iterations will be stopped when
-  --   difference between root and estimate is less than
-  --   tolerance or when precision couldn't be improved further
-  --   (root is within 1 ulp).
-  -> (Double,Double)
-  -- ^ Lower and upper bounds for the search.
-  -> (Double -> Double)
-  -- ^ Function to find the roots of.
-  -> Root i Double
-riddersG p (lo,hi) f
-    | flo == 0    = immediateRoot lo
-    | fhi == 0    = immediateRoot hi
+ridders
+  :: RiddersParam               -- ^ Parameters for algorithms. @def@
+                                --   provides reasonable defaults
+  -> (Double,Double)            -- ^ Bracket for root
+  -> (Double -> Double)         -- ^ Function to find roots
+  -> Root Double
+ridders p bracket fun
+  = findRoot (riddersMaxIter p) (riddersTol p)
+  $ riddersIterations bracket fun
+
+-- | List of iterations for Ridders methods. See 'ridders' for
+--   documentation of parameters
+riddersIterations :: (Double,Double) -> (Double -> Double) -> [RiddersStep]
+riddersIterations (lo,hi) f
+  | flo == 0    = [RiddersRoot lo]
+  | fhi == 0    = [RiddersRoot hi]
     -- root is not bracketed
-    | flo*fhi > 0 = NotBracketed
+  | flo*fhi > 0 = [RiddersNoBracket]
     -- Ensure that a<b in iterations
-    | lo < hi     = go lo flo hi fhi 0 $ singletonRootInfo (RiddersStep 0 lo hi)
-    | otherwise   = go hi fhi lo flo 0 $ singletonRootInfo (RiddersStep 0 hi lo)
+  | lo < hi     = RiddersStep lo hi : go lo flo hi fhi
+  | otherwise   = RiddersStep lo hi : go hi fhi lo flo
   where
-    !flo = f lo
-    !fhi = f hi
+    flo = f lo
+    fhi = f hi
     --
-    go !a !fa !b !fb !i !acc
-        -- Root is bracketed within 1 ulp. No improvement could be made
-        | within 1 a b                       = returnRoot a
-        -- Root is found. Check that f(m) == 0 is nessesary to ensure
-        -- that root is never passed to 'go'
-        | fm == 0                            = returnRoot m
-        | fn == 0                            = returnRoot n
-        | withinTolerance (riddersTol p) a b = returnRoot n
-        -- Too many iterations performed. Fail
-        | i >= riddersMaxIter p              = SearchFailed (finalizeRootInfo i acc)
-        -- Ridder's approximation coincide with one of old bounds or
-        -- went out of (a,b) range due to numerical problems. Revert
-        -- to bisection
-        | n <= a || n >= b   = case () of
-          _| fm*fa < 0 -> go a fa m fm (i+1) $ RiddersBisect (i+1) a m >:> acc
-           | otherwise -> go m fm b fb (i+1) $ RiddersBisect (i+1) m b >:> acc
-        -- Proceed as usual
-        | fn*fm < 0          = go n fn m fm (i+1) $ RiddersStep (i+1) n m >:> acc
-        | fn*fa < 0          = go a fa n fn (i+1) $ RiddersStep (i+1) a n >:> acc
-        | otherwise          = go n fn b fb (i+1) $ RiddersStep (i+1) n b >:> acc
+    go !a !fa !b !fb
+      | within 1 a b  = [RiddersRoot a]
+      | fm == 0       = [RiddersRoot m]
+      | fn == 0       = [RiddersRoot n]
+      -- Ridder's approximation coincide with one of old bounds or
+      -- went out of (a,b) range due to numerical problems. Revert
+      -- to bisection
+      | n <= a || n >= b   = case () of
+          _| fm*fa < 0 -> recBisect a fa m fm
+           | otherwise -> recBisect m fm b fb
+      | fn*fm < 0          = recRidders n fn m fm
+      | fn*fa < 0          = recRidders a fa n fn
+      | otherwise          = recRidders n fn b fb
       where
-        dm   = (b - a) * 0.5
+        recBisect  x fx y fy = RiddersBisect x y : go x fx y fy
+        recRidders x fx y fy = RiddersStep   x y : go x fx y fy
+        --
+        dm  = (b - a) * 0.5
         -- Mean point
-        !m   = a + dm
-        !fm  = f m
+        m   = (a + b) / 2
+        fm  = f m
         -- Ridders update
-        !n   = m - signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
-        !fn  = f n
-        -- Tracing helpers
-        returnRoot x = Root (finalizeRootInfo (i+1) (addIteration (RiddersRoot (i+1) x) acc )) x
-    -- Helpers for tracing
-    immediateRoot x = Root (finalizeRootInfo 0 (singletonRootInfo (RiddersRoot 0 x))) x
-{-# INLINABLE riddersG #-}
-{-# SPECIALIZE riddersG :: RiddersParam -> (Double,Double) -> (Double -> Double)
-                        -> Root () Double #-}
-{-# SPECIALIZE riddersG :: RiddersParam -> (Double,Double) -> (Double -> Double)
-                        -> Root Int Double #-}
-{-# SPECIALIZE riddersG :: RiddersParam -> (Double,Double) -> (Double -> Double)
-                        -> Root (RootTrace RiddersParam) Double #-}
+        n   = m - signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
+        fn  = f n
+
 
 
 ----------------------------------------------------------------
@@ -326,66 +295,102 @@ instance Default NewtonParam where
         , newtonTol     = RelTol (4 * m_epsilon)
         }
 
-data instance IterationStep NewtonParam
-  = NewtonStep !Double !Double !Double
-  | NewtonRoot
+-- | Steps for Newton iterations
+data NewtonStep
+  = NewtonStep         !Double !Double
+  -- ^ Normal Newton-Raphson update. Parameters are: old guess, new guess
+  | NewtonBisection    !Double !Double
+  -- ^ Bisection fallback when Newton-Raphson iteration doesn't
+  --   work. Parameters are bracket on root
+  | NewtonRoot         !Double
+  -- ^ Root is found
+  | NewtonNoBracket
+  -- ^ Root is not bracketed
+  deriving (Eq, Read, Show, Typeable, Data
+#if __GLASGOW_HASKELL__ > 704
+           , Generic
+#endif
+           )
+instance NFData NewtonStep where
+  rnf x = x `seq` ()
 
-newtonRaphson
-  :: NewtonParam
-  -> (Double,Double,Double)
-  -> (Double -> (Double,Double))
-  -> Root () Double
-newtonRaphson = newtonRaphsonG
+instance IterationStep NewtonStep where
+  rootMatches tol r = case r of
+    NewtonRoot x                 -> Just (Root x)
+    NewtonNoBracket              -> Just NotBracketed
+    NewtonStep x x'
+      | withinTolerance tol x x' -> Just (Root x')
+      | otherwise                -> Nothing
+    NewtonBisection a b
+      | withinTolerance tol a b  -> Just (Root ((a + b) / 2))
+      | otherwise                -> Nothing
+  {-# INLINE rootMatches #-}
+
 
 -- | Solve equation using Newton-Raphson iterations.
 --
--- This method require both initial guess and bounds for root. If
--- Newton step takes us out of bounds on root function reverts to
--- bisection.
-newtonRaphsonG
-  :: RootInformation NewtonParam ()
-  => NewtonParam
-  -- ^ Required precision
-  -> (Double,Double,Double)
-  -- ^ (lower bound, initial guess, upper bound). Iterations will no
-  -- go outside of the interval
-  -> (Double -> (Double,Double))
-  -- ^ Function to finds roots. It returns pair of function value and
-  -- its derivative
-  -> Root () Double
-newtonRaphsonG p (!low,!guess,!hi) function
-  = go low guess hi 0 () -- $ singletonRootInfo (NewtonStep low guess hi)
+--   This method require both initial guess and bounds for root. If
+--   Newton step takes us out of bounds on root function reverts to
+--   bisection.
+newtonRaphson
+  :: NewtonParam                 -- ^ Parameters for algorithm. @def@
+                                 --   provide reasonable defaults.
+  -> (Double,Double,Double)      -- ^ Triple of @(low bound, initial
+                                 --   guess, upper bound)@. If initial
+                                 --   guess if out of bracket middle
+                                 --   of bracket is taken as
+                                 --   approximation
+  -> (Double -> (Double,Double)) -- ^ Function to find root of. It
+                                 --   returns pair of function value and
+                                 --   its first derivative
+  -> Root Double
+newtonRaphson p guess fun
+  = findRoot (newtonMaxIter p) (newtonTol p)
+  $ newtonRaphsonIterations guess fun
+
+-- | List of iteration for Newton-Raphson algorithm. See documentation
+--   for 'newtonRaphson' for meaning of parameters.
+newtonRaphsonIterations :: (Double,Double,Double) -> (Double -> (Double,Double)) -> [NewtonStep]
+newtonRaphsonIterations (lo,guess,hi) function
+  | flo == 0    = [NewtonRoot lo]
+  | fhi == 0    = [NewtonRoot hi]
+  | flo*fhi > 0 = [NewtonNoBracket]
+    -- Ensure that function value on low bound is negative
+  | flo > 0     = go hi guess' lo
+  | otherwise   = go lo guess hi
   where
-    go !xMin !x !xMax !i !acc
-      | f  == 0                            = Root () x
-      | f' == 0                            = SearchFailed ()
-      | withinTolerance (newtonTol p) x' x = Root () x'
-      | i >= newtonMaxIter p               = SearchFailed ()
-      | otherwise                          = go xMin' x' xMax' (i+1) acc
+    (flo,_) = function lo
+    (fhi,_) = function hi
+    -- Ensure that initial guess is within bracket
+    guess'  | guess < lo && guess < hi = (lo + hi) / 2
+            | guess > lo && guess > hi = (lo + hi) / 2
+            | otherwise                = guess
+    --
+    go xA x xB
+      | f  == 0   = [NewtonRoot x]
+      | f' == 0   = bisectionStep
+      -- Accept Newton step
+      | (x' - xA) * (x' - xB) < 0 = newtonStep
+      -- Otherwise we need to revert to bisection
+      | otherwise                 = bisectionStep
       where
-        -- Calculate Newton-Raphson step
+        -- Calculate Newton step
         (f,f') = function x
-        delta  = f / f'
-        -- Calculate new approximation and check that we don't go out of the bracket
-        (dx,x') | z <= xMin = let d = 0.5*(x - xMin) in (d, x - d)
-                | z >= xMax = let d = 0.5*(x - xMax) in (d, x - d)
-                | otherwise = (delta, z)
-          where z = x - delta
-        -- Update root bracket
-        xMin' | dx < 0    = x
-              | otherwise = xMin
-        xMax' | dx > 0    = x
-              | otherwise = xMax
+        x'   = x - f / f'
+        -- Newton step
+        newtonStep
+          | f > 0     = NewtonStep x x' : go xA x' x
+          | otherwise = NewtonStep x x' : go x  x' xB
+        -- Fallback bisection step
+        bisectionStep
+          | f > 0     = NewtonBisection xA x : go xA ((xA + x) / 2) x
+          | otherwise = NewtonBisection x xB : go x  ((x + xB) / 2) xB
+
 
 
 ----------------------------------------------------------------
 -- Internal functions
 ----------------------------------------------------------------
-
-(>:>) :: RootInformation alg i => IterationStep alg -> RootAccum alg i -> RootAccum alg i
-(>:>) = addIteration
-{-# INLINE (>:>) #-}
-
 
 -- $references
 --
