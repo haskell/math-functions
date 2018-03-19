@@ -132,17 +132,22 @@ data Tolerance
 #endif
            )
 
+-- | Check that two values are approximately equal. In addition to
+--   specification values are considered equal if they're within 1ulp
+--   of precision. No further improvement could be done anyway.
 withinTolerance :: Tolerance -> Double -> Double -> Bool
+withinTolerance _ a b
+  | within 1 a b = True
 withinTolerance (RelTol eps) a b = eqRelErr eps a b
--- NOTE: `<=` is needed to allow 0 absolute tolerance which is used to
---       describe precision of 1ulp
-withinTolerance (AbsTol tol) a b = abs (a - b) <= tol
+withinTolerance (AbsTol tol) a b = abs (a - b) < tol
 
-
+-- | Type class for checking whether iteration converged already.
 class IterationStep a where
-  rootMatches :: Tolerance -> a -> Maybe (Root Double)
+  -- | Return @Just root@ is current iteration converged within
+  --   required error tolerance. Returns @Nothing@ otherwise.
+  matchRoot :: Tolerance -> a -> Maybe (Root Double)
 
--- | Find root in lazy list of iterations
+-- | Find root in lazy list of iterations.
 findRoot :: IterationStep a
   => Int                        -- ^ Maximum
   -> Tolerance                  -- ^ Error tolerance
@@ -152,7 +157,7 @@ findRoot maxN tol = go 0
   where
     go !i _  | i >= maxN = SearchFailed
     go !_ []             = SearchFailed
-    go  i (x:xs)  = case rootMatches tol x of
+    go  i (x:xs)  = case matchRoot tol x of
       Just r  -> r
       Nothing -> go (i+1) xs
 {-# INLINABLE  findRoot #-}
@@ -204,7 +209,7 @@ instance NFData RiddersStep where
   rnf x = x `seq` ()
 
 instance IterationStep RiddersStep where
-  rootMatches tol r = case r of
+  matchRoot tol r = case r of
     RiddersRoot x               -> Just $ Root x
     RiddersNoBracket            -> Just NotBracketed
     RiddersStep a b
@@ -250,7 +255,6 @@ riddersIterations (lo,hi) f
     fhi = f hi
     --
     go !a !fa !b !fb
-      | within 1 a b  = [RiddersRoot a]
       | fm == 0       = [RiddersRoot m]
       | fn == 0       = [RiddersRoot n]
       -- Ridder's approximation coincide with one of old bounds or
@@ -319,7 +323,7 @@ instance NFData NewtonStep where
   rnf x = x `seq` ()
 
 instance IterationStep NewtonStep where
-  rootMatches tol r = case r of
+  matchRoot tol r = case r of
     NewtonRoot x                 -> Just (Root x)
     NewtonNoBracket              -> Just NotBracketed
     NewtonStep x x'
@@ -328,7 +332,7 @@ instance IterationStep NewtonStep where
     NewtonBisection a b
       | withinTolerance tol a b  -> Just (Root ((a + b) / 2))
       | otherwise                -> Nothing
-  {-# INLINE rootMatches #-}
+  {-# INLINE matchRoot #-}
 
 
 -- | Solve equation using Newton-Raphson iterations.
