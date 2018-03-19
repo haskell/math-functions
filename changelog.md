@@ -1,3 +1,12 @@
+## Changes in 0.3.0.0
+
+  * `Semigroup` and `Monoid` instances added for data types from `Numeric.Sum`
+
+  * API for finding roots of real functions reworked. 1) All algorithm
+    parameters are now tweakable. 2) Functions for getting list of iterations
+    added.
+
+
 ## Changes in 0.2.1.0
 
   * `log1p` and `expm1` are simply reexported from `GHC.Float`. They're methods
@@ -20,7 +29,7 @@
 
   * New much more precise implementation for `incompleteGamma`
 
-  * Dependency on `erf` pacakge dropped. `erf` and `erfc` just do direct calls
+  * Dependency on `erf` package dropped. `erf` and `erfc` just do direct calls
     to C.
 
   * `Numeric.SpecFunctions.expm1` added
