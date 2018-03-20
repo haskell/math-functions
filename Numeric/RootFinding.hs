@@ -370,9 +370,10 @@ newtonRaphsonIterations (lo,guess,hi) function
     (flo,_) = function lo
     (fhi,_) = function hi
     -- Ensure that initial guess is within bracket
-    guess'  | guess < lo && guess < hi = (lo + hi) / 2
-            | guess > lo && guess > hi = (lo + hi) / 2
-            | otherwise                = guess
+    guess'
+      | guess >= lo && guess <= hi = guess
+      | guess >= hi && guess <= lo = guess
+      | otherwise                  = (lo + hi) / 2
     --
     go xA x xB
       | f  == 0   = [NewtonRoot x]
