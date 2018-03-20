@@ -374,13 +374,16 @@ newtonRaphsonIterations (lo,guess,hi) function
       | guess >= lo && guess <= hi = guess
       | guess >= hi && guess <= lo = guess
       | otherwise                  = (lo + hi) / 2
-    --
+    -- Newton iterations. Invariant:
+    --   > f xA < 0
+    --   > f xB > 0
     go xA x xB
       | f  == 0   = [NewtonRoot x]
       | f' == 0   = bisectionStep
-      -- Accept Newton step
+      -- Accept Newton step since it stays within bracket.
       | (x' - xA) * (x' - xB) < 0 = newtonStep
-      -- Otherwise we need to revert to bisection
+      -- Otherwise bracket root and pick new approximation as
+      -- midpoint.
       | otherwise                 = bisectionStep
       where
         -- Calculate Newton step
