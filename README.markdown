@@ -1,9 +1,21 @@
-# math-functions: efficient, special purpose mathematical functions
+# math-functions: collection of tools for numeric computations
 
 [![Build Status](https://travis-ci.org/Shimuuar/math-functions.png?branch=master)](https://travis-ci.org/Shimuuar/math-functions)
+[![Build status](https://ci.appveyor.com/api/projects/status/6xexxj9g6rnbg2q4/branch/master?svg=true)](https://ci.appveyor.com/project/Shimuuar/math-functions/branch/master)
 
-This package provides a number of special-purpose mathematical
-functions used in statistical and numerical computing.
+This package provides collection of various tools for numeric
+computations. Namely:
+
+ - Number pure haskell implementations of special function which are used in
+   statistical and numerical computing.
+
+ - Compensated summation (Kahan summation) which allows to
+
+ - Root finding for functions of single real variable
+
+ - Series summation
+
+ - Functions for comparing IEEE754 numbers
 
 Where possible, we give citations and computational complexity
 estimates for the algorithms used.
