@@ -10,11 +10,14 @@ homepage:       https://github.com/bos/math-functions
 bug-reports:    https://github.com/bos/math-functions/issues
 category:       Math, Numeric
 build-type:     Simple
-synopsis:       Special functions and Chebyshev polynomials
+synopsis:       Collection of tools for numeric computations
 description:
-  This library provides implementations of special mathematical
-  functions and Chebyshev polynomials.  These functions are often
-  useful in statistical and numerical computing.
+
+  This library contain collection of various utilities for numerical
+  computing. So far there're special mathematical functions,
+  compensated summation algorithm, summation of series, root finding
+  for real functions, polynomial summation and Chebyshev
+  polynomials. 
 
 extra-source-files:
   changelog.md
