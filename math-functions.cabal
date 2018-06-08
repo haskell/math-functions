@@ -4,8 +4,8 @@ cabal-version:  >= 1.10
 license:        BSD3
 license-file:   LICENSE
 author:         Bryan O'Sullivan <bos@serpentine.com>,
-                Aleksey Khudyakov <alexey.skladnoy@gmail.com>
-maintainer:     Bryan O'Sullivan <bos@serpentine.com>
+                Alexey Khudyakov <alexey.skladnoy@gmail.com>
+maintainer:     Alexey Khudyakov <alexey.skladnoy@gmail.com>
 homepage:       https://github.com/bos/math-functions
 bug-reports:    https://github.com/bos/math-functions/issues
 category:       Math, Numeric
