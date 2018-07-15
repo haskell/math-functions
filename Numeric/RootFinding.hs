@@ -120,7 +120,7 @@ data Tolerance
   = RelTol !Double
     -- ^ Relative error tolerance. Given @RelTol ε@ two values are
     --   considered approximately equal if
-    --   \[ |a - b| / |\operatorname{max}(a,b)} < \vareps \]
+    --   \[ \frac{|a - b|}{|\operatorname{max}(a,b)} < \varepsilon \]
   | AbsTol !Double
     -- ^ Absolute error tolerance. Given @AbsTol δ@ two values are
     --   considered approximately equal if \[ |a - b| < \delta \].
