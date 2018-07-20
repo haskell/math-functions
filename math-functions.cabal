@@ -1,7 +1,7 @@
 name:           math-functions
 version:        0.3.0.2
 cabal-version:  >= 1.10
-license:        BSD3
+license:        BSD2
 license-file:   LICENSE
 author:         Bryan O'Sullivan <bos@serpentine.com>,
                 Alexey Khudyakov <alexey.skladnoy@gmail.com>
