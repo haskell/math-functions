@@ -1,3 +1,8 @@
+## Changes in 0.3.0.2
+
+  * Fix license field in cabal file
+
+
 ## Changes in 0.3.0.0
 
   * `Semigroup` and `Monoid` instances added for data types from `Numeric.Sum`
