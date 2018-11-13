@@ -174,9 +174,10 @@ findRoot maxN tol = go 0
 -- | Parameters for 'ridders' root finding
 data RiddersParam = RiddersParam
   { riddersMaxIter :: !Int
-    -- ^ Maximum number of iterations.
+    -- ^ Maximum number of iterations. Default = 100
   , riddersTol     :: !Tolerance
-    -- ^ Error tolerance for root approximation.
+    -- ^ Error tolerance for root approximation. Default is relative
+    --   error 4·ε, where ε is machine precision.
   }
   deriving (Eq, Read, Show, Typeable, Data
 #if __GLASGOW_HASKELL__ > 704
@@ -289,9 +290,10 @@ riddersIterations (lo,hi) f
 -- | Parameters for 'ridders' root finding
 data NewtonParam = NewtonParam
   { newtonMaxIter :: !Int
-    -- ^ Maximum number of iterations.
+    -- ^ Maximum number of iterations. Default = 50
   , newtonTol     :: !Tolerance
-    -- ^ Error tolerance for root approximation.
+    -- ^ Error tolerance for root approximation. Default is relative
+    --   error 4·ε, where ε is machine precision
   }
   deriving (Eq, Read, Show, Typeable, Data
 #if __GLASGOW_HASKELL__ > 704
