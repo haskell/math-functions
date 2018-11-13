@@ -1,5 +1,5 @@
 name:           math-functions
-version:        0.3.0.2
+version:        0.3.1.0
 cabal-version:  >= 1.10
 license:        BSD2
 license-file:   LICENSE

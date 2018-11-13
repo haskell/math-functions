@@ -1,3 +1,10 @@
+## Changes in 0.3.1.0
+
+  * Exported data types for iteration steps in root finding
+
+  * Defaults for root finding algorithm are documented
+
+
 ## Changes in 0.3.0.2
 
   * Fix license field in cabal file
