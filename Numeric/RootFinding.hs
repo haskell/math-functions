@@ -30,10 +30,12 @@ module Numeric.RootFinding
     , RiddersParam(..)
     , ridders
     , riddersIterations
+    , RiddersStep(..)
     -- * Newton-Raphson algorithm
     , NewtonParam(..)
     , newtonRaphson
     , newtonRaphsonIterations
+    , NewtonStep(..)
     -- * References
     -- $references
     ) where
