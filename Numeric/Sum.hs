@@ -78,7 +78,7 @@ class Summation s where
     -- | Sum a collection of values.
     --
     -- Example:
-    -- @foo = 'sum' 'kbn' [1,2,3]@
+    -- @foo = 'Numeric.Sum.sum' 'kbn' [1,2,3]@
     sum  :: (F.Foldable f) => (s -> Double) -> f Double -> Double
     sum  f = f . F.foldl' add zero
     {-# INLINE sum #-}
@@ -255,7 +255,7 @@ pairwiseSum v
 --           where s'    = 'add' s x
 -- @
 --
--- In most instances, you can simply use the much more general 'sum'
+-- In most instances, you can simply use the much more general 'Numeric.Sum.sum'
 -- function instead of writing a summation function by hand.
 --
 -- @
@@ -263,7 +263,7 @@ pairwiseSum v
 -- import Prelude hiding (sum)
 -- --
 -- betterSumList :: [Double] -> Double
--- betterSumList xs = 'sum' 'kbn' xs
+-- betterSumList xs = 'Numeric.Sum.sum' 'kbn' xs
 -- @
 
 -- Note well the use of 'seq' in the example above to force the
