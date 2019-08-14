@@ -47,10 +47,6 @@ module Numeric.SpecFunctions (
   ) where
 
 import Numeric.SpecFunctions.Internal
-#if MIN_VERSION_base(4,9,0)
-import GHC.Float (log1p, expm1)
-#endif
-
 
 -- $log1p
 --

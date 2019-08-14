@@ -9,7 +9,12 @@
 -- Portability : portable
 --
 -- Internal module with implementation of special functions.
-module Numeric.SpecFunctions.Internal where
+module Numeric.SpecFunctions.Internal
+    ( module Numeric.SpecFunctions.Internal
+#if MIN_VERSION_base(4,9,0) && !defined(__GHCJS__)
+    , log1p, expm1
+#endif
+    ) where
 
 #if !MIN_VERSION_base(4,9,0)
 import Control.Applicative
@@ -21,7 +26,7 @@ import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(4,9,0) && !defined(__GHCJS__)
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -30,8 +35,6 @@ import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomi
 import Numeric.RootFinding             (Root(..), newtonRaphson, NewtonParam(..), Tolerance(..))
 import Numeric.Series
 import Numeric.MathFunctions.Constants
-
-
 
 ----------------------------------------------------------------
 -- Error function
@@ -54,7 +57,11 @@ import Numeric.MathFunctions.Constants
 -- \]
 erf :: Double -> Double
 {-# INLINE erf #-}
+#ifdef USE_SYSTEM_ERF
 erf = c_erf
+#else
+erf x = 1.0 - erfc x
+#endif
 
 -- | Complementary error function.
 --
@@ -72,11 +79,33 @@ erf = c_erf
 -- \end{aligned}
 -- \]
 erfc :: Double -> Double
-{-# INLINE erfc #-}
+#ifdef USE_SYSTEM_ERF
 erfc = c_erfc
+#else
+erfc x
+    | x < 0.0   = 2.0 - a
+    | otherwise = a
+  where
+    z = abs x
+    t = 1.0 / (0.5 * z + 1.0)
+    a1 = t * 0.17087277 + (-0.82215223)
+    a2 = t * a1 + 1.48851587
+    a3 = t * a2 + (-1.13520398)
+    a4 = t * a3 + 0.27886807
+    a5 = t * a4 + (-0.18628806)
+    a6 = t * a5 + 0.09678418
+    a7 = t * a6 + 0.37409196
+    a8 = t * a7 + 1.00002368
+    a9 = t * a8
+    a10 = -z * z - 1.26551223 + a9
+    a = t * exp a10
+#endif
+{-# INLINE erfc #-}
 
+#ifdef USE_SYSTEM_ERF
 foreign import ccall "erf"  c_erf  :: Double -> Double
 foreign import ccall "erfc" c_erfc :: Double -> Double
+#endif
 
 
 -- | Inverse of 'erf'.
@@ -723,7 +752,7 @@ sinc x
 ----------------------------------------------------------------
 
 -- GHC.Float provides log1p and expm1 since 4.9.0
-#if !MIN_VERSION_base(4,9,0)
+#if !MIN_VERSION_base(4,9,0) || defined(__GHCJS__)
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 -- for values of @x@ near zero, where use of @log(1+x)@ would lose
 -- precision.

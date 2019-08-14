@@ -49,6 +49,8 @@ library
                       , vector-th-unbox     >= 0.2.1.6
   if flag(system-expm1) || !os(windows)
     cpp-options: -DUSE_SYSTEM_EXPM1
+  if flag(system-erf) && !impl(ghcjs)
+    cpp-options: -DUSE_SYSTEM_ERF
   exposed-modules:
     Numeric.MathFunctions.Constants
     Numeric.MathFunctions.Comparison
@@ -63,8 +65,13 @@ library
     Numeric.SpecFunctions.Internal
 
 flag system-expm1
-     description: Use expm1 provided by system. Only have effect on windows
+     description: Use expm1 provided by system. Only have effect on windows. On non-Windows the library version is used always.
      default:     False
+     manual:      True
+
+flag system-erf
+     description: Use erf and erfc provided by system. With GHCJS the library version is used always.
+     default:     True
      manual:      True
 
 test-suite tests
