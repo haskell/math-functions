@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP, BangPatterns, ScopedTypeVariables, ForeignFunctionInterface #-}
+
+-- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0)
+#define USE_GHC_LOG1P_EXP1M (MIN_VERSION_base(4,9,0) && !defined(__GHCJS__))
 -- |
 -- Module    : Numeric.SpecFunctions.Internal
 -- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
@@ -22,7 +25,7 @@ import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
 import Text.Printf
-#if MIN_VERSION_base(4,9,0) && !defined(__GHCJS__)
+#if USE_GHC_LOG1P_EXP1M
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -747,8 +750,7 @@ sinc x
 -- Logarithm
 ----------------------------------------------------------------
 
--- GHC.Float provides log1p and expm1 since 4.9.0
-#if !MIN_VERSION_base(4,9,0) || defined(__GHCJS__)
+#if !USE_GHC_LOG1P_EXP1M
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 -- for values of @x@ near zero, where use of @log(1+x)@ would lose
 -- precision.
@@ -788,7 +790,9 @@ log1p x
                0.55480701209082887983041321697279e-15,
               -0.10324619158271569595141333961932e-15
              ]
+#endif
 
+#if !USE_GHC_LOG1P_EXP1M
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
 #ifdef USE_SYSTEM_EXPM1
