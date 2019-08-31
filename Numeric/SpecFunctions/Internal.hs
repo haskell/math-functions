@@ -798,7 +798,7 @@ expm1 :: Double -> Double
 #ifdef USE_SYSTEM_EXPM1
 expm1 = c_expm1
 
-foreign import ccall "expm1" c_expm1 :: Double -> Double
+foreign import ccall unsafe "expm1" c_expm1 :: Double -> Double
 #else
 -- NOTE: this is simplest implementation and not terribly efficient.
 expm1 x
