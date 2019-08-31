@@ -11,14 +11,10 @@
 -- Internal module with implementation of special functions.
 module Numeric.SpecFunctions.Internal
     ( module Numeric.SpecFunctions.Internal
-#if MIN_VERSION_base(4,9,0) && !defined(__GHCJS__)
     , log1p, expm1
-#endif
     ) where
 
-#if !MIN_VERSION_base(4,9,0)
 import Control.Applicative
-#endif
 import Data.Bits          ((.&.), (.|.), shiftR)
 import Data.Int           (Int64)
 import Data.Word          (Word)
