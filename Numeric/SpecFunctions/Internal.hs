@@ -99,8 +99,8 @@ erfc x
 {-# INLINE erfc #-}
 
 #ifdef USE_SYSTEM_ERF
-foreign import ccall "erf"  c_erf  :: Double -> Double
-foreign import ccall "erfc" c_erfc :: Double -> Double
+foreign import ccall unsafe "erf"  c_erf  :: Double -> Double
+foreign import ccall unsafe "erfc" c_erfc :: Double -> Double
 #endif
 
 
