@@ -77,9 +77,12 @@ library
     Numeric.SpecFunctions.Compat
 
 flag system-expm1
-     description: Use expm1 provided by system. On windows and GHCJS
-                  uses version bundled with library.
-     default:     False
+     description: Use expm1 provided by system. For GHC newer that
+                  8.0, GHCJS, and on Windows has no effect. GHC>8.0
+                  provides expm1 so it's used. On GHCJS and on Windows
+                  we don't have C implementation so bundled one is
+                  used instead.
+     default:     True
      manual:      True
 
 flag system-erf
