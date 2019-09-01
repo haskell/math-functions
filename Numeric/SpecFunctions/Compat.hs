@@ -10,7 +10,7 @@ module Numeric.SpecFunctions.Compat (
   ) where
 
 import qualified Data.Vector.Unboxed as U
-
+import Numeric.MathFunctions.Constants
 import Numeric.Polynomial.Chebyshev    (chebyshev,chebyshevBroucke)
 
 -- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0). GHCJS
