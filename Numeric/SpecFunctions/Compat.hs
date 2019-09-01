@@ -5,14 +5,20 @@
 module Numeric.SpecFunctions.Compat (
     erf
   , erfc
+  , log1p
+  , expm1
   ) where
 
 import qualified Data.Vector.Unboxed as U
 
 import Numeric.Polynomial.Chebyshev    (chebyshev)
 
--- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0)
+-- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0). GHCJS
+-- doesn't
 #define USE_GHC_LOG1P_EXP1M (MIN_VERSION_base(4,9,0) && !defined(__GHCJS__))
+#if USE_GHC_LOG1P_EXP1M
+import GHC.Float (log1p,expm1)
+#endif
 
 
 ----------------------------------------------------------------
@@ -72,4 +78,79 @@ erfcCoef = U.fromList
   , -2.8e-17
   ]
 
+#endif
+
+
+----------------------------------------------------------------
+-- expm1
+--
+-- We use version provided by GHC is available otherwise we can either
+-- get from libc or if everything else fails use one from library
+----------------------------------------------------------------
+
+#if !USE_GHC_LOG1P_EXP1M
+-- | Compute @exp x - 1@ without loss of accuracy for x near zero.
+expm1 :: Double -> Double
+#ifdef USE_SYSTEM_EXPM1
+expm1 = c_expm1
+
+foreign import ccall unsafe "expm1" c_expm1 :: Double -> Double
+#else
+-- NOTE: this is simplest implementation and not terribly efficient.
+expm1 x
+  | x < (-37.42994775023705) = -1
+  | x > m_max_log            = m_pos_inf
+  | abs x > 0.5              = exp x - 1
+  | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
+                                                      (1 / scanSequence (*) 1 (enumSequenceFrom 2))
+#endif
+#endif
+
+
+----------------------------------------------------------------
+-- log1p
+--
+-- Basically same as exm1
+----------------------------------------------------------------
+
+#if !USE_GHC_LOG1P_EXP1M
+-- | Compute the natural logarithm of 1 + @x@.  This is accurate even
+--   for values of @x@ near zero, where use of @log(1+x)@ would lose
+--   precision.
+log1p :: Double -> Double
+log1p x
+    | x == 0               = 0
+    | x == -1              = m_neg_inf
+    | x < -1               = m_NaN
+    | x' < m_epsilon * 0.5 = x
+    | (x >= 0 && x < 1e-8) || (x >= -1e-9 && x < 0)
+                           = x * (1 - x * 0.5)
+    | x' < 0.375           = x * (1 - x * chebyshevBroucke (x / 0.375) coeffs)
+    | otherwise            = log (1 + x)
+  where
+    x' = abs x
+    coeffs = U.fromList [
+               0.10378693562743769800686267719098e+1,
+              -0.13364301504908918098766041553133e+0,
+               0.19408249135520563357926199374750e-1,
+              -0.30107551127535777690376537776592e-2,
+               0.48694614797154850090456366509137e-3,
+              -0.81054881893175356066809943008622e-4,
+               0.13778847799559524782938251496059e-4,
+              -0.23802210894358970251369992914935e-5,
+               0.41640416213865183476391859901989e-6,
+              -0.73595828378075994984266837031998e-7,
+               0.13117611876241674949152294345011e-7,
+              -0.23546709317742425136696092330175e-8,
+               0.42522773276034997775638052962567e-9,
+              -0.77190894134840796826108107493300e-10,
+               0.14075746481359069909215356472191e-10,
+              -0.25769072058024680627537078627584e-11,
+               0.47342406666294421849154395005938e-12,
+              -0.87249012674742641745301263292675e-13,
+               0.16124614902740551465739833119115e-13,
+              -0.29875652015665773006710792416815e-14,
+               0.55480701209082887983041321697279e-15,
+              -0.10324619158271569595141333961932e-15
+             ]
 #endif
