@@ -96,6 +96,10 @@ main = defaultMain
       | x <- [0, 1.1, 100, 1000]
       ]
     ]
+  , bgroup "expm1"
+    [ bench (show x) $ nf expm1 (x :: Double)
+    | x <- [-0.1, 0, 1, 19]
+    ]
   , bgroup "poly"
       $  [ bench ("vector_"++show (U.length coefs)) $ nf (\x -> evaluatePolynomial x coefs) (1 :: Double)
          | coefs <- coef_list ]

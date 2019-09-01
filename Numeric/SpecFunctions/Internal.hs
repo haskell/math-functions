@@ -29,11 +29,13 @@ import Text.Printf
 import GHC.Float (log1p,expm1)
 #endif
 
-import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
+import Numeric.Polynomial.Chebyshev    (chebyshevBroucke,chebyshev)
 import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
 import Numeric.RootFinding             (Root(..), newtonRaphson, NewtonParam(..), Tolerance(..))
 import Numeric.Series
 import Numeric.MathFunctions.Constants
+
+
 
 ----------------------------------------------------------------
 -- Error function
@@ -81,23 +83,35 @@ erfc :: Double -> Double
 #ifdef USE_SYSTEM_ERF
 erfc = c_erfc
 #else
+-- Adapted from Numerical Recipes §6.2.2
 erfc x
-    | x < 0.0   = 2.0 - a
-    | otherwise = a
+  | x < 0.0   = 2.0 - a
+  | otherwise = a
   where
-    z = abs x
-    t = 1.0 / (0.5 * z + 1.0)
-    a1 = t * 0.17087277 + (-0.82215223)
-    a2 = t * a1 + 1.48851587
-    a3 = t * a2 + (-1.13520398)
-    a4 = t * a3 + 0.27886807
-    a5 = t * a4 + (-0.18628806)
-    a6 = t * a5 + 0.09678418
-    a7 = t * a6 + 0.37409196
-    a8 = t * a7 + 1.00002368
-    a9 = t * a8
-    a10 = -z * z - 1.26551223 + a9
-    a = t * exp a10
+    z  = abs x
+    -- We're using approximation:
+    --
+    --   erfc(z) ≈ t·exp(-z² + P(t))
+    --   t       = 2 / (2 + z)
+    t  = 2 / (2 + z)
+    ty = 2 * t - 1
+    a  = t * exp( -z * z + chebyshev ty erfcCoef )
+
+erfcCoef :: U.Vector Double
+{-# NOINLINE erfcCoef #-}
+erfcCoef = U.fromList
+  [ -0.6513268598908546   ,  6.4196979235649026e-1 ,  1.9476473204185836e-2
+  , -9.561514786808631e-3 , -9.46595344482036e-4   ,  3.66839497852761e-4
+  ,  4.2523324806907e-5   , -2.0278578112534e-5    , -1.624290004647e-6
+  ,  1.303655835580e-6    ,  1.5626441722e-8       , -8.5238095915e-8
+  ,  6.529054439e-9       ,  5.059343495e-9        , -9.91364156e-10
+  , -2.27365122e-10       ,  9.6467911e-11         ,  2.394038e-12
+  , -6.886027e-12         ,  8.94487e-13           ,  3.13092e-13
+  , -1.12708e-13          ,  3.81e-16              ,  7.106e-15
+  , -1.523e-15            , -9.4e-17               ,  1.21e-16
+  , -2.8e-17
+  ]
+
 #endif
 {-# INLINE erfc #-}
 
