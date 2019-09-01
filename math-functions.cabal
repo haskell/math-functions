@@ -1,5 +1,5 @@
 name:           math-functions
-version:        0.3.1.0
+version:        0.3.2.0
 cabal-version:  >= 1.10
 license:        BSD2
 license-file:   LICENSE
@@ -78,7 +78,7 @@ library
 
 flag system-expm1
      description: Use expm1 provided by system. For GHC newer that
-                  8.0, GHCJS, and on Windows has no effect. GHC>8.0
+                  8.0, GHCJS, and on Windows has no effect. GHC>=8.0
                   provides expm1 so it's used. On GHCJS and on Windows
                   we don't have C implementation so bundled one is
                   used instead.

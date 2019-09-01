@@ -43,7 +43,7 @@ tests = testGroup "Special functions"
                           , " got       = " ++ show val
                           , " ulps diff = " ++ show (ulpDistance exact val)
                           ])
-        (within 32 exact val)
+        (within 64 exact val)
   , testCase "erf table" $ forM_ tableErf $ \(x,exact) -> do
       let val = erf x
       assertBool (unlines [ " x         = " ++ show x

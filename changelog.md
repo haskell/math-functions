@@ -1,3 +1,9 @@
+## Changes in 0.3.2.0
+
+  * GHCJS is now supported
+
+  * Flag `system-expm1` is set to true by default. Only affects GHC<8.0
+
 ## Changes in 0.3.1.0
 
   * Exported data types for iteration steps in root finding
