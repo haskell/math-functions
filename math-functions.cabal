@@ -74,6 +74,7 @@ library
     Numeric.Sum
   other-modules:
     Numeric.SpecFunctions.Internal
+    Numeric.SpecFunctions.Compat
 
 flag system-expm1
      description: Use expm1 provided by system. On windows and GHCJS
