@@ -76,12 +76,15 @@ library
     Numeric.SpecFunctions.Internal
 
 flag system-expm1
-     description: Use expm1 provided by system. Only have effect on windows. On non-Windows the library version is used always.
+     description: Use expm1 provided by system. On windows and GHCJS
+                  uses version bundled with library.
      default:     False
      manual:      True
 
 flag system-erf
-     description: Use erf and erfc provided by system. With GHCJS the library version is used always.
+     description: Use erf and erfc provided by system. On GHCJS
+                  version provided by library is used regardless of
+                  flag for that lack of libc.
      default:     True
      manual:      True
 
