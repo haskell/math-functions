@@ -50,14 +50,17 @@ tests = testGroup "Special functions"
           checkTabular 80 (show x) exact (logGamma x)
     ]
   ----------------
-  , testProperty "gamma(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
-  , testProperty "0 <= gamma <= 1"               $ incompleteGammaInRange
-  , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
-  , testProperty "invIncompleteGamma = gamma^-1" $ invIGammaIsInverse
+  , testGroup "incomplete gamma"
+    [ testProperty "incomplete gamma - increases" $
+      \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
+    , testProperty "0 <= gamma <= 1"               incompleteGammaInRange
+    , testProperty "gamma(1,x) = 1 - exp(-x)"      incompleteGammaAt1Check
+    , testProperty "invIncompleteGamma = gamma^-1" invIGammaIsInverse
+    ]
+  ----------------
+  , testProperty "0 <= I[B] <= 1"                incompleteBetaInRange
   -- XXX FIXME DISABLED due to failures
   -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
-  , testProperty "gamma - increases" $
-      \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
     -- Unit tests
   , testAssertion "Factorial is expected to be precise at 1e-15 level"
       $ and [ eq 1e-15 (factorial (fromIntegral n :: Int))
