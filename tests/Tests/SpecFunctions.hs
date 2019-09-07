@@ -101,25 +101,37 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "factorial"
-    [ testAssertion "Factorial is expected to be precise at 1e-15 level"
-      $ and [ eq 1e-15 (factorial (fromIntegral n :: Int))
-                       (fromIntegral (factorial' n))
-            | n <- [0..170]]
-    , testAssertion "Log factorial is expected to be precise at 1e-15 level"
-      $ and [ eq 1e-15 (logFactorial (fromIntegral n :: Int))
-                       (log $ fromIntegral $ factorial' n)
-            | n <- [2..170]]
+    [ testCase "Factorial table" $
+      forM_ [0 .. 170] $ \n -> do
+        checkTabular 6
+          (show n)
+          (fromIntegral (factorial' n))
+          (factorial (fromIntegral n :: Int))
+      --
+    , testCase "Log factorial table" $
+      forM_ [2 .. 170] $ \n -> do
+        checkTabular 3
+          (show n)
+          (log $ fromIntegral $ factorial' n)
+          (logFactorial (fromIntegral n :: Int))
     ]
   ----------------
   , testGroup "combinatorics"
-    [ testAssertion "choose is expected to precise at 1e-12 level"
-      $ and [ eq 1e-12 (choose (fromIntegral n) (fromIntegral k)) (fromIntegral $ choose' n k)
-            | n <- [0..1000], k <- [0..n]]
-    , testAssertion "logChoose == log . choose"
-      $ and [ let n' = fromIntegral n
-                  k' = fromIntegral k
-              in within 2 (logChoose n' k') (log $ choose n' k')
-            | n <- [0::Int .. 1000], k <- [0 .. n]]
+    [ testCase "choose table" $
+      forM_ [0 .. 1000] $ \n ->
+        forM_ [0 .. n]  $ \k -> do
+          checkTabular 2048
+            (show (n,k))
+            (fromIntegral $ choose' n k)
+            (choose (fromInteger n) (fromInteger k))
+    --
+    , testCase "logChoose == log . choose" $
+      forM_ [0 .. 1000] $ \n ->
+        forM_ [0 .. n]  $ \k -> do
+          checkTabular 2
+            (show (n,k))
+            (log $ choose n k)
+            (logChoose n k)
     ]
     ----------------------------------------------------------------
     -- Self tests
