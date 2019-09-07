@@ -59,7 +59,9 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "beta function"
-    [ testAssertion "logBeta is expected to be precise at 1e-6 level"
+    [ -- FIXME: loss of precision when logBeta p q ≈ 0.
+      --        Relative error doesn't work properly in this case.
+      testAssertion "logBeta is expected to be precise at 1e-6 level"
       $ and [ eq 1e-6 (logBeta p q)
                       (logGammaL p + logGammaL q - logGammaL (p+q))
             | p <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
@@ -91,9 +93,7 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "digamma"
-    [ -- FIXME: loss of precision when logBeta p q ≈ 0.
-      --        Relative error doesn't work properly in this case.
-      testAssertion "digamma is expected to be precise at 1e-14 [integers]"
+    [ testAssertion "digamma is expected to be precise at 1e-14 [integers]"
         $ digammaTestIntegers 1e-14
       -- Relative precision is lost when digamma(x) ≈ 0
     , testCase "digamma is expected to be precise at 1e-12" $
