@@ -24,8 +24,32 @@ import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
 tests :: Test
 tests = testGroup "Special functions"
-  [ testProperty "Gamma(x+1) = x*Gamma(x) [logGamma]"  $ gammaReccurence logGamma  3e-8
-  , testProperty "Gamma(x+1) = x*Gamma(x) [logGammaL]" $ gammaReccurence logGammaL 2e-13
+  [ testGroup "erf"
+    [ -- Tests for erfc mostly are to test implementation bundled with
+      -- library. libc's one is accurate within 1 ulp
+      testCase "erfc table" $
+        forTable "tests/tables/erfc.dat" $ \[x, exact] ->
+          checkTabular 64 (show x) exact (erfc x)
+      --
+    , testCase "erf table" $
+        forTable "tests/tables/erf.dat" $ \[x, exact] -> do
+          checkTabular 24 (show x) exact (erf x)
+    , testProperty "invErfc = erfc^-1" invErfcIsInverse
+    , testProperty "invErf  = erf^-1"  invErfIsInverse
+    ]
+  ----------------
+  , testGroup "gamma function"
+    [ testProperty "Gamma(x+1) = x*Gamma(x) [logGammaL]" $ gammaReccurence logGammaL 2e-13
+    , testCase     "logGamma is expected to be precise at 1e-15 level" $
+        forM_ [3..10000::Int] $ \n -> do
+          let exact = logFactorial (n-1)
+              val   = logGamma (fromIntegral n)
+          checkTabular 8 (show n) exact val
+    , testCase "logGamma table [fractional points" $
+        forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
+          checkTabular 80 (show x) exact (logGamma x)
+    ]
+  ----------------
   , testProperty "gamma(1,x) = 1 - exp(-x)"      $ incompleteGammaAt1Check
   , testProperty "0 <= gamma <= 1"               $ incompleteGammaInRange
   , testProperty "0 <= I[B] <= 1"            $ incompleteBetaInRange
@@ -34,28 +58,6 @@ tests = testGroup "Special functions"
   -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
   , testProperty "gamma - increases" $
       \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
-  , testProperty "invErfc = erfc^-1"         $ invErfcIsInverse
-  , testProperty "invErf  = erf^-1"          $ invErfIsInverse
-  -- Tests for erfc mostly are to test implementation bundled with
-  -- library. libc's one is accurate within 1 ulp
-  , testCase "erfc table" $ do
-      forTable "tests/tables/erfc.dat" $ \[x, exact] -> do
-        let val = erfc x
-        assertBool (unlines [ " x         = " ++ show x
-                            , " expected  = " ++ show exact
-                            , " got       = " ++ show val
-                            , " ulps diff = " ++ show (ulpDistance exact val)
-                            ])
-          (within 64 exact val)
-  , testCase "erf table" $ do
-      forTable "tests/tables/erf.dat" $ \[x, exact] -> do
-        let val = erf x
-        assertBool (unlines [ " x         = " ++ show x
-                            , " expected  = " ++ show exact
-                            , " got       = " ++ show val
-                            , " ulps diff = " ++ show (ulpDistance exact val)
-                            ])
-                   (within 24 exact val)
     -- Unit tests
   , testAssertion "Factorial is expected to be precise at 1e-15 level"
       $ and [ eq 1e-15 (factorial (fromIntegral n :: Int))
@@ -65,18 +67,6 @@ tests = testGroup "Special functions"
       $ and [ eq 1e-15 (logFactorial (fromIntegral n :: Int))
                        (log $ fromIntegral $ factorial' n)
             | n <- [2..170]]
-  , testAssertion "logGamma is expected to be precise at 1e-9 level [integer points]"
-      $ and [ eq 1e-9 (logGamma (fromIntegral n))
-                      (logFactorial (n-1))
-            | n <- [3..10000::Int]]
-  , testAssertion "logGamma is expected to be precise at 1e-9 level [fractional points]"
-      $ and [ eq 1e-9 (logGamma x) lg | (x,lg) <- tableLogGamma ]
-  , testAssertion "logGammaL is expected to be precise at 1e-15 level"
-      $ and [ eq 1e-15 (logGammaL (fromIntegral n))
-                       (logFactorial (n-1))
-            | n <- [3..10000::Int]]
-  , testAssertion "logGammaL is expected to be precise at 1e-10 level [fractional points]"
-      $ and [ eq (64*m_epsilon) (logGammaL x) lg | (x,lg) <- tableLogGamma ]
     -- FIXME: loss of precision when logBeta p q ≈ 0.
     --        Relative error doesn't work properly in this case.
   , testAssertion "logBeta is expected to be precise at 1e-6 level"
@@ -258,3 +248,11 @@ forTable :: FilePath -> ([Double] -> IO ()) -> IO ()
 forTable path fun = do
   mapM_ fun =<< readTable path
 
+checkTabular :: Int -> String -> Double -> Double -> IO ()
+checkTabular prec x exact val =
+  assertBool (unlines [ " x         = " ++ x
+                      , " expected  = " ++ show exact
+                      , " got       = " ++ show val
+                      , " ulps diff = " ++ show (ulpDistance exact val)
+                      ])
+    (within prec exact val)
