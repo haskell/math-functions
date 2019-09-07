@@ -96,8 +96,10 @@ tests = testGroup "Special functions"
       testAssertion "digamma is expected to be precise at 1e-14 [integers]"
         $ digammaTestIntegers 1e-14
       -- Relative precision is lost when digamma(x) ≈ 0
-    , testAssertion "digamma is expected to be precise at 1e-12"
-        $ and [ eq 1e-12 r (digamma x) | (x,r) <- tableDigamma ]
+    , testCase "digamma is expected to be precise at 1e-12" $
+      forTable "tests/tables/digamma.dat" $ \[x, exact] ->
+        checkTabular 2048
+          (show x) (digamma x) exact
     ]
   ----------------
   , testGroup "factorial"

@@ -31,3 +31,4 @@ def fmt(f, inputs, out):
 fmt( mpmath.erf,      'inputs/erf.dat'      , 'erf.dat')
 fmt( mpmath.erfc,     'inputs/erfc.dat'     , 'erfc.dat')
 fmt( mpmath.loggamma, 'inputs/loggamma.dat' , 'loggamma.dat')
+fmt( mpmath.digamma,  'inputs/digamma.dat'  , 'digamma.dat')
