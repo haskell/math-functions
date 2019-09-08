@@ -187,29 +187,37 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
     --        smaller when #42 is fixed
     δ  = (m_epsilon/2) * (256 + 1 * (1 + abs (x * f' / p)))
 
--- invErfc is inverse of erfc
+-- id ≈ erfc . invErfc
 invErfcIsInverse :: Double -> Property
 invErfcIsInverse ((*2) . range01 -> p)
-  = counterexample ("p  = " ++ show p )
-  $ counterexample ("x  = " ++ show x )
-  $ counterexample ("p' = " ++ show p')
-  $ abs (p - p') <= 1e-14
+  = (not $ isInfinite x) ==>
+  ( counterexample ("p    = " ++ show p )
+  $ counterexample ("x    = " ++ show x )
+  $ counterexample ("p'   = " ++ show p')
+  $ counterexample ("err  = " ++ show (relativeError p p'))
+  $ counterexample ("ulps = " ++ show (ulpDistance p p'))
+  $ relativeError p p' < delta
+  )
   where
-    x  = invErfc p
-    p' = erfc x
+    delta = m_epsilon * (2 + 2 * abs (invErfc p * exp( -p*p )))
+    x     = invErfc p
+    p'    = erfc x
 
--- invErf is inverse of erf
+-- id ≈ erf . invErf
 invErfIsInverse :: Double -> Property
 invErfIsInverse a
-  = counterexample ("p  = " ++ show p )
-  $ counterexample ("x  = " ++ show x )
-  $ counterexample ("p' = " ++ show p')
+  = counterexample ("p    = " ++ show p )
+  $ counterexample ("x    = " ++ show x )
+  $ counterexample ("p'   = " ++ show p')
+  $ counterexample ("err  = " ++ show (relativeError p p'))
+  $ counterexample ("ulps = " ++ show (ulpDistance p p'))
   $ abs (p - p') <= 1e-14
   where
-    x  = invErf p
-    p' = erf x
+    delta = m_epsilon * (2 + 2 * abs (invErf p * exp ( -p * p )))
     p  | a < 0     = - range01 a
        | otherwise =   range01 a
+    x  = invErf p
+    p' = erf x
 
 -- B(s,x) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
