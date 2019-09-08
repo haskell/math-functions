@@ -58,9 +58,9 @@ library
                       , vector              >= 0.7
                       , primitive
                       , vector-th-unbox     >= 0.2.1.6
-  if flag(system-expm1) || !os(windows)
+  if flag(system-expm1) && !os(windows)
     cpp-options: -DUSE_SYSTEM_EXPM1
-  if flag(system-erf) && !impl(ghcjs)
+  if flag(system-erf)   && !impl(ghcjs)
     cpp-options: -DUSE_SYSTEM_ERF
   exposed-modules:
     Numeric.MathFunctions.Constants
