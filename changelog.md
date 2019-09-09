@@ -1,3 +1,8 @@
+## Changes in 0.3.2.1
+
+  * Fixes build on windows for GHC<8.0
+
+
 ## Changes in 0.3.2.0
 
   * GHCJS is now supported
