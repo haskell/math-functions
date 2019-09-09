@@ -34,8 +34,9 @@ tests = testGroup "Special functions"
     , testCase "erf table" $
         forTable "tests/tables/erf.dat" $ \[x, exact] -> do
           checkTabular 24 (show x) exact (erf x)
-    , testProperty "invErfc = erfc^-1" invErfcIsInverse
-    , testProperty "invErf  = erf^-1"  invErfIsInverse
+    , testProperty "id = erfc . invErfc" invErfcIsInverse
+    , testProperty "id = invErfc . erfc" invErfcIsInverse2
+    , testProperty "invErf  = erf^-1"    invErfIsInverse
     ]
   ----------------
   , testGroup "gamma function"
@@ -143,6 +144,63 @@ tests = testGroup "Special functions"
   ]
 
 ----------------------------------------------------------------
+-- efr tests
+----------------------------------------------------------------
+
+-- id ≈ erfc . invErfc
+invErfcIsInverse :: Double -> Property
+invErfcIsInverse ((*2) . range01 -> x)
+  = (not $ isInfinite x) ==>
+  ( counterexample ("x        = " ++ show x )
+  $ counterexample ("y        = " ++ show y )
+  $ counterexample ("x'       = " ++ show x')
+  $ counterexample ("calc.err = " ++ show delta)
+  $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
+  $ ulpDistance x x' <= delta
+  )
+  where
+    delta = round
+          $ 2 + 2 * abs ( y / x  *  2 / sqrt pi * exp( -y*y ))
+    y     = invErfc x
+    x'    = erfc y
+
+-- id ≈ invErfc . erfc
+invErfcIsInverse2 :: Double -> Property
+invErfcIsInverse2 x
+  = (not $ isInfinite x') ==>
+    (y > m_tiny)          ==>
+    (x /= 0) ==>
+    counterexample ("x        = " ++ show x )
+  $ counterexample ("y        = " ++ show y )
+  $ counterexample ("x'       = " ++ show x')
+  $ counterexample ("calc.err = " ++ show delta)
+  $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
+  $ ulpDistance x x' <= delta
+  where
+    delta = round
+          $ 2 + 2 * abs (y / x  /  (2 / sqrt pi * exp( -x*x )))
+    y  = erfc x
+    x' = invErfc y
+
+-- id ≈ erf . invErf
+invErfIsInverse :: Double -> Property
+invErfIsInverse a
+  = (x /= 0) ==>
+    counterexample ("x        = " ++ show x )
+  $ counterexample ("y        = " ++ show y )
+  $ counterexample ("x'       = " ++ show x')
+  $ counterexample ("calc.err = " ++ show delta)
+  $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
+  $ ulpDistance x x' <= delta
+  where
+    delta = round
+          $ 1 + 1 * abs (y / x  *  2 / sqrt pi * exp ( -y * y ))
+    x  | a < 0     = - range01 a
+       | otherwise =   range01 a
+    y  = invErf x
+    x' = erf y
+
+----------------------------------------------------------------
 -- QC tests
 ----------------------------------------------------------------
 
@@ -186,38 +244,6 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
     -- FIXME: 128 is big constant. It should be replaced by something
     --        smaller when #42 is fixed
     δ  = (m_epsilon/2) * (256 + 1 * (1 + abs (x * f' / p)))
-
--- id ≈ erfc . invErfc
-invErfcIsInverse :: Double -> Property
-invErfcIsInverse ((*2) . range01 -> p)
-  = (not $ isInfinite x) ==>
-  ( counterexample ("p    = " ++ show p )
-  $ counterexample ("x    = " ++ show x )
-  $ counterexample ("p'   = " ++ show p')
-  $ counterexample ("err  = " ++ show (relativeError p p'))
-  $ counterexample ("ulps = " ++ show (ulpDistance p p'))
-  $ relativeError p p' < delta
-  )
-  where
-    delta = m_epsilon * (2 + 2 * abs (invErfc p * exp( -p*p )))
-    x     = invErfc p
-    p'    = erfc x
-
--- id ≈ erf . invErf
-invErfIsInverse :: Double -> Property
-invErfIsInverse a
-  = counterexample ("p    = " ++ show p )
-  $ counterexample ("x    = " ++ show x )
-  $ counterexample ("p'   = " ++ show p')
-  $ counterexample ("err  = " ++ show (relativeError p p'))
-  $ counterexample ("ulps = " ++ show (ulpDistance p p'))
-  $ abs (p - p') <= 1e-14
-  where
-    delta = m_epsilon * (2 + 2 * abs (invErf p * exp ( -p * p )))
-    p  | a < 0     = - range01 a
-       | otherwise =   range01 a
-    x  = invErf p
-    p' = erf x
 
 -- B(s,x) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
