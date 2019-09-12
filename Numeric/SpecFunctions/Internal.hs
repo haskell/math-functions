@@ -88,10 +88,12 @@ invErfc p
   | p >0 && p < 2 = if p <= 1 then r else -r
   | otherwise     = modErr $ "invErfc: p must be in [0,2] got " ++ show p
   where
-    pp = if p <= 1 then p else 2 - p
-    t  = sqrt $ -2 * log( 0.5 * pp)
+    pp | p <= 1    = p
+       | otherwise = 2 - p
     -- Initial guess
     x0 = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
+      where
+        t = sqrt $ -2 * log( 0.5 * pp)
     r  = loop 0 x0
     --
     loop :: Int -> Double -> Double
