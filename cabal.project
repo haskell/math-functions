@@ -1,1 +1,3 @@
-packages: .
+packages:
+         math-functions.cabal
+--         math-functions-bench/math-functions-bench.cabal
