@@ -94,14 +94,12 @@ invErfc p
     x0 = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
       where
         t = sqrt $ -2 * log( 0.5 * pp)
-    r  = loop 0 x0
-    --
-    loop :: Int -> Double -> Double
-    loop !j !x
-      | j >= 2    = x
-      | otherwise = let err = erfc x - pp
-                        x'  = x + err / (1.12837916709551257 * exp(-x * x) - x * err) -- // Halley
-                    in loop (j+1) x'
+    -- We perform 2 Halley steps in order to get to solution
+    r  = halleyStep (halleyStep x0)
+    halleyStep x
+      = x + err / (1.12837916709551257 * exp(-x * x) - x * err)
+      where
+        err = erfc x - pp
 
 
 
