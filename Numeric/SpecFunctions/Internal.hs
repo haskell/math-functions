@@ -77,7 +77,20 @@ erfc = Compat.erfc
 -- | Inverse of 'erf'.
 invErf :: Double -- ^ /p/ ∈ [-1,1]
        -> Double
-invErf p = invErfc (1 - p)
+invErf p
+  | p ==  1         = m_pos_inf
+  | p == -1         = m_neg_inf
+  | p < 1 && p > -1 = if p > 0 then r else -r
+  | otherwise       = error "invErf: p must in [-1,1] range"
+  where
+    -- We solve equation same as in invErfc. We're able to ruse same
+    -- Halley step by solving equation:
+    --   > pp - erf x = 0
+    -- instead of
+    --   > erf x - pp = 0
+    pp     = abs p
+    r      = step $ step $ guessInvErfc $ 1 - pp
+    step x = invErfcHalleyStep (pp - erf x) x
 
 -- | Inverse of 'erfc'.
 invErfc :: Double -- ^ /p/ ∈ [0,2]
@@ -90,18 +103,21 @@ invErfc p
   where
     pp | p <= 1    = p
        | otherwise = 2 - p
-    -- Initial guess
-    x0 = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
-      where
-        t = sqrt $ -2 * log( 0.5 * pp)
     -- We perform 2 Halley steps in order to get to solution
-    r  = halleyStep (halleyStep x0)
-    halleyStep x
-      = x + err / (1.12837916709551257 * exp(-x * x) - x * err)
-      where
-        err = erfc x - pp
+    r      = step $ step $ guessInvErfc pp
+    step x = invErfcHalleyStep (erfc x - pp) x
 
+-- Initial guess for invErfc & invErf
+guessInvErfc :: Double -> Double
+guessInvErfc p
+  = -0.70711 * ((2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t)
+  where
+    t = sqrt $ -2 * log( 0.5 * p)
 
+-- Halley step for solving invErfc
+invErfcHalleyStep :: Double -> Double -> Double
+invErfcHalleyStep err x
+  = x + err / (1.12837916709551257 * exp(-x * x) - x * err)
 
 ----------------------------------------------------------------
 -- Gamma function
