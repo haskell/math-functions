@@ -15,9 +15,8 @@ module Tests.Helpers (
 import Data.Complex
 import Data.Typeable
 
-import qualified Test.HUnit      as HU
-import Test.Framework
-import Test.Framework.Providers.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
 import Numeric.MathFunctions.Comparison
 
@@ -71,8 +70,8 @@ monotonicallyIncreases f x1 x2 = f (min x1 x2) <= f (max x1 x2)
 -- HUnit helpers
 ----------------------------------------------------------------
 
-testAssertion :: String -> Bool -> Test
-testAssertion str cont = testCase str $ HU.assertBool str cont
+testAssertion :: String -> Bool -> TestTree
+testAssertion str cont = testCase str $ assertBool str cont
 
-testEquality :: (Show a, Eq a) => String -> a -> a -> Test
-testEquality msg a b = testCase msg $ HU.assertEqual msg a b
+testEquality :: (Show a, Eq a) => String -> a -> a -> TestTree
+testEquality msg a b = testCase msg $ assertEqual msg a b

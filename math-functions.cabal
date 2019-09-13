@@ -119,11 +119,10 @@ test-suite tests
                   , vector >= 0.7
                   , vector-th-unbox
                   , erf
-                  , HUnit      >= 1.2
-                  , QuickCheck >= 2.7
-                  , test-framework
-                  , test-framework-hunit
-                  , test-framework-quickcheck2
+                  , QuickCheck       >= 2.7
+                  , tasty            >= 1.2
+                  , tasty-hunit      >= 0.10
+                  , tasty-quickcheck >= 0.10
 
 source-repository head
   type:     git

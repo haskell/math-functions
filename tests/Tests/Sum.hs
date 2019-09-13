@@ -5,8 +5,8 @@ module Tests.Sum (tests) where
 import Control.Applicative ((<$>))
 import Numeric.Sum as Sum
 import Prelude hiding (sum)
-import Test.Framework (Test, testGroup)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.QuickCheck (testProperty)
 import Test.QuickCheck (Arbitrary(..))
 import qualified Prelude
 
@@ -26,7 +26,7 @@ trueSum xs = fromRational . Prelude.sum . map toRational $ xs
 badvec :: [Double]
 badvec = cycle [1,1e16,-1e16]
 
-tests :: Test
+tests :: TestTree
 tests = testGroup "Summation" [
     testGroup "ID" [
       -- plain summation loses precision quickly
@@ -38,7 +38,7 @@ tests = testGroup "Summation" [
     ]
   , testGroup "Kahan" [
       -- tests that cannot pass:
-      -- testProperty "t_sum" $ t_sum (sum kahan)
+      -- testProprty "t_sum" $ t_sum (sum kahan)
       -- testProperty "t_sum_error" $ t_sum_error (sum kahan)
 
       -- kahan summation only beats normal summation with large values

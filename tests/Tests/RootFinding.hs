@@ -2,14 +2,14 @@
 module Tests.RootFinding ( tests ) where
 
 import Data.Default.Class
-import Test.Framework
-import Test.Framework.Providers.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
 import Numeric.RootFinding
 import Tests.Helpers
 
 
-tests :: Test
+tests :: TestTree
 tests = testGroup "Root finding"
   [ testGroup "Ridders"
     [ testAssertion "sin x - 0.525 [exact]"     $ testRiddersSin0_525 (AbsTol 0)

@@ -1,12 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
-module Tests.Chebyshev (
-  tests
-  ) where
+module Tests.Chebyshev ( tests ) where
 
 import Data.Vector.Unboxed                  (fromList)
-import Test.Framework
-import Test.Framework.Providers.QuickCheck2
+import Test.Tasty
+import Test.Tasty.QuickCheck                (testProperty)
 import Test.QuickCheck                      (Arbitrary(..),counterexample,Property)
 
 import Tests.Helpers
@@ -14,7 +12,7 @@ import Numeric.Polynomial.Chebyshev
 import Numeric.MathFunctions.Comparison
 
 
-tests :: Test
+tests :: TestTree
 tests = testGroup "Chebyshev polynomials"
   [ testProperty "Chebyshev 0" $ \a0 (Ch x) ->
       testCheb [a0] x

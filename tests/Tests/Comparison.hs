@@ -2,15 +2,15 @@
 -- Tests for approximate comparison
 module Tests.Comparison (tests) where
 
-import Test.Framework
-import Test.Framework.Providers.QuickCheck2
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 import Tests.Helpers
 
 import Numeric.MathFunctions.Comparison
 import Numeric.MathFunctions.Constants (m_epsilon)
 
-tests :: Test
+tests :: TestTree
 tests = testGroup "Comparison"
   [ testProperty "addUlps 0"       $ \x   -> x == addUlps 0 x
   , testProperty "addUlps sym"     $ \i x -> x == (addUlps (-i) . addUlps i) x

@@ -11,10 +11,9 @@ import qualified Data.Vector as V
 import           Data.Vector   ((!))
 
 import Test.QuickCheck  hiding (choose,within)
-import Test.Framework
-import Test.Framework.Providers.QuickCheck2
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty
+import Test.Tasty.QuickCheck   (testProperty)
+import Test.Tasty.HUnit
 
 import Tests.Helpers
 import Tests.SpecFunctions.Tables
@@ -22,7 +21,7 @@ import Numeric.SpecFunctions
 import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
-tests :: Test
+tests :: TestTree
 tests = testGroup "Special functions"
   [ testGroup "erf"
     [ -- Tests for erfc mostly are to test implementation bundled with
