@@ -31,12 +31,14 @@ tested-with:
   , GHCJS ==8.4
 
 extra-source-files:
-  changelog.md
-  README.markdown
-  tests/*.hs
-  tests/Tests/*.hs
-  tests/Tests/SpecFunctions/gen.py
-  doc/sinc.hs
+                   changelog.md
+                   README.markdown
+                   tests/Tests/SpecFunctions/gen.py
+                   tests/tables/generate.py
+                   tests/tables/shell.nix
+                   tests/tables/*.dat
+                   tests/tables/inputs/*.dat
+                   doc/sinc.hs
 
 flag system-expm1
      description: Use expm1 provided by system. For GHC newer that
