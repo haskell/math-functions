@@ -86,7 +86,7 @@ main = defaultMain
       : [ bench (show x) $ nf sinc x
         | x <- [0, 1e-6, 1e-3,  0.5]
         ]
-  , bgroup "erf & erfc"
+  , bgroup "erf & Co"
     [ bgroup "erf"
       [ bench (show x) $ nf erf x
       | x <- [0, 1.1, 100, 1000]
@@ -94,6 +94,10 @@ main = defaultMain
     , bgroup "erfc"
       [ bench (show x) $ nf erfc x
       | x <- [0, 1.1, 100, 1000]
+      ]
+    , bgroup "invErfc"
+      [ bench (show x) $ nf erfc x
+      | x <- [1e-9, 1e-6, 1e-3, 0.1, 1]
       ]
     ]
   , bgroup "expm1"
