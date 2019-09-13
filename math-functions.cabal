@@ -127,7 +127,3 @@ test-suite tests
 source-repository head
   type:     git
   location: https://github.com/bos/math-functions
-
-source-repository head
-  type:     mercurial
-  location: https://bitbucket.org/bos/math-functions
