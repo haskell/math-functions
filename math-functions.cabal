@@ -38,6 +38,22 @@ extra-source-files:
   tests/Tests/SpecFunctions/gen.py
   doc/sinc.hs
 
+flag system-expm1
+     description: Use expm1 provided by system. For GHC newer that
+                  8.0, GHCJS, and on Windows has no effect. GHC>=8.0
+                  provides expm1 so it's used. On GHCJS and on Windows
+                  we don't have C implementation so bundled one is
+                  used instead.
+     default:     True
+     manual:      True
+
+flag system-erf
+     description: Use erf and erfc provided by system. On GHCJS
+                  version provided by library is used regardless of
+                  flag for that lack of libc.
+     default:     True
+     manual:      True
+
 library
   default-language: Haskell2010
   other-extensions:
@@ -75,22 +91,6 @@ library
   other-modules:
     Numeric.SpecFunctions.Internal
     Numeric.SpecFunctions.Compat
-
-flag system-expm1
-     description: Use expm1 provided by system. For GHC newer that
-                  8.0, GHCJS, and on Windows has no effect. GHC>=8.0
-                  provides expm1 so it's used. On GHCJS and on Windows
-                  we don't have C implementation so bundled one is
-                  used instead.
-     default:     True
-     manual:      True
-
-flag system-erf
-     description: Use erf and erfc provided by system. On GHCJS
-                  version provided by library is used regardless of
-                  flag for that lack of libc.
-     default:     True
-     manual:      True
 
 test-suite tests
   default-language: Haskell2010
