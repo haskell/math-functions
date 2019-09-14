@@ -56,7 +56,7 @@ tests = testGroup "Special functions"
   , testGroup "log1p & Co"
     [ testCase "expm1 table" $
         forTable "tests/tables/expm1.dat" $ \[x, exact] ->
-          checkTabular 1 (show x) exact (expm1 x)
+          checkTabular 2 (show x) exact (expm1 x)
     , testCase "log1p table" $
         forTable "tests/tables/log1p.dat" $ \[x, exact] ->
           checkTabular 1 (show x) exact (log1p x)

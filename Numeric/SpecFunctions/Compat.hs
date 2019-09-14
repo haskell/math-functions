@@ -112,7 +112,7 @@ erfcCoef = U.fromList
 #if !USE_GHC_LOG1P_EXP1M
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
-#ifdef USE_SYSTEM_EXPM1
+#if USE_SYSTEM_EXPM1 && !defined(__GHCJS__)
 expm1 = c_expm1
 
 foreign import ccall unsafe "expm1" c_expm1 :: Double -> Double
