@@ -52,6 +52,12 @@ tests = testGroup "Special functions"
     , testProperty "id = invErfc . erfc" invErfcIsInverse2
     , testProperty "invErf  = erf^-1"    invErfIsInverse
     ]
+  --
+  , testGroup "expm1"
+    [ testCase "expm1 table" $
+        forTable "tests/tables/expm1.dat" $ \[x, exact] ->
+          checkTabular 1 (show x) exact (expm1 x)
+    ]
   ----------------
   , testGroup "gamma function"
     [ testProperty "Gamma(x+1) = x*Gamma(x) [logGammaL]" $ gammaReccurence logGammaL 2e-13
