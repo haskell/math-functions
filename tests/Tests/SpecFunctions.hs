@@ -22,23 +22,28 @@ import Numeric.SpecFunctions
 import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
-erfTol,erfcTol :: Int
+erfTol,erfcTol,erfcLargeTol :: Int
 #if USE_SYSTEM_ERF && !defined(__GHCJS__)
-erfTol  = 1
-erfcTol = 2
+erfTol       = 1
+erfcTol      = 2
+erfcLargeTol = 2
 #else
-erfTol  = 24
-erfcTol = 64
+erfTol       = 24
+erfcTol      = 4
+erfcLargeTol = 64
 #endif
 
 tests :: TestTree
 tests = testGroup "Special functions"
   [ testGroup "erf"
-    [ -- Tests for erfc mostly are to test implementation bundled with
-      -- library. libc's one is accurate within 1 ulp
+    [ -- implementation from numerical recipes loses presision for
+      -- large arguments
       testCase "erfc table" $
         forTable "tests/tables/erfc.dat" $ \[x, exact] ->
           checkTabular erfcTol (show x) exact (erfc x)
+    , testCase "erfc table [large]" $
+        forTable "tests/tables/erfc-large.dat" $ \[x, exact] ->
+          checkTabular erfcLargeTol (show x) exact (erfc x)
       --
     , testCase "erf table" $
         forTable "tests/tables/erf.dat" $ \[x, exact] -> do

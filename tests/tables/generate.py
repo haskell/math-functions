@@ -28,7 +28,8 @@ def fmt(f, inputs, out):
         sOut = mpmath.nstr( f(*i), mpmath.mp.dps )
         print(sIn + "\t" + sOut, file=out)
 
-fmt( mpmath.erf,      'inputs/erf.dat'      , 'erf.dat')
-fmt( mpmath.erfc,     'inputs/erfc.dat'     , 'erfc.dat')
-fmt( mpmath.loggamma, 'inputs/loggamma.dat' , 'loggamma.dat')
-fmt( mpmath.digamma,  'inputs/digamma.dat'  , 'digamma.dat')
+fmt( mpmath.erf,      'inputs/erf.dat'        , 'erf.dat')
+fmt( mpmath.erfc,     'inputs/erfc.dat'       , 'erfc.dat')
+fmt( mpmath.erfc,     'inputs/erfc-large.dat' , 'erfc-large.dat')
+fmt( mpmath.loggamma, 'inputs/loggamma.dat'   , 'loggamma.dat')
+fmt( mpmath.digamma,  'inputs/digamma.dat'    , 'digamma.dat')
