@@ -165,9 +165,10 @@ script:
   # build & run tests, build benchmarks
   - ${CABAL} v2-build $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output
   # Testing...
-  - if $GHCJS ; then cd math-functions-* ; fi
+  - if $GHCJS ; then cd ${PKGDIR_math_functions}; fi
   - if ! $GHCJS ; then ${CABAL} v2-test $WITHCOMPILER ${TEST} ${BENCH} all | color_cabal_output ; fi
   - if $GHCJS ; then for testexe in $(cabal-plan list-bins '*:test:*' | awk '{ print $2 }'); do echo $testexe; nodejs ${testexe}.jsexe/all.js; done ; fi
+  - if $GHCJS ; then cd ..; fi
   # cabal check...
   - (cd ${PKGDIR_math_functions} && ${CABAL} -vnormal check)
   # haddock...
