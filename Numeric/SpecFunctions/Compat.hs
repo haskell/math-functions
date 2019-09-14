@@ -13,6 +13,7 @@ import Control.Applicative
 import qualified Data.Vector.Unboxed as U
 import Numeric.MathFunctions.Constants
 import Numeric.Polynomial.Chebyshev    (chebyshev,chebyshevBroucke)
+import Numeric.Polynomial              (evaluateOddPolynomial)
 import Numeric.Series
 
 -- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0). GHCJS
@@ -46,8 +47,25 @@ foreign import ccall unsafe "erfc" c_erfc :: Double -> Double
 #else
 
 erf :: Double -> Double
-erf x | x < 0     = (-1) + erfcCheb (-x)
-      | otherwise =   1  - erfcCheb x
+erf x
+  -- Computing erf as 1-erfc loses precision near 0 so we switch to
+  -- Taylor expansion here
+  | abs x < 0.1 = 0.56418958354775629
+                * evaluateOddPolynomial x erfTaylorSeries
+  | x < 0       = (-1) + erfcCheb (-x)
+  | otherwise   =   1  - erfcCheb x
+
+erfTaylorSeries :: U.Vector Double
+{-# NOINLINE erfTaylorSeries #-}
+erfTaylorSeries = U.fromList
+  [  2
+  , -2/3
+  ,  1/5
+  , -1/21
+  ,  1/108
+  , -1/660
+  ,  1/4680
+  ]
 
 erfc :: Double -> Double
 erfc x | x < 0     = 2 - erfcCheb (-x)
@@ -64,6 +82,7 @@ erfcCheb z
     --   t       = 2 / (2 + z)
     t  = 2 / (2 + z)
     ty = 2 * t - 1
+
 
 erfcCoef :: U.Vector Double
 {-# NOINLINE erfcCoef #-}

@@ -28,7 +28,7 @@ erfTol       = 1
 erfcTol      = 2
 erfcLargeTol = 2
 #else
-erfTol       = 24
+erfTol       = 4
 erfcTol      = 4
 erfcLargeTol = 64
 #endif
