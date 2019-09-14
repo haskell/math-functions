@@ -113,6 +113,8 @@ test-suite tests
     Tests.SpecFunctions
     Tests.SpecFunctions.Tables
     Tests.Sum
+  if flag(system-erf)   && !impl(ghcjs)
+    cpp-options: -DUSE_SYSTEM_ERF
   build-depends:    base >=4.5 && <5
                   , math-functions
                   , data-default-class  >= 0.1.2.0

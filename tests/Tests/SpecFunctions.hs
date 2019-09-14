@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 {-# LANGUAGE ViewPatterns #-}
 -- | Tests for Statistics.Math
 module Tests.SpecFunctions (
@@ -21,6 +22,15 @@ import Numeric.SpecFunctions
 import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
+erfTol,erfcTol :: Int
+#if USE_SYSTEM_ERF && !defined(__GHCJS__)
+erfTol  = 1
+erfcTol = 2
+#else
+erfTol  = 24
+erfcTol = 64
+#endif
+
 tests :: TestTree
 tests = testGroup "Special functions"
   [ testGroup "erf"
@@ -28,11 +38,11 @@ tests = testGroup "Special functions"
       -- library. libc's one is accurate within 1 ulp
       testCase "erfc table" $
         forTable "tests/tables/erfc.dat" $ \[x, exact] ->
-          checkTabular 64 (show x) exact (erfc x)
+          checkTabular erfcTol (show x) exact (erfc x)
       --
     , testCase "erf table" $
         forTable "tests/tables/erf.dat" $ \[x, exact] -> do
-          checkTabular 24 (show x) exact (erf x)
+          checkTabular erfTol (show x) exact (erf x)
     , testProperty "id = erfc . invErfc" invErfcIsInverse
     , testProperty "id = invErfc . erfc" invErfcIsInverse2
     , testProperty "invErf  = erf^-1"    invErfIsInverse
@@ -146,6 +156,20 @@ tests = testGroup "Special functions"
 -- efr tests
 ----------------------------------------------------------------
 
+roundtrip_erfc_invErfc,
+  roundtrip_invErfc_erfc,
+  roundtrip_erf_invErf
+  :: (Double,Double)
+#if USE_SYSTEM_ERF && !defined(__GHCJS__)
+roundtrip_erfc_invErfc = (2,2)
+roundtrip_invErfc_erfc = (2,2)
+roundtrip_erf_invErf   = (1,1)
+#else
+roundtrip_erfc_invErfc = (2,8)
+roundtrip_invErfc_erfc = (8,4)
+roundtrip_erf_invErf   = (128,128)
+#endif
+
 -- id ≈ erfc . invErfc
 invErfcIsInverse :: Double -> Property
 invErfcIsInverse ((*2) . range01 -> x)
@@ -153,15 +177,15 @@ invErfcIsInverse ((*2) . range01 -> x)
   ( counterexample ("x        = " ++ show x )
   $ counterexample ("y        = " ++ show y )
   $ counterexample ("x'       = " ++ show x')
-  $ counterexample ("calc.err = " ++ show delta)
+  $ counterexample ("calc.err = " ++ show (delta, delta-e'))
   $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
-  $ ulpDistance x x' <= delta
+  $ ulpDistance x x' <= round delta
   )
   where
-    delta = round
-          $ 2 + 2 * abs ( y / x  *  2 / sqrt pi * exp( -y*y ))
-    y     = invErfc x
-    x'    = erfc y
+    (e,e') = roundtrip_erfc_invErfc
+    delta  = e' + e * abs ( y / x  *  2 / sqrt pi * exp( -y*y ))
+    y  = invErfc x
+    x' = erfc y
 
 -- id ≈ invErfc . erfc
 invErfcIsInverse2 :: Double -> Property
@@ -176,8 +200,9 @@ invErfcIsInverse2 x
   $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
   $ ulpDistance x x' <= delta
   where
-    delta = round
-          $ 2 + 2 * abs (y / x  /  (2 / sqrt pi * exp( -x*x )))
+    (e,e') = roundtrip_invErfc_erfc
+    delta  = round
+           $ e' + e * abs (y / x  /  (2 / sqrt pi * exp( -x*x )))
     y  = erfc x
     x' = invErfc y
 
@@ -192,8 +217,9 @@ invErfIsInverse a
   $ counterexample ("ulps     = " ++ show (ulpDistance x x'))
   $ ulpDistance x x' <= delta
   where
-    delta = round
-          $ 1 + 1 * abs (y / x  *  2 / sqrt pi * exp ( -y * y ))
+    (e,e') = roundtrip_erf_invErf
+    delta  = round
+           $ e + e' * abs (y / x  *  2 / sqrt pi * exp ( -y * y ))
     x  | a < 0     = - range01 a
        | otherwise =   range01 a
     y  = invErf x
