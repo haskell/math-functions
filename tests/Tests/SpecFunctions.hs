@@ -75,7 +75,10 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "incomplete gamma"
-    [ testProperty "incomplete gamma - increases" $
+    [ testCase "incompleteGamma table" $
+        forTable "tests/tables/igamma.dat" $ \[a,x,exact] -> do
+          checkTabular 16 (show (a,x)) exact (incompleteGamma a x)
+    , testProperty "incomplete gamma - increases" $
         \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
     , testProperty "0 <= gamma <= 1"               incompleteGammaInRange
     , testProperty "gamma(1,x) = 1 - exp(-x)"      incompleteGammaAt1Check
