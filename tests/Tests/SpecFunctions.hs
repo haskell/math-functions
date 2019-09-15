@@ -63,15 +63,15 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "gamma function"
-    [ testProperty "Gamma(x+1) = x*Gamma(x) [logGammaL]" $ gammaReccurence logGammaL 2e-13
+    [ testCase "logGamma table [fractional points" $
+        forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
+          checkTabular 80 (show x) exact (logGamma x)
+    , testProperty "Gamma(x+1) = x*Gamma(x)" $ gammaReccurence logGamma 2e-13
     , testCase     "logGamma is expected to be precise at 1e-15 level" $
         forM_ [3..10000::Int] $ \n -> do
           let exact = logFactorial (n-1)
               val   = logGamma (fromIntegral n)
           checkTabular 8 (show n) exact val
-    , testCase "logGamma table [fractional points" $
-        forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
-          checkTabular 80 (show x) exact (logGamma x)
     ]
   ----------------
   , testGroup "incomplete gamma"
