@@ -86,14 +86,9 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "beta function"
-    [ -- FIXME: loss of precision when logBeta p q ≈ 0.
-      --        Relative error doesn't work properly in this case.
-      testAssertion "logBeta is expected to be precise at 1e-6 level"
-      $ and [ eq 1e-6 (logBeta p q)
-                      (logGammaL p + logGammaL q - logGammaL (p+q))
-            | p <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
-            , q <- [0.1,0.2 .. 0.9] ++ [2 .. 20]
-            ]
+    [ testCase "logBeta table" $
+        forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
+          checkTabular 256 (show (p,q)) (logBeta p q) exact
     ]
   ----------------
   , testGroup "incomplete beta"

@@ -19,18 +19,22 @@ def skip_comments(gen):
 
 def tokenize_stream(gen):
     "Extremeli ugly code which splits code on separator"
+    nm  = None
     acc = None
     for s in gen:
-        r = re.match(r'^([a-zA-Z])+ *= *', s)
+        r = re.match(r'^([a-zA-Z]+(, *[a-zA-Z]+)*) *= *', s)
         if r:
             if acc is not None:
-                yield acc
+                for _ in nm:
+                    yield(acc)
+            nm  = r.groups()[0].split(',')
             acc = []
         elif acc is None:
             raise Exception("Invalid format")
         else:
             acc.append(float(s))
-    yield acc
+    for _ in nm:
+        yield(acc)
 
 
 
@@ -78,3 +82,5 @@ fmt( mpmath.expm1,    'inputs/expm1.dat'      , 'expm1.dat')
 fmt( mpmath.log1p,    'inputs/log1p.dat'      , 'log1p.dat')
 fmt_cartesian( lambda a, x: mpmath.gammainc(z=a, a=0, b=x, regularized=True),
                'inputs/igamma.dat', 'igamma.dat')
+fmt_cartesian( lambda p, q: mpmath.log(mpmath.beta(p,q)),
+               'inputs/logbeta.dat', 'logbeta.dat')
