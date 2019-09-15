@@ -66,7 +66,7 @@ tests = testGroup "Special functions"
     [ testCase "logGamma table [fractional points" $
         forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
           checkTabular 80 (show x) exact (logGamma x)
-    , testProperty "Gamma(x+1) = x*Gamma(x)" $ gammaReccurence logGamma 2e-13
+    , testProperty "Gamma(x+1) = x*Gamma(x)" $ gammaReccurence
     , testCase     "logGamma is expected to be precise at 1e-15 level" $
         forM_ [3..10000::Int] $ \n -> do
           let exact = logFactorial (n-1)
@@ -244,12 +244,16 @@ invErfIsInverse a
 ----------------------------------------------------------------
 
 -- Γ(x+1) = x·Γ(x)
-gammaReccurence :: (Double -> Double) -> Double -> Double -> Property
-gammaReccurence logG ε x =
-  (x > 0 && x < 100)  ==>  (abs (g2 - g1 - log x) < ε)
+gammaReccurence :: Double -> Property
+gammaReccurence x
+  = x > 0  ==>  err < errEst
     where
-      g1 = logG x
-      g2 = logG (x+1)
+      g1     = logGamma x
+      g2     = logGamma (x+1)
+      err    = abs (g2 - g1 - log x)
+      -- logGamma apparently is not as precise for small x. See #59 for details 
+      errEst = max 1e-14
+             $ 2 * m_epsilon * sum (map abs [ g1 , g2 , log x ])
 
 -- γ(s,x) is in [0,1] range
 incompleteGammaInRange :: Double -> Double -> Property
