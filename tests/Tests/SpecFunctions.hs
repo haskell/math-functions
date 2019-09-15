@@ -269,7 +269,7 @@ incompleteGammaAt1Check (abs -> x) =
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
 invIGammaIsInverse (abs -> a) (range01 -> p) =
-  a > m_tiny && p > m_tiny && p < 1  ==>
+  a > m_tiny && p > m_tiny && p < 1 && x > m_tiny  ==>
     ( counterexample ("a    = " ++ show a )
     $ counterexample ("p    = " ++ show p )
     $ counterexample ("x    = " ++ show x )
