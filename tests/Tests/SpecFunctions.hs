@@ -274,17 +274,18 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
     $ counterexample ("p    = " ++ show p )
     $ counterexample ("x    = " ++ show x )
     $ counterexample ("p'   = " ++ show p')
-    $ counterexample ("err  = " ++ show (relativeError p p'))
-    $ counterexample ("pred = " ++ show δ)
-    $ relativeError p p' < δ
+    $ counterexample ("err  = " ++ show (ulpDistance p p'))
+    $ counterexample ("est  = " ++ show est)
+    $ ulpDistance p p' <= est
     )
   where
     x  = invIncompleteGamma a p
     f' = exp ( log x * (a-1) - x - logGamma a)
     p' = incompleteGamma    a x
-    -- FIXME: 128 is big constant. It should be replaced by something
-    --        smaller when #42 is fixed
-    δ  = (m_epsilon/2) * (256 + 1 * (1 + abs (x * f' / p)))
+    -- FIXME: Test should be rechecked when #42 is fixed
+    (e,e') = (32,32)
+    est    = round
+           $ e' + e * abs (x / p * f')
 
 -- B(s,x) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
