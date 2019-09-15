@@ -262,11 +262,9 @@ incompleteGammaInRange (abs -> s) (abs -> x) =
 
 -- γ(1,x) = 1 - exp(-x)
 -- Since Γ(1) = 1 normalization doesn't make any difference
-incompleteGammaAt1Check :: Double -> Property
+incompleteGammaAt1Check :: Double -> Bool
 incompleteGammaAt1Check (abs -> x) =
-  x > 0 ==> (incompleteGamma 1 x + exp(-x)) ≈ 1
-  where
-    (≈) = eq 1e-13
+  ulpDistance (incompleteGamma 1 x) (-expm1(-x)) < 16
 
 -- invIncompleteGamma is inverse of incompleteGamma
 invIGammaIsInverse :: Double -> Double -> Property
