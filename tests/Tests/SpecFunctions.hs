@@ -92,26 +92,16 @@ tests = testGroup "Special functions"
     ]
   ----------------
   , testGroup "incomplete beta"
-    [ testProperty "0 <= I[B] <= 1"                incompleteBetaInRange
+    [ testCase "incompleteBeta table" $
+        forM_ tableIncompleteBeta $ \(p,q,x,exact) ->
+          checkTabular 64 (show (x,p,q)) (incompleteBeta p q x) exact
+    , testCase "incompleteBeta table with p > 3000 and q > 3000" $
+        forM_ tableIncompleteBetaP3000 $ \(x,p,q,exact) ->
+          checkTabular 7000 (show (x,p,q)) (incompleteBeta p q x) exact
+    --
+    , testProperty "0 <= I[B] <= 1" incompleteBetaInRange
     -- XXX FIXME DISABLED due to failures
     -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
-    , let deviations = [ ( "p=",p, "q=",q, "x=",x
-                         , "ib=",ib, "ib'=",ib'
-                         , "err=",relativeError ib ib' / m_epsilon)
-                       | (p,q,x,ib) <- tableIncompleteBeta
-                       , let ib' = incompleteBeta p q x
-                               , not $ eq (64 * m_epsilon) ib' ib
-                       ]
-      in testCase "incompleteBeta is expected to be precise at 32*m_epsilon level"
-      $ assertBool (unlines (map show deviations)) (null deviations)
-    , testAssertion "incompleteBeta with p > 3000 and q > 3000"
-      $ and [ eq 1e-11 (incompleteBeta p q x) ib | (x,p,q,ib) <-
-                 [ (0.495,  3001,  3001, 0.2192546757957825068677527085659175689142653854877723)
-                 , (0.501,  3001,  3001, 0.5615652382981522803424365187631195161665429270531389)
-                 , (0.531,  3500,  3200, 0.9209758089734407825580172472327758548870610822321278)
-                 , (0.501, 13500, 13200, 0.0656209987264794057358373443387716674955276089622780)
-                 ]
-            ]
     ]
   ----------------
   , testGroup "digamma"
