@@ -100,6 +100,7 @@ tests = testGroup "Special functions"
           checkTabular 7000 (show (x,p,q)) (incompleteBeta p q x) exact
     --
     , testProperty "0 <= I[B] <= 1" incompleteBetaInRange
+    , testProperty "ibeta symmetry" incompleteBetaSymmetry
     -- XXX FIXME DISABLED due to failures
     -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
     ]
@@ -275,10 +276,26 @@ invIGammaIsInverse (abs -> a) (range01 -> p) =
     est    = round
            $ e' + e * abs (x / p * f')
 
--- B(s,x) is in [0,1] range
+-- I(x;p,q) is in [0,1] range
 incompleteBetaInRange :: Double -> Double -> Double -> Property
 incompleteBetaInRange (abs -> p) (abs -> q) (range01 -> x) =
   p > 0 && q > 0  ==> let i = incompleteBeta p q x in i >= 0 && i <= 1
+
+-- I(0.5; p,p) = 0.5
+incompleteBetaSymmetry :: Double -> Property
+incompleteBetaSymmetry (abs -> p) =
+    p > 0 ==>
+    counterexample ("p   = " ++ show p)
+  $ counterexample ("ib  = " ++ show ib)
+  $ counterexample ("err = " ++ show d)
+  $ counterexample ("est = " ++ show est)
+  $ d <= est
+  where
+    est | p < 1     = 80
+        | p < 10    = 200
+        | otherwise = round $ 6 * p
+    d  = ulpDistance ib 0.5
+    ib = incompleteBeta p p 0.5
 
 -- invIncompleteBeta is inverse of incompleteBeta
 invIBetaIsInverse :: Double -> Double -> Double -> Property
