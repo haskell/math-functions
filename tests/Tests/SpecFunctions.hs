@@ -89,6 +89,7 @@ tests = testGroup "Special functions"
     [ testCase "logBeta table" $
         forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
           checkTabular 256 (show (p,q)) (logBeta p q) exact
+    , testCase "logBeta factorial" betaFactorial
     ]
   ----------------
   , testGroup "incomplete beta"
@@ -231,6 +232,24 @@ invErfIsInverse a
 ----------------------------------------------------------------
 -- QC tests
 ----------------------------------------------------------------
+
+-- B(p,q) = (x - 1)!(y-1)! / (x + y - 1)!
+betaFactorial :: IO ()
+betaFactorial = do
+  forM_ prod $ \(p,q,facP,facQ,facProd) -> do
+    let exact = fromIntegral (facQ * facP)
+              / fromIntegral facProd
+    checkTabular 16 (show (p,q))
+      (logBeta (fromIntegral p) (fromIntegral q))
+      (log exact)
+  where
+    prod    = [ (p,q,facP,facQ, factorial' (p + q - 1))
+              | (p,facP) <- facList
+              , (q,facQ) <- facList
+              , p + q < 170
+              , not (p == 1 && q== 1)
+              ]
+    facList = [(p,factorial' (p-1)) | p <- [1 .. 170]]
 
 -- Γ(x+1) = x·Γ(x)
 gammaReccurence :: Double -> Property
