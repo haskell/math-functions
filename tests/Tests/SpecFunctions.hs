@@ -90,6 +90,8 @@ tests = testGroup "Special functions"
         forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
           checkTabular 256 (show (p,q)) (logBeta p q) exact
     , testCase "logBeta factorial" betaFactorial
+    -- FIXME: loss of precision near 1
+    -- , testProperty "beta(1,p) = 1/p"   beta1p
     ]
   ----------------
   , testGroup "incomplete beta"
@@ -250,6 +252,16 @@ betaFactorial = do
               , not (p == 1 && q== 1)
               ]
     facList = [(p,factorial' (p-1)) | p <- [1 .. 170]]
+
+-- B(1,p) = 1/p
+beta1p :: Double -> Property
+beta1p (abs -> p)
+  = p > 0 ==>
+    counterexample ("p   = " ++ show p)
+  $ counterexample ("err = " ++ show d)
+  $ d < 16
+  where
+    d = ulpDistance (logBeta 1 p) (- log p)
 
 -- Γ(x+1) = x·Γ(x)
 gammaReccurence :: Double -> Property
