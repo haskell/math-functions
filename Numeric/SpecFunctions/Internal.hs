@@ -147,7 +147,7 @@ logGamma x
     lanczos z = fini
               $ U.foldl' go (L 0 (z+7)) a
       where
-        fini (L l _)   = log (l+a0) + log m_sqrt_2_pi - z65 + (z-0.5) * log z65
+        fini (L l _)   = log (l+a0) + log_sqrt_2pi - z65 + (z-0.5) * log z65
         go   (L l t) k = L (l + k / t) (t-1)
         z65 = z + 6.5
     -- Coefficients for Lanczos approximation
@@ -161,6 +161,8 @@ logGamma x
                      , -1259.139216722289
                      , 676.5203681218835
                      ]
+    -- Constants (computed using WolframAlpha)
+    log_sqrt_2pi = 0.91893853320467274178
 
 -- | Synonym for 'logGamma'. Retained for compatibility
 logGammaL :: Double -> Double
