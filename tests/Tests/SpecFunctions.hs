@@ -65,7 +65,7 @@ tests = testGroup "Special functions"
   , testGroup "gamma function"
     [ testCase "logGamma table [fractional points" $
         forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
-          checkTabular 80 (show x) exact (logGamma x)
+          checkTabular 2 (show x) exact (logGamma x)
     , testProperty "Gamma(x+1) = x*Gamma(x)" $ gammaReccurence
     , testCase     "logGamma is expected to be precise at 1e-15 level" $
         forM_ [3..10000::Int] $ \n -> do

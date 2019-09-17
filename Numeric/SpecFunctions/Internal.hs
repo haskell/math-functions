@@ -25,7 +25,8 @@ import           Data.Vector.Unboxed   ((!))
 import Text.Printf
 
 import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
-import Numeric.Polynomial              (evaluatePolynomialL,evaluateEvenPolynomialL,evaluateOddPolynomialL)
+import Numeric.Polynomial              (evaluatePolynomial, evaluatePolynomialL, evaluateEvenPolynomialL
+                                       ,evaluateOddPolynomialL)
 import Numeric.RootFinding             (Root(..), newtonRaphson, NewtonParam(..), Tolerance(..))
 import Numeric.Series
 import Numeric.MathFunctions.Constants
@@ -138,36 +139,206 @@ data L = L {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 -- Returns &#8734; if the input is outside of the range (0 < /x/
 -- &#8804; 1e305).
 logGamma :: Double -> Double
-logGamma x
-  | x <= 0    = m_pos_inf
-  | x <  1    = lanczos (1+x) - log x
-  | otherwise = lanczos x
-  where
-    -- Evaluate Lanczos approximation for γ=6
-    lanczos z = fini
-              $ U.foldl' go (L 0 (z+7)) a
-      where
-        fini (L l _)   = log (l+a0) + log_sqrt_2pi - z65 + (z-0.5) * log z65
-        go   (L l t) k = L (l + k / t) (t-1)
-        z65 = z + 6.5
-    -- Coefficients for Lanczos approximation
-    a0  = 0.9999999999995183
-    a   = U.fromList [ 0.1659470187408462e-06
-                     , 0.9934937113930748e-05
-                     , -0.1385710331296526
-                     , 12.50734324009056
-                     , -176.6150291498386
-                     , 771.3234287757674
-                     , -1259.139216722289
-                     , 676.5203681218835
-                     ]
-    -- Constants (computed using WolframAlpha)
-    log_sqrt_2pi = 0.91893853320467274178
+logGamma z
+  | z <= 0    = m_pos_inf
+  -- For very small values z we can just use Laurent expansion
+  | z < m_sqrt_eps = log (1/z - m_eulerMascheroni)
+  -- For z<1 we use recurrence. Γ(z+1) = z·Γ(z) Note that in order to
+  -- avoid precision loss we have to compute parameter to
+  -- approximations here:
+  --
+  -- > (z + 1) - 1 = z
+  -- > (z + 1) - 2 = z - 1
+  --
+  -- Simple passing (z + 1) to piecewise approxiations and computing
+  -- difference leads to bad loss of precision near 1.
+  -- This is reason lgamma1_15 & lgamma15_2 have three parameters
+  | z < 0.5   = lgamma1_15 z (z - 1) - log z
+  | z < 1     = lgamma15_2 z (z - 1) - log z
+  -- Piecewise polynomial approximations
+  | z <= 1.5  = lgamma1_15 (z - 1) (z - 2)
+  | z < 2     = lgamma15_2 (z - 1) (z - 2)
+  | z < 15    = lgammaSmall z
+  -- Otherwise we switch to Lanczos approximation
+  | otherwise = lanczosApprox z
+
 
 -- | Synonym for 'logGamma'. Retained for compatibility
 logGammaL :: Double -> Double
 logGammaL = logGamma
 {-# DEPRECATED logGammaL "Use logGamma instead" #-}
+
+
+
+-- Polynomial expansion used in interval (1,1.5]
+--
+-- > logΓ(z) = (z-1)(z-2)(Y + R(z-1))
+lgamma1_15 :: Double -> Double -> Double
+lgamma1_15 zm1 zm2
+   = r * y + r * ( evaluatePolynomial zm1 tableLogGamma_1_15P
+                 / evaluatePolynomial zm1 tableLogGamma_1_15Q
+                 )
+   where
+     r = zm1 * zm2
+     y = 0.52815341949462890625
+
+tableLogGamma_1_15P,tableLogGamma_1_15Q :: U.Vector Double
+tableLogGamma_1_15P = U.fromList
+  [  0.490622454069039543534e-1
+  , -0.969117530159521214579e-1
+  , -0.414983358359495381969e0
+  , -0.406567124211938417342e0
+  , -0.158413586390692192217e0
+  , -0.240149820648571559892e-1
+  , -0.100346687696279557415e-2
+  ]
+{-# NOINLINE tableLogGamma_1_15P #-}
+tableLogGamma_1_15Q = U.fromList
+  [ 1
+  , 0.302349829846463038743e1
+  , 0.348739585360723852576e1
+  , 0.191415588274426679201e1
+  , 0.507137738614363510846e0
+  , 0.577039722690451849648e-1
+  , 0.195768102601107189171e-2
+  ]
+{-# NOINLINE tableLogGamma_1_15Q #-}
+
+
+
+-- Polynomial expansion used in interval (1.5,2)
+--
+-- > logΓ(z) = (2-z)(1-z)(Y + R(2-z))
+lgamma15_2 :: Double -> Double -> Double
+lgamma15_2 zm1 zm2
+   = r * y + r * ( evaluatePolynomial (-zm2) tableLogGamma_15_2P
+                 / evaluatePolynomial (-zm2) tableLogGamma_15_2Q
+                 )
+   where
+     r = zm1 * zm2
+     y = 0.452017307281494140625
+
+tableLogGamma_15_2P,tableLogGamma_15_2Q :: U.Vector Double
+tableLogGamma_15_2P = U.fromList
+  [ -0.292329721830270012337e-1
+  ,  0.144216267757192309184e0
+  , -0.142440390738631274135e0
+  ,  0.542809694055053558157e-1
+  , -0.850535976868336437746e-2
+  ,  0.431171342679297331241e-3
+  ]
+{-# NOINLINE tableLogGamma_15_2P #-}
+tableLogGamma_15_2Q = U.fromList
+  [  1
+  , -0.150169356054485044494e1
+  ,  0.846973248876495016101e0
+  , -0.220095151814995745555e0
+  ,  0.25582797155975869989e-1
+  , -0.100666795539143372762e-2
+  , -0.827193521891290553639e-6
+  ]
+{-# NOINLINE tableLogGamma_15_2Q #-}
+
+
+
+-- Polynomial expansion used in interval (2,3)
+--
+-- > logΓ(z) = (z - 2)(z + 1)(Y + R(z-2))
+lgamma2_3 :: Double -> Double
+lgamma2_3 z
+  = r * y + r * ( evaluatePolynomial zm2 tableLogGamma_2_3P
+                / evaluatePolynomial zm2 tableLogGamma_2_3Q
+                )
+  where
+    r   = zm2 * (z + 1)
+    zm2 = z - 2
+    y   = 0.158963680267333984375e0
+
+
+tableLogGamma_2_3P,tableLogGamma_2_3Q :: U.Vector Double
+tableLogGamma_2_3P = U.fromList
+  [ -0.180355685678449379109e-1
+  ,  0.25126649619989678683e-1
+  ,  0.494103151567532234274e-1
+  ,  0.172491608709613993966e-1
+  , -0.259453563205438108893e-3
+  , -0.541009869215204396339e-3
+  , -0.324588649825948492091e-4
+  ]
+{-# NOINLINE tableLogGamma_2_3P #-}
+tableLogGamma_2_3Q = U.fromList
+  [  1
+  ,  0.196202987197795200688e1
+  ,  0.148019669424231326694e1
+  ,  0.541391432071720958364e0
+  ,  0.988504251128010129477e-1
+  ,  0.82130967464889339326e-2
+  ,  0.224936291922115757597e-3
+  , -0.223352763208617092964e-6
+  ]
+{-# NOINLINE tableLogGamma_2_3Q #-}
+
+
+
+-- For small z we can just use Gamma function recurrence and reduce
+-- problem to interval [2,3] and use polynomial approximation
+-- there. Surpringly it gives very good precision
+lgammaSmall :: Double -> Double
+lgammaSmall = go 0
+  where
+    go acc z | z < 3     = acc + lgamma2_3 z
+             | otherwise = go (acc + log zm1) zm1
+             where
+               zm1 = z - 1
+
+
+-- Lanczos approximation for gamma function.
+--
+-- > Γ(z) = sqrt(2π)(z + g - 0.5)^(z - 0.5)·exp{-(z + g - 0.5)}·A_g(z)
+--
+-- Coeffients are taken from boost. Constants are absorbed into
+-- polynomial's coefficients.
+lanczosApprox :: Double -> Double
+lanczosApprox z
+  = (log (z + g - 0.5) - 1) * (z - 0.5)
+  + log (evalRatio tableLanczos z)
+  where
+    g = 6.024680040776729583740234375
+
+tableLanczos :: U.Vector (Double,Double)
+{-# NOINLINE tableLanczos #-}
+tableLanczos = U.fromList
+  [ (56906521.91347156388090791033559122686859    , 0)
+  , (103794043.1163445451906271053616070238554    , 39916800)
+  , (86363131.28813859145546927288977868422342    , 120543840)
+  , (43338889.32467613834773723740590533316085    , 150917976)
+  , (14605578.08768506808414169982791359218571    , 105258076)
+  , (3481712.15498064590882071018964774556468     , 45995730)
+  , (601859.6171681098786670226533699352302507    , 13339535)
+  , (75999.29304014542649875303443598909137092    , 2637558)
+  , (6955.999602515376140356310115515198987526    , 357423)
+  , (449.9445569063168119446858607650988409623    , 32670)
+  , (19.51992788247617482847860966235652136208    , 1925)
+  , (0.5098416655656676188125178644804694509993   , 66)
+  , (0.006061842346248906525783753964555936883222 , 1)
+  ]
+
+-- Evaluate rational function. Polynomials in both numerator and
+-- denominator must have same order. Function seems to be too specific
+-- so it's not exposed
+--
+-- Special care taken in order to avoid overflow for large values of x
+evalRatio :: U.Vector (Double,Double) -> Double -> Double
+evalRatio coef x
+  | x > 1     = fini $ U.foldl' stepL (L 0 0) coef
+  | otherwise = fini $ U.foldr' stepR (L 0 0) coef
+  where
+    fini (L num den) = num / den
+    stepR (a,b) (L num den) = L (num * x  + a) (den * x  + b)
+    stepL (L num den) (a,b) = L (num * rx + a) (den * rx + b)
+    rx = recip x
+
+
 
 -- |
 -- Compute the log gamma correction factor for Stirling
