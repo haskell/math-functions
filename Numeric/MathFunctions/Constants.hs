@@ -13,6 +13,7 @@ module Numeric.MathFunctions.Constants
     (
       -- * IEE754 constants
       m_epsilon
+    , m_sqrt_eps
     , m_huge
     , m_tiny
     , m_max_exp
@@ -103,6 +104,10 @@ m_1_sqrt_2 = 0.7071067811865475244008443621048490392848359376884740365883
 m_epsilon :: Double
 m_epsilon = encodeFloat (signif+1) expo - 1.0
     where (signif,expo) = decodeFloat (1.0::Double)
+
+-- | @sqrt m_epsilon@
+m_sqrt_eps :: Double
+m_sqrt_eps = 1.4901161193847656e-8
 
 -- | @log(sqrt((2*pi))@
 m_ln_sqrt_2_pi :: Double
