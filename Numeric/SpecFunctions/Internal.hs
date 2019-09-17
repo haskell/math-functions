@@ -167,7 +167,7 @@ logGamma x
 -- | Synonym for 'logGamma'. Retained for compatibility
 logGammaL :: Double -> Double
 logGammaL = logGamma
-
+{-# DEPRECATED logGammaL "Use logGamma instead" #-}
 
 -- |
 -- Compute the log gamma correction factor for Stirling
