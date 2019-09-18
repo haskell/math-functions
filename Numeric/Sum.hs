@@ -110,11 +110,13 @@ instance Summation KahanSum where
 instance NFData KahanSum where
     rnf !_ = ()
 
+-- | @since 0.3.0.0
 instance Monoid KahanSum where
   mempty = zero
   s `mappend` KahanSum s' _ = add s s'
 
 #if MIN_VERSION_base(4,9,0)
+-- | @since 0.3.0.0
 instance Semigroup KahanSum where
   (<>) = mappend
 #endif
@@ -147,11 +149,13 @@ instance Summation KBNSum where
 instance NFData KBNSum where
     rnf !_ = ()
 
+-- | @since 0.3.0.0
 instance Monoid KBNSum where
   mempty = zero
   s `mappend` KBNSum s' c' = add (add s s') c'
 
 #if MIN_VERSION_base(4,9,0)
+-- | @since 0.3.0.0
 instance Semigroup KBNSum where
   (<>) = mappend
 #endif
@@ -191,11 +195,13 @@ instance Summation KB2Sum where
 instance NFData KB2Sum where
     rnf !_ = ()
 
+-- | @since 0.3.0.0
 instance Monoid KB2Sum where
   mempty = zero
   s `mappend` KB2Sum s' c' cc' = add (add (add s s') c') cc'
 
 #if MIN_VERSION_base(4,9,0)
+-- | @since 0.3.0.0
 instance Semigroup KB2Sum where
   (<>) = mappend
 #endif
