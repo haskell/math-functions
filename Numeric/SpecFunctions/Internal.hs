@@ -540,7 +540,7 @@ invIncompleteGamma a p
 -- | Compute the natural logarithm of the beta function.
 --
 -- \[
--- B(a,b) = \int_0^1 t^{a-1}(1-t)^{1-b}\,dt = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}
+-- B(a,b) = \int_0^1 t^{a-1}(1-t)^{b-1}\,dt = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}
 -- \]
 logBeta
   :: Double                     -- ^ /a/ > 0
