@@ -392,7 +392,7 @@ incompleteGamma a x
   --
   -- See http://functions.wolfram.com/GammaBetaErf/GammaRegularized/06/01/05/01/01/
   | x < sqrt m_epsilon && a > 1
-    = x**a / a / exp (logGammaL a) * (1 - a*x / (a + 1))
+    = x**a / a / exp (logGamma a) * (1 - a*x / (a + 1))
   | x < 0.5 = case () of
     _| (-0.4)/log x < a  -> taylorSeriesP
      | otherwise         -> taylorSeriesComplQ
