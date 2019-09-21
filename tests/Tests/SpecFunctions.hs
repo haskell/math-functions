@@ -88,7 +88,7 @@ tests = testGroup "Special functions"
   , testGroup "beta function"
     [ testCase "logBeta table" $
         forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
-          checkTabular 256 (show (p,q)) (logBeta p q) exact
+          checkTabular 256 (show (p,q)) exact (logBeta p q)
     , testCase "logBeta factorial" betaFactorial
     -- FIXME: loss of precision near 1
     -- , testProperty "beta(1,p) = 1/p"   beta1p
