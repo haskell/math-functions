@@ -112,6 +112,7 @@ tests = testGroup "Special functions"
           checkTabular errEst (show (p,q)) exact (logBeta p q)
     , testCase "logBeta factorial" betaFactorial
     , testProperty "beta(1,p) = 1/p"   beta1p
+    -- , testProperty "beta recurrence"   betaRecurrence
     ]
   ----------------
   , testGroup "incomplete beta"
@@ -284,6 +285,23 @@ beta1p (abs -> p)
   where
     lb = logBeta 1 p
     d  = ulpDistance lb (- log p)
+
+{-
+-- B(p+1,q) = B(p,q) · p/(p+q)
+betaRecurrence :: Double -> Double -> Property
+betaRecurrence (abs -> p) (abs -> q)
+  = p > 0  &&  q > 0  ==>
+    counterexample ("p          = " ++ show p)
+  $ counterexample ("q          = " ++ show q)
+  $ counterexample ("log B(p,q) = " ++ show (logBeta p q))
+  $ counterexample ("log B(p+1,q) = " ++ show (logBeta (p+1) q))
+  $ counterexample ("err        = " ++ show d)
+  $ d <= 128
+  where
+    logB  = logBeta p q + log (p / (p + q))
+    logB' = logBeta (p + 1) q
+    d     = ulpDistance logB logB'
+-}
 
 -- Γ(x+1) = x·Γ(x)
 gammaReccurence :: Double -> Property
