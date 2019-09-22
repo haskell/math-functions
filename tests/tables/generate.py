@@ -42,7 +42,8 @@ def load_inputs(path):
     "Load inputs for function from tsv file"
     with open(path) as f:
         for s in skip_comments(f):
-            yield (s, tuple(map(float, s.split())))
+            yield tuple(map(float, s.split()))
+
 
 def load_inputs_cartesian(path):
     "Load inputs for several variables where we want to genrate all pair"
@@ -51,36 +52,51 @@ def load_inputs_cartesian(path):
             yield x
 
 def fmt(f, inputs, out):
+    # Here we set up output. We hope that refcounting will collect fds
+    # promptly
     if out is None:
         out = sys.stdout
     else:
-        # Lets hope for cpython's refcounting
         out = open(out, 'w')
-    for (sIn,i) in load_inputs(inputs):
-        sOut = mpmath.nstr( f(*i), mpmath.mp.dps )
-        print(sIn + "\t" + sOut, file=out)
-
-
-def fmt_cartesian(f, inputs, out):
-    if out is None:
-        out = sys.stdout
-    else:
-        # Lets hope for cpython's refcounting
-        out = open(out, 'w')
-    for xs in load_inputs_cartesian(inputs):
+    for xs in inputs:
         param = ["%.18g" % x for x in xs]
         sOut  = mpmath.nstr( f(*xs), mpmath.mp.dps )
-        print( '\t'.join( param + [sOut]), file=out)
+        print( '\t'.join( param + [sOut]),
+               file=out)       
 
 
-fmt( mpmath.erf,      'inputs/erf.dat'        , 'erf.dat')
-fmt( mpmath.erfc,     'inputs/erfc.dat'       , 'erfc.dat')
-fmt( mpmath.erfc,     'inputs/erfc-large.dat' , 'erfc-large.dat')
-fmt( mpmath.loggamma, 'inputs/loggamma.dat'   , 'loggamma.dat')
-fmt( mpmath.digamma,  'inputs/digamma.dat'    , 'digamma.dat')
-fmt( mpmath.expm1,    'inputs/expm1.dat'      , 'expm1.dat')
-fmt( mpmath.log1p,    'inputs/log1p.dat'      , 'log1p.dat')
-fmt_cartesian( lambda a, x: mpmath.gammainc(z=a, a=0, b=x, regularized=True),
-               'inputs/igamma.dat', 'igamma.dat')
-fmt_cartesian( lambda p, q: mpmath.log(mpmath.beta(p,q)),
-               'inputs/logbeta.dat', 'logbeta.dat')
+## ================================================================
+
+fmt( mpmath.erf,
+     load_inputs('inputs/erf.dat'),
+     'erf.dat')
+fmt( mpmath.erf,
+     load_inputs('inputs/erf.dat'),
+     'erf.dat')
+fmt( mpmath.erfc,
+     load_inputs('inputs/erfc.dat'),
+     'erfc.dat')
+fmt( mpmath.erfc,
+     load_inputs('inputs/erfc-large.dat'),
+     'erfc-large.dat')
+fmt( mpmath.loggamma,
+     load_inputs('inputs/loggamma.dat'),
+     'loggamma.dat')
+fmt( mpmath.digamma,
+     load_inputs('inputs/digamma.dat'),
+     'digamma.dat')
+fmt( mpmath.expm1,
+     load_inputs('inputs/expm1.dat'),
+     'expm1.dat')
+fmt( mpmath.log1p,
+     load_inputs('inputs/log1p.dat'),
+     'log1p.dat')
+fmt( lambda x: mpmath.log(mpmath.factorial(x)),
+     map(lambda x: (x,), range(0, 2000)),
+     'factorial.dat')
+fmt( lambda a, x: mpmath.gammainc(z=a, a=0, b=x, regularized=True),
+     load_inputs_cartesian('inputs/igamma.dat'),
+     'igamma.dat')
+fmt( lambda p, q: mpmath.log(mpmath.beta(p,q)),
+     load_inputs_cartesian('inputs/logbeta.dat'),
+     'logbeta.dat')
