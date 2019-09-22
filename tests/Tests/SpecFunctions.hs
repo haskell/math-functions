@@ -10,6 +10,7 @@ import Control.Monad
 import Data.List
 import qualified Data.Vector as V
 import           Data.Vector   ((!))
+import qualified Data.Vector.Unboxed as U
 
 import Test.QuickCheck  hiding (choose,within)
 import Test.Tasty
@@ -19,6 +20,7 @@ import Test.Tasty.HUnit
 import Tests.Helpers
 import Tests.SpecFunctions.Tables
 import Numeric.SpecFunctions
+import Numeric.SpecFunctions.Internal   (factorialTable)
 import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
@@ -142,17 +144,19 @@ tests = testGroup "Special functions"
   , testGroup "factorial"
     [ testCase "Factorial table" $
       forM_ [0 .. 170] $ \n -> do
-        checkTabular 6
+        checkTabular 0
           (show n)
           (fromIntegral (factorial' n))
           (factorial (fromIntegral n :: Int))
       --
     , testCase "Log factorial table" $
       forM_ [2 .. 170] $ \n -> do
-        checkTabular 3
+        checkTabular 0
           (show n)
           (log $ fromIntegral $ factorial' n)
           (logFactorial (fromIntegral n :: Int))
+    , testAssertion "Factorial table is OK"
+    $ U.length factorialTable == 171
     ]
   ----------------
   , testGroup "combinatorics"
