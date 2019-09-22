@@ -88,10 +88,10 @@ library
     Numeric.RootFinding
     Numeric.SpecFunctions
     Numeric.SpecFunctions.Extra
+    Numeric.SpecFunctions.Internal
     Numeric.Series
     Numeric.Sum
   other-modules:
-    Numeric.SpecFunctions.Internal
     Numeric.SpecFunctions.Compat
 
 test-suite tests

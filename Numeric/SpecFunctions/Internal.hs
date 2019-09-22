@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns, ScopedTypeVariables #-}
+{-# OPTIONS_HADDOCK hide #-}
 -- |
 -- Module    : Numeric.SpecFunctions.Internal
 -- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
