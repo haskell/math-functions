@@ -397,5 +397,6 @@ checkTabular prec x exact val =
                       , " expected  = " ++ show exact
                       , " got       = " ++ show val
                       , " ulps diff = " ++ show (ulpDistance exact val)
+                      , " err.est.  = " ++ show prec
                       ])
     (within prec exact val)
