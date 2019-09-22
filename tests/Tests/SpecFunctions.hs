@@ -144,14 +144,14 @@ tests = testGroup "Special functions"
   , testGroup "factorial"
     [ testCase "Factorial table" $
       forM_ [0 .. 170] $ \n -> do
-        checkTabular 0
+        checkTabular 1
           (show n)
           (fromIntegral (factorial' n))
           (factorial (fromIntegral n :: Int))
       --
     , testCase "Log factorial table" $
       forM_ [2 .. 170] $ \n -> do
-        checkTabular 0
+        checkTabular 1
           (show n)
           (log $ fromIntegral $ factorial' n)
           (logFactorial (fromIntegral n :: Int))
