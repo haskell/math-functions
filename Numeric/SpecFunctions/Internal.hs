@@ -418,7 +418,7 @@ incompleteGamma a x
     -- Series for 1-Q(a,x). See [Temme1994] Eq. 5.5
     taylorSeriesComplQ
       = sumPowerSeries (-x) (scanSequence (/) 1 (enumSequenceFrom 1) / enumSequenceFrom a)
-      * x**a / exp(logGammaL a)
+      * x**a / exp(logGamma a)
     -- Legendre continued fractions
     contFraction = 1 - ( exp ( log x * a - x - logGamma a )
                        / evalContFractionB frac
