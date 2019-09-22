@@ -87,8 +87,23 @@ tests = testGroup "Special functions"
   ----------------
   , testGroup "beta function"
     [ testCase "logBeta table" $
-        forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
-          checkTabular 256 (show (p,q)) exact (logBeta p q)
+        forTable "tests/tables/logbeta.dat" $ \[p,q,exact] -> do
+          let errEst
+                -- For Stirling approx. errors are very good
+                | b > 10          = 2
+                -- Partial Stirling approx without root
+                | a >  10 = case () of
+                    _| b >= 1    -> 4
+                     | otherwise -> 1024
+                -- sum of logGamma
+                | otherwise = case () of
+                    _| a <= 1 && b <= 1 -> 8
+                     | a >= 1 && b >= 1 -> 8
+                     | otherwise        -> 1024
+                where
+                  a = max p q
+                  b = min p q
+          checkTabular errEst (show (p,q)) exact (logBeta p q)
     , testCase "logBeta factorial" betaFactorial
     -- FIXME: loss of precision near 1
     -- , testProperty "beta(1,p) = 1/p"   beta1p
