@@ -91,18 +91,24 @@ tests = testGroup "Special functions"
           let errEst
                 -- For Stirling approx. errors are very good
                 | b > 10          = 2
-                -- Partial Stirling approx without root
-                | a >  10 = case () of
+                -- Partial Stirling approx
+                | a > 10 = case () of
                     _| b >= 1    -> 4
-                     | otherwise -> 1024
+                     | otherwise -> 2 * est
                 -- sum of logGamma
                 | otherwise = case () of
                     _| a <= 1 && b <= 1 -> 8
                      | a >= 1 && b >= 1 -> 8
-                     | otherwise        -> 1024
+                     | otherwise        -> 2 * est
                 where
                   a = max p q
                   b = min p q
+                  --
+                  est = ceiling
+                      $ abs (logGamma a) + abs (logGamma b) + abs (logGamma (a + b))
+                      / abs (logBeta a b)
+
+
           checkTabular errEst (show (p,q)) exact (logBeta p q)
     , testCase "logBeta factorial" betaFactorial
     -- FIXME: loss of precision near 1
@@ -286,7 +292,7 @@ gammaReccurence x
       g1     = logGamma x
       g2     = logGamma (x+1)
       err    = abs (g2 - g1 - log x)
-      -- logGamma apparently is not as precise for small x. See #59 for details 
+      -- logGamma apparently is not as precise for small x. See #59 for details
       errEst = max 1e-14
              $ 2 * m_epsilon * sum (map abs [ g1 , g2 , log x ])
 

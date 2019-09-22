@@ -548,25 +548,36 @@ logBeta
   -> Double                     -- ^ /b/ > 0
   -> Double
 logBeta a b
-    | p < 0     = m_NaN
-    | p == 0    = m_pos_inf
-    | p >= 10   = log q * (-0.5)
-                + m_ln_sqrt_2_pi
-                + logGammaCorrection p
-                + c
-                + (p - 0.5) * log ppq + q * log1p(-ppq)
-    | q >= 10   = logGamma p
-                + c
-                + p
-                - p * log pq
-                + (q - 0.5) * log1p(-ppq)
-    | otherwise = logGamma p + logGamma q - logGamma pq
-    where
-      p   = min a b
-      q   = max a b
-      ppq = p / pq
-      pq  = p + q
-      c   = logGammaCorrection q - logGammaCorrection pq
+  | p < 0     = m_NaN
+  | p == 0    = m_pos_inf
+  | p >= 10   = allStirling
+  | q >= 10   = twoStirling
+  -- This order of summands marginally improves precision
+  | otherwise = logGamma p + (logGamma q - logGamma pq)
+  where
+    p   = min a b
+    q   = max a b
+    ppq = p / pq
+    pq  = p + q
+    -- When both parameters are large than 10 we can use Stirling
+    -- approximation with correction. It's more precise than sum of
+    -- logarithms of gamma functions
+    allStirling
+      = log q * (-0.5)
+      + m_ln_sqrt_2_pi
+      + logGammaCorrection p
+      + (logGammaCorrection q - logGammaCorrection pq)
+      + (p - 0.5) * log ppq
+      + q * log1p(-ppq)
+    -- Otherwise only two of three gamma functions use Stirling
+    -- approximation
+    twoStirling
+      = logGamma p
+      + (logGammaCorrection q - logGammaCorrection pq)
+      + p
+      - p * log pq
+      + (q - 0.5) * log1p(-ppq)
+
 
 -- | Regularized incomplete beta function.
 --
