@@ -149,7 +149,7 @@ tests = testGroup "Special functions"
           (fromIntegral (factorial' n))
           (factorial (fromIntegral n :: Int))
       --
-    , testCase "Log factorial table" $
+    , testCase "Log factorial from integer" $
       forM_ [2 .. 170] $ \n -> do
         checkTabular 1
           (show n)
@@ -157,6 +157,10 @@ tests = testGroup "Special functions"
           (logFactorial (fromIntegral n :: Int))
     , testAssertion "Factorial table is OK"
     $ U.length factorialTable == 171
+    , testCase "Log factorial table" $
+      forTable "tests/tables/factorial.dat" $ \[i,exact] ->
+        checkTabular 3
+          (show i) (logFactorial (round i :: Int)) exact
     ]
   ----------------
   , testGroup "combinatorics"

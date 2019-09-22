@@ -92,7 +92,7 @@ fmt( mpmath.log1p,
      load_inputs('inputs/log1p.dat'),
      'log1p.dat')
 fmt( lambda x: mpmath.log(mpmath.factorial(x)),
-     map(lambda x: (x,), range(0, 2000)),
+     map(lambda x: (x,), range(0, 20000)),
      'factorial.dat')
 fmt( lambda a, x: mpmath.gammainc(z=a, a=0, b=x, regularized=True),
      load_inputs_cartesian('inputs/igamma.dat'),

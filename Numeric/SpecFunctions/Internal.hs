@@ -950,9 +950,9 @@ log2 v0
 -- Factorial
 ----------------------------------------------------------------
 
--- | Compute the factorial function /n/!.  Returns +∞ if the
--- input is above 170 (above which the result cannot be represented by
--- a 64-bit 'Double').
+-- | Compute the factorial function /n/!.  Returns +∞ if the input is
+--   above 170 (above which the result cannot be represented by a
+--   64-bit 'Double').
 factorial :: Int -> Double
 factorial n
   | n < 0     = error "Numeric.SpecFunctions.factorial: negative input"
@@ -960,20 +960,22 @@ factorial n
   | otherwise = U.unsafeIndex factorialTable n
 
 -- | Compute the natural logarithm of the factorial function.  Gives
--- 16 decimal digits of precision.
+--   16 decimal digits of precision.
 logFactorial :: Integral a => a -> Double
 logFactorial n
-    | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
-    | n <= 170  = log $ U.unsafeIndex factorialTable (fromIntegral n)
-    -- N.B. Γ(n+1) = n!
-    --
-    -- We use here asymptotic series for gamma function. See
-    -- http://mathworld.wolfram.com/StirlingsSeries.html
-    | otherwise = (x - 0.5) * log x - x
-                + m_ln_sqrt_2_pi
-                + evaluateOddPolynomialL (1/x) [1/12, -1/360, 1/1260, -1/1680]
-    where x = fromIntegral n + 1
+  | n <  0    = error "Numeric.SpecFunctions.logFactorial: negative input"
+  -- For smaller inputs we just look up table
+  | n <= 170  = log $ U.unsafeIndex factorialTable (fromIntegral n)
+  -- Otherwise we use asymptotic Stirling's series. Number of terms
+  -- necessary depends on the argument.
+  | n < 1500  = stirling + rx * ((1/12) - (1/360)*rx*rx)
+  | otherwise = stirling + (1/12)*rx
+  where
+    stirling = (x - 0.5) * log x - x + m_ln_sqrt_2_pi
+    x        = fromIntegral n + 1
+    rx       = 1 / x
 {-# SPECIALIZE logFactorial :: Int -> Double #-}
+
 
 -- | Calculate the error term of the Stirling approximation.  This is
 -- only defined for non-negative values.
