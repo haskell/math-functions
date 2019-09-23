@@ -106,6 +106,8 @@ m_epsilon = encodeFloat (signif+1) expo - 1.0
     where (signif,expo) = decodeFloat (1.0::Double)
 
 -- | @sqrt m_epsilon@
+--
+-- @since 0.3.3.0
 m_sqrt_eps :: Double
 m_sqrt_eps = 1.4901161193847656e-8
 
