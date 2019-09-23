@@ -1,3 +1,25 @@
+## Changes in 0.3.3.0
+
+  * New implementation for `logGamma`. Now it's precise within 2 ulps at full
+    range including zeros at 1 and 2.
+
+  * Bug with precision loss of `invErf` for parameters near zero is fixed.
+
+  * Fixed loss of precision in bundled `erf` near zero. (Affect primarily GHCJS)
+
+  * `factorial` for now uses lookup table
+
+  * `logFactorial` is optimized a bit (less number of terms is used)
+
+  * `m_sqrt_eps` constant added.
+
+  * Module `Numeric.SpecFunctions.Internal` is exposed.
+
+  * Many improvements for test suite. Tables of expected function values are
+    generated with mpmath, error estimates improved. Test suite itself is
+    migrated to `tasty` from `test-framework`.
+
+
 ## Changes in 0.3.2.1
 
   * Fixes build on windows for GHC<8.0
