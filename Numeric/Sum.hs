@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleContexts,
-    MultiParamTypeClasses, TemplateHaskell, TypeFamilies, CPP #-}
+    MultiParamTypeClasses, TypeFamilies, CPP #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
 -- Module    : Numeric.Sum
@@ -58,13 +58,14 @@ import Data.Monoid                  (Monoid(..))
 import Data.Semigroup               (Semigroup(..))
 #endif
 import Data.Vector.Generic          (Vector(..), foldl')
-import Data.Vector.Unboxed.Deriving (derivingUnbox)
 -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
+import Control.Monad (liftM)
 import Data.Vector.Generic.Mutable (MVector(..))
 
 import qualified Data.Foldable as F
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic as G
+import qualified Data.Vector.Generic.Mutable as GM
 import qualified Data.Vector.Unboxed as U
 
 -- | A class for summation of floating point numbers.
@@ -98,10 +99,53 @@ instance Summation Double where
 data KahanSum = KahanSum {-# UNPACK #-} !Double {-# UNPACK #-} !Double
               deriving (Eq, Show, Typeable, Data)
 
-derivingUnbox "KahanSum"
-    [t| KahanSum -> (Double, Double) |]
-    [| \ (KahanSum a b) -> (a, b) |]
-    [| \ (a, b) -> KahanSum a b |]
+instance U.Unbox KahanSum
+newtype instance U.MVector s KahanSum = MV_KahanSum (U.MVector s (Double, Double))
+instance MVector U.MVector KahanSum where
+  {-# INLINE GM.basicLength #-}
+  {-# INLINE GM.basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicInitialize #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE GM.basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeMove #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_KahanSum mvec) = GM.basicLength mvec
+  basicUnsafeSlice idx len (MV_KahanSum mvec) = MV_KahanSum (GM.basicUnsafeSlice idx len mvec)
+  basicOverlaps (MV_KahanSum mvec) (MV_KahanSum mvec') = basicOverlaps mvec mvec'
+  basicUnsafeNew len = MV_KahanSum `liftM` basicUnsafeNew len
+  basicInitialize (MV_KahanSum mvec) = basicInitialize mvec
+  basicUnsafeReplicate len val = MV_KahanSum `liftM` basicUnsafeReplicate len ((\ (KahanSum a b) -> (a, b)) val)
+  basicUnsafeRead (MV_KahanSum mvec) idx = (\ (a, b) -> KahanSum a b) `liftM` basicUnsafeRead mvec idx
+  basicUnsafeWrite (MV_KahanSum mvec) idx val = basicUnsafeWrite mvec idx ((\ (KahanSum a b) -> (a, b)) val)
+  basicClear (MV_KahanSum mvec) = basicClear mvec
+  basicSet (MV_KahanSum mvec) val = basicSet mvec ((\ (KahanSum a b) -> (a, b)) val)
+  basicUnsafeCopy (MV_KahanSum mvec) (MV_KahanSum mvec') = GM.basicUnsafeCopy mvec mvec'
+  basicUnsafeMove (MV_KahanSum mvec) (MV_KahanSum mvec') = basicUnsafeMove mvec mvec'
+  basicUnsafeGrow (MV_KahanSum mvec) len = MV_KahanSum `liftM` basicUnsafeGrow mvec len
+
+newtype instance U.Vector KahanSum = V_KahanSum (U.Vector (Double, Double))
+instance Vector U.Vector KahanSum where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE G.basicLength #-}
+  {-# INLINE G.basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE G.basicUnsafeCopy #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_KahanSum mvec) = V_KahanSum `liftM` basicUnsafeFreeze mvec
+  basicUnsafeThaw (V_KahanSum vec) = MV_KahanSum `liftM` basicUnsafeThaw vec
+  basicLength (V_KahanSum vec) = G.basicLength vec
+  basicUnsafeSlice idx len (V_KahanSum vec) = V_KahanSum (G.basicUnsafeSlice idx len vec)
+  basicUnsafeIndexM (V_KahanSum vec) idx = (\ (a, b) -> KahanSum a b) `liftM` basicUnsafeIndexM vec idx
+  basicUnsafeCopy (MV_KahanSum mvec) (V_KahanSum vec) = G.basicUnsafeCopy mvec vec
+  elemseq (V_KahanSum vec) val = elemseq vec ((\ (KahanSum a b) -> (a, b)) val)
+
 
 instance Summation KahanSum where
     zero = KahanSum 0 0
@@ -137,10 +181,53 @@ kahan (KahanSum sum _) = sum
 data KBNSum = KBNSum {-# UNPACK #-} !Double {-# UNPACK #-} !Double
             deriving (Eq, Show, Typeable, Data)
 
-derivingUnbox "KBNSum"
-    [t| KBNSum -> (Double, Double) |]
-    [| \ (KBNSum a b) -> (a, b) |]
-    [| \ (a, b) -> KBNSum a b |]
+instance U.Unbox KBNSum
+newtype instance U.MVector s KBNSum = MV_KBNSum (U.MVector s (Double, Double))
+instance MVector U.MVector KBNSum where
+  {-# INLINE GM.basicLength #-}
+  {-# INLINE GM.basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicInitialize #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE GM.basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeMove #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_KBNSum mvec) = GM.basicLength mvec
+  basicUnsafeSlice idx len (MV_KBNSum mvec) = MV_KBNSum (GM.basicUnsafeSlice idx len mvec)
+  basicOverlaps (MV_KBNSum mvec) (MV_KBNSum mvec') = basicOverlaps mvec mvec'
+  basicUnsafeNew len = MV_KBNSum `liftM` basicUnsafeNew len
+  basicInitialize (MV_KBNSum mvec) = basicInitialize mvec
+  basicUnsafeReplicate len val = MV_KBNSum `liftM` basicUnsafeReplicate len ((\ (KBNSum a b) -> (a, b)) val)
+  basicUnsafeRead (MV_KBNSum mvec) idx = (\ (a, b) -> KBNSum a b) `liftM` basicUnsafeRead mvec idx
+  basicUnsafeWrite (MV_KBNSum mvec) idx val = basicUnsafeWrite mvec idx ((\ (KBNSum a b) -> (a, b)) val)
+  basicClear (MV_KBNSum mvec) = basicClear mvec
+  basicSet (MV_KBNSum mvec) val = basicSet mvec ((\ (KBNSum a b) -> (a, b)) val)
+  basicUnsafeCopy (MV_KBNSum mvec) (MV_KBNSum mvec') = GM.basicUnsafeCopy mvec mvec'
+  basicUnsafeMove (MV_KBNSum mvec) (MV_KBNSum mvec') = basicUnsafeMove mvec mvec'
+  basicUnsafeGrow (MV_KBNSum mvec) len = MV_KBNSum `liftM` basicUnsafeGrow mvec len
+
+newtype instance U.Vector KBNSum = V_KBNSum (U.Vector (Double, Double))
+instance Vector U.Vector KBNSum where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE G.basicLength #-}
+  {-# INLINE G.basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE G.basicUnsafeCopy #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_KBNSum mvec) = V_KBNSum `liftM` basicUnsafeFreeze mvec
+  basicUnsafeThaw (V_KBNSum vec) = MV_KBNSum `liftM` basicUnsafeThaw vec
+  basicLength (V_KBNSum vec) = G.basicLength vec
+  basicUnsafeSlice idx len (V_KBNSum vec) = V_KBNSum (G.basicUnsafeSlice idx len vec)
+  basicUnsafeIndexM (V_KBNSum vec) idx = (\ (a, b) -> KBNSum a b) `liftM` basicUnsafeIndexM vec idx
+  basicUnsafeCopy (MV_KBNSum mvec) (V_KBNSum vec) = G.basicUnsafeCopy mvec vec
+  elemseq (V_KBNSum vec) val = elemseq vec ((\ (KBNSum a b) -> (a, b)) val)
+
 
 instance Summation KBNSum where
     zero = KBNSum 0 0
@@ -183,10 +270,52 @@ data KB2Sum = KB2Sum {-# UNPACK #-} !Double
                      {-# UNPACK #-} !Double
             deriving (Eq, Show, Typeable, Data)
 
-derivingUnbox "KB2Sum"
-    [t| KB2Sum -> (Double, Double, Double) |]
-    [| \ (KB2Sum a b c) -> (a, b, c) |]
-    [| \ (a, b, c) -> KB2Sum a b c |]
+instance U.Unbox KB2Sum
+newtype instance U.MVector s KB2Sum = MV_KB2Sum (U.MVector s (Double, Double, Double))
+instance MVector U.MVector KB2Sum where
+  {-# INLINE GM.basicLength #-}
+  {-# INLINE GM.basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicInitialize #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE GM.basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeMove #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_KB2Sum mvec) = GM.basicLength mvec
+  basicUnsafeSlice idx len (MV_KB2Sum mvec) = MV_KB2Sum (GM.basicUnsafeSlice idx len mvec)
+  basicOverlaps (MV_KB2Sum mvec) (MV_KB2Sum mvec') = basicOverlaps mvec mvec'
+  basicUnsafeNew len = MV_KB2Sum `liftM` basicUnsafeNew len
+  basicInitialize (MV_KB2Sum mvec) = basicInitialize mvec
+  basicUnsafeReplicate len val = MV_KB2Sum `liftM` basicUnsafeReplicate len ((\ (KB2Sum a b c) -> (a, b, c)) val)
+  basicUnsafeRead (MV_KB2Sum mvec) idx = (\ (a, b, c) -> KB2Sum a b c) `liftM` basicUnsafeRead mvec idx
+  basicUnsafeWrite (MV_KB2Sum mvec) idx val = basicUnsafeWrite mvec idx ((\ (KB2Sum a b c) -> (a, b, c)) val)
+  basicClear (MV_KB2Sum mvec) = basicClear mvec
+  basicSet (MV_KB2Sum mvec) val = basicSet mvec ((\ (KB2Sum a b c) -> (a, b, c)) val)
+  basicUnsafeCopy (MV_KB2Sum mvec) (MV_KB2Sum mvec') = GM.basicUnsafeCopy mvec mvec'
+  basicUnsafeMove (MV_KB2Sum mvec) (MV_KB2Sum mvec') = basicUnsafeMove mvec mvec'
+  basicUnsafeGrow (MV_KB2Sum mvec) len = MV_KB2Sum `liftM` basicUnsafeGrow mvec len
+
+newtype instance U.Vector KB2Sum = V_KB2Sum (U.Vector (Double, Double, Double))
+instance Vector U.Vector KB2Sum where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE G.basicLength #-}
+  {-# INLINE G.basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE G.basicUnsafeCopy #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_KB2Sum mvec) = V_KB2Sum `liftM` basicUnsafeFreeze mvec
+  basicUnsafeThaw (V_KB2Sum vec) = MV_KB2Sum `liftM` basicUnsafeThaw vec
+  basicLength (V_KB2Sum vec) = G.basicLength vec
+  basicUnsafeSlice idx len (V_KB2Sum vec) = V_KB2Sum (G.basicUnsafeSlice idx len vec)
+  basicUnsafeIndexM (V_KB2Sum vec) idx = (\ (a, b, c) -> KB2Sum a b c) `liftM` basicUnsafeIndexM vec idx
+  basicUnsafeCopy (MV_KB2Sum mvec) (V_KB2Sum vec) = G.basicUnsafeCopy mvec vec
+  elemseq (V_KB2Sum vec) val = elemseq vec ((\ (KB2Sum a b c) -> (a, b, c)) val)
 
 instance Summation KB2Sum where
     zero = KB2Sum 0 0 0

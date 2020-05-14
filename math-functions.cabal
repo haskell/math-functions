@@ -67,7 +67,6 @@ library
     FlexibleContexts
     MultiParamTypeClasses
     ScopedTypeVariables
-    TemplateHaskell
     TypeFamilies
     DeriveGeneric
 
@@ -77,7 +76,6 @@ library
                       , data-default-class  >= 0.1.2.0
                       , vector              >= 0.7
                       , primitive
-                      , vector-th-unbox     >= 0.2.1.6
   if flag(system-expm1) && !os(windows)
     cpp-options: -DUSE_SYSTEM_EXPM1
   if flag(system-erf)   && !impl(ghcjs)
