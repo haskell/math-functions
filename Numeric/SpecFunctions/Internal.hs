@@ -582,7 +582,7 @@ logBeta a b
 -- | Regularized incomplete beta function.
 --
 -- \[
--- I(x;a,b) = \frac{1}{B(a,b)} \int_0^x t^{a-1}(1-t)^{1-b}\,dt
+-- I(x;a,b) = \frac{1}{B(a,b)} \int_0^x t^{a-1}(1-t)^{b-1}\,dt
 -- \]
 --
 -- Uses algorithm AS63 by Majumder and Bhattachrjee and quadrature
