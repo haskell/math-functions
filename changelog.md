@@ -1,3 +1,8 @@
+## Changes in 0.3.4.0
+
+  * Dependency on `vector-th-unbox` is dropped. All instances are written by
+    hand now.
+
 ## Changes in 0.3.3.0
 
   * New implementation for `logGamma`. Now it's precise within 2 ulps at full
