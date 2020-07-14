@@ -1,4 +1,4 @@
-import Criterion.Main
+import Gauge.Main
 import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import Text.Printf
@@ -41,8 +41,6 @@ main :: IO ()
 main = defaultMain
   [ bgroup "logGamma" $
     benchmarkLogGamma logGamma
-  , bgroup "logGammaL" $
-    benchmarkLogGamma logGammaL
   , bgroup "incompleteGamma" $
       [ bench (show p) $ nf (incompleteGamma p) p
       | p <- [ 0.1

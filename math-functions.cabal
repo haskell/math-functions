@@ -128,6 +128,28 @@ test-suite tests
                   , tasty-hunit      >= 0.10
                   , tasty-quickcheck >= 0.10
 
+benchmark math-functions-bench
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  other-extensions:
+    BangPatterns
+    CPP
+    DeriveDataTypeable
+    FlexibleContexts
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    TemplateHaskell
+    TypeFamilies
+    DeriveGeneric
+  ghc-options:          -Wall -O2
+  hs-source-dirs:       bench
+  Main-is:              bench.hs
+  build-depends:        base                >= 4.5 && < 5
+                      , math-functions
+                      , data-default-class
+                      , vector
+                      , gauge               >=0.2.5
+
 source-repository head
   type:     git
   location: https://github.com/bos/math-functions
