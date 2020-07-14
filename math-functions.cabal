@@ -148,6 +148,7 @@ benchmark math-functions-bench
                       , math-functions
                       , data-default-class
                       , vector
+                      , random              >=1.2
                       , gauge               >=0.2.5
 
 source-repository head
