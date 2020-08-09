@@ -8,6 +8,7 @@ module Tests.SpecFunctions (
 
 import Control.Monad
 import Data.List
+import Data.Maybe
 import qualified Data.Vector as V
 import           Data.Vector   ((!))
 import qualified Data.Vector.Unboxed as U
@@ -42,14 +43,14 @@ tests = testGroup "Special functions"
       -- large arguments
       testCase "erfc table" $
         forTable "tests/tables/erfc.dat" $ \[x, exact] ->
-          checkTabular erfcTol (show x) exact (erfc x)
+          checkTabularPure erfcTol (show x) exact (erfc x)
     , testCase "erfc table [large]" $
         forTable "tests/tables/erfc-large.dat" $ \[x, exact] ->
-          checkTabular erfcLargeTol (show x) exact (erfc x)
+          checkTabularPure erfcLargeTol (show x) exact (erfc x)
       --
     , testCase "erf table" $
         forTable "tests/tables/erf.dat" $ \[x, exact] -> do
-          checkTabular erfTol (show x) exact (erf x)
+          checkTabularPure erfTol (show x) exact (erf x)
     , testProperty "id = erfc . invErfc" invErfcIsInverse
     , testProperty "id = invErfc . erfc" invErfcIsInverse2
     , testProperty "invErf  = erf^-1"    invErfIsInverse
@@ -58,16 +59,16 @@ tests = testGroup "Special functions"
   , testGroup "log1p & Co"
     [ testCase "expm1 table" $
         forTable "tests/tables/expm1.dat" $ \[x, exact] ->
-          checkTabular 2 (show x) exact (expm1 x)
+          checkTabularPure 2 (show x) exact (expm1 x)
     , testCase "log1p table" $
         forTable "tests/tables/log1p.dat" $ \[x, exact] ->
-          checkTabular 1 (show x) exact (log1p x)
+          checkTabularPure 1 (show x) exact (log1p x)
     ]
   ----------------
   , testGroup "gamma function"
     [ testCase "logGamma table [fractional points" $
         forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
-          checkTabular 2 (show x) exact (logGamma x)
+          checkTabularPure 2 (show x) exact (logGamma x)
     , testProperty "Gamma(x+1) = x*Gamma(x)" $ gammaReccurence
     , testCase     "logGamma is expected to be precise at 1e-15 level" $
         forM_ [3..10000::Int] $ \n -> do
@@ -79,7 +80,7 @@ tests = testGroup "Special functions"
   , testGroup "incomplete gamma"
     [ testCase "incompleteGamma table" $
         forTable "tests/tables/igamma.dat" $ \[a,x,exact] -> do
-          checkTabular 16 (show (a,x)) exact (incompleteGamma a x)
+          checkTabularPure 16 (show (a,x)) exact (incompleteGamma a x)
     , testProperty "incomplete gamma - increases" $
         \(abs -> s) (abs -> x) (abs -> y) -> s > 0 ==> monotonicallyIncreases (incompleteGamma s) x y
     , testProperty "0 <= gamma <= 1"               incompleteGammaInRange
@@ -89,7 +90,7 @@ tests = testGroup "Special functions"
   ----------------
   , testGroup "beta function"
     [ testCase "logBeta table" $
-        forTable "tests/tables/logbeta.dat" $ \[p,q,exact] -> do
+        forTable "tests/tables/logbeta.dat" $ \[p,q,exact] ->
           let errEst
                 -- For Stirling approx. errors are very good
                 | b > 10          = 2
@@ -109,9 +110,7 @@ tests = testGroup "Special functions"
                   est = ceiling
                       $ abs (logGamma a) + abs (logGamma b) + abs (logGamma (a + b))
                       / abs (logBeta a b)
-
-
-          checkTabular errEst (show (p,q)) exact (logBeta p q)
+          in checkTabularPure errEst (show (p,q)) exact (logBeta p q)
     , testCase "logBeta factorial" betaFactorial
     , testProperty "beta(1,p) = 1/p"   beta1p
     -- , testProperty "beta recurrence"   betaRecurrence
@@ -137,7 +136,7 @@ tests = testGroup "Special functions"
       -- Relative precision is lost when digamma(x) ≈ 0
     , testCase "digamma is expected to be precise at 1e-12" $
       forTable "tests/tables/digamma.dat" $ \[x, exact] ->
-        checkTabular 2048
+        checkTabularPure 2048
           (show x) (digamma x) exact
     ]
   ----------------
@@ -159,7 +158,7 @@ tests = testGroup "Special functions"
     $ U.length factorialTable == 171
     , testCase "Log factorial table" $
       forTable "tests/tables/factorial.dat" $ \[i,exact] ->
-        checkTabular 3
+        checkTabularPure 3
           (show i) (logFactorial (round i :: Int)) exact
     ]
   ----------------
@@ -435,16 +434,26 @@ readTable
   = fmap (fmap (fmap read . words) . lines)
   . readFile
 
-forTable :: FilePath -> ([Double] -> IO ()) -> IO ()
+forTable :: FilePath -> ([Double] -> Maybe String) -> IO ()
 forTable path fun = do
-  mapM_ fun =<< readTable path
+  rows <- readTable path
+  case mapMaybe fun rows of
+    []   -> return ()
+    errs -> assertFailure $ intercalate "---\n" errs
 
 checkTabular :: Int -> String -> Double -> Double -> IO ()
 checkTabular prec x exact val =
-  assertBool (unlines [ " x         = " ++ x
-                      , " expected  = " ++ show exact
-                      , " got       = " ++ show val
-                      , " ulps diff = " ++ show (ulpDistance exact val)
-                      , " err.est.  = " ++ show prec
-                      ])
-    (within prec exact val)
+  case checkTabularPure prec x exact val of
+    Nothing -> return ()
+    Just s  -> assertFailure s
+
+checkTabularPure :: Int -> String -> Double -> Double -> Maybe String
+checkTabularPure prec x exact val
+  | within prec exact val = Nothing
+  | otherwise             = Just $ unlines
+      [ " x         = " ++ x
+      , " expected  = " ++ show exact
+      , " got       = " ++ show val
+      , " ulps diff = " ++ show (ulpDistance exact val)
+      , " err.est.  = " ++ show prec
+      ]
