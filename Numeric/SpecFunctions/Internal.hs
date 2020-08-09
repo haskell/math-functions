@@ -411,10 +411,25 @@ incompleteGamma a x
     --
     -- Evaluate series for P(a,x). See [Temme1994] Eq. 5.5
     --
-    -- FIXME: Term `exp (log x * z - x - logGamma (z+1))` doesn't give full precision
+    -- Evaluation of constant multiplier is somewhat tricky. On one
+    -- hand working in linear domain gives markedly better precision
+    -- than log domain (in log domain we can easily lose 2-3
+    -- digits). On other it's prone to overflow: we're working with
+    -- exponents and gamma function here!. Solution is to try to
+    -- compute value normally and revert to log domain it anything
+    -- overflowed
+    factorP
+      | isInfinite num   = logDom
+      | isInfinite denom = logDom
+      | otherwise        = num / denom
+      where
+        num    = x ** a
+        denom  = exp x * exp (logGamma (a + 1))
+        logDom = exp (log x * a - x - logGamma (a+1))
+
     taylorSeriesP
       = sumPowerSeries x (scanSequence (/) 1 $ enumSequenceFrom (a+1))
-      * exp (log x * a - x - logGamma (a+1))
+      * factorP
     -- Series for 1-Q(a,x). See [Temme1994] Eq. 5.5
     taylorSeriesComplQ
       = sumPowerSeries (-x) (scanSequence (/) 1 (enumSequenceFrom 1) / enumSequenceFrom a)
