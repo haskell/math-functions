@@ -3,7 +3,7 @@ import Gauge.Main
 import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import Text.Printf
-import System.Random
+import System.Random (randomIO)
 
 import qualified Numeric.Sum as Sum
 import Numeric.SpecFunctions
