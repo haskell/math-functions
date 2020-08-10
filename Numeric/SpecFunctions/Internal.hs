@@ -409,24 +409,18 @@ incompleteGamma a x
             || (abs mu < 0.4)
     -- Gautschi's algorithm.
     --
-    -- Evaluate series for P(a,x). See [Temme1994] Eq. 5.5
-    --
-    -- Evaluation of constant multiplier is somewhat tricky. On one
-    -- hand working in linear domain gives markedly better precision
-    -- than log domain (in log domain we can easily lose 2-3
-    -- digits). On other it's prone to overflow: we're working with
-    -- exponents and gamma function here!. Solution is to try to
-    -- compute value normally and revert to log domain it anything
-    -- overflowed
+    -- Evaluate series for P(a,x). See [Temme1994] Eq. 5.5 and [NOTE:
+    -- incompleteGamma.taylorP]
     factorP
-      | isInfinite num   = logDom
-      | isInfinite denom = logDom
-      | otherwise        = num / denom
-      where
-        num    = x ** a
-        denom  = exp x * exp (logGamma (a + 1))
-        logDom = exp (log x * a - x - logGamma (a+1))
-
+      | a < 10     = x ** a
+                   / (exp x * exp (logGamma (a + 1)))
+      | a < 1182.5 = (x * exp 1 / a) ** a
+                   / exp x
+                   / sqrt (2*pi*a)
+                   / exp (logGammaCorrection a)
+      | otherwise  = (x * exp 1 / a * exp (-x/a)) ** a
+                   / sqrt (2*pi*a)
+                   / exp (logGammaCorrection a)
     taylorSeriesP
       = sumPowerSeries x (scanSequence (/) 1 $ enumSequenceFrom (a+1))
       * factorP
@@ -1337,3 +1331,53 @@ factorialTable = U.fromListN 171
   , 4.269068009004705e304
   , 7.257415615307998e306
   ]
+
+
+-- [NOTE: incompleteGamma.taylorP]
+--
+-- Incompltete gamma uses several algorithms for different parts of
+-- parameter space. Most troublesome is P(a,x) Taylor series
+-- [Temme1994,Eq.5.5] which requires to evaluate rather nasty
+-- expression:
+--
+--       x^a             x^a
+--  ------------- = -------------
+--  exp(x)·Γ(a+1)   exp(x)·a·Γ(a)
+--
+--  Conditions:
+--    | 0.5<x<1.1  = x < 4/3*a
+--    | otherwise  = x < a
+--
+-- For small `a` computation could be performed directly. However for
+-- largish values of `a` it's possible some of factor in the
+-- expression overflow. Values below take into account ranges for
+-- Taylor P approximation:
+--
+--  · a > 155    - x^a could overflow
+--  · a > 1182.5 - exp(x) could overflow
+--
+-- Usual way to avoid overflow problem is to perform calculations in
+-- the log domain. It however doesn't work very well in this case
+-- since we encounter catastrophic cancellations and could easily lose
+-- up to 6(!) digits for large `a`.
+--
+-- So we take another approach and use Stirling approximation with
+-- correction (logGammaCorrection).
+--
+--              x^a               / x·e \^a         1
+--  ≈ ------------------------- = | --- | · ----------------
+--    exp(x)·sqrt(2πa)·(a/e)^a)   \  a  /   exp(x)·sqrt(2πa)
+--
+-- We're using this approach as soon as logGammaCorrection starts
+-- working (a>10) because we don't have implementation for gamma
+-- function and exp(logGamma z) results in errors for large a.
+--
+-- Once we get into region when exp(x) could overflow we rewrite
+-- expression above once more:
+--
+--  / x·e            \^a     1
+--  | --- · e^(-x/a) | · ---------
+--  \  a             /   sqrt(2πa)
+--
+-- This approach doesn't work very well but it's still big improvement
+-- over calculations in the log domain.
