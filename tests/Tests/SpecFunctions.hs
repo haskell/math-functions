@@ -36,6 +36,13 @@ erfcTol      = 4
 erfcLargeTol = 64
 #endif
 
+isGHCJS :: Bool
+#if defined(__GHCJS__)
+isGHCJS = True
+#else
+isGHCJS = False
+#endif
+
 tests :: TestTree
 tests = testGroup "Special functions"
   [ testGroup "erf"
@@ -81,6 +88,7 @@ tests = testGroup "Special functions"
     [ testCase "incompleteGamma table" $
         forTable "tests/tables/igamma.dat" $ \[a,x,exact] -> do
           let err | a < 10    = 16
+                  | a <= 101  = if isGHCJS then 64 else 32
                   | a == 201  = 200
                   | otherwise = 32
           checkTabularPure err (show (a,x)) exact (incompleteGamma a x)
