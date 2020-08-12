@@ -1,7 +1,13 @@
+## Changes in 0.3.4.1
+
+  * Precision of `incompleteGamma` improved.
+
+
 ## Changes in 0.3.4.0
 
   * Dependency on `vector-th-unbox` is dropped. All instances are written by
     hand now.
+
 
 ## Changes in 0.3.3.0
 
