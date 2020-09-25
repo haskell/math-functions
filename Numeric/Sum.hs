@@ -54,7 +54,6 @@ import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
-import Data.Functor.Identity
 import Data.Monoid                  (Monoid(..))
 #if MIN_VERSION_base(4,9,0)
 import Data.Semigroup               (Semigroup(..))
@@ -85,10 +84,6 @@ class RealFloat a => Summation s a where
     sum :: F.Foldable f => (s a -> a) -> f a -> a
     sum f = f . F.foldl' add (zero :: s a)
     {-# INLINE sum #-}
-
-instance Summation Identity Double where
-    zero = Identity 0
-    add a b = (+) <$> a <*> pure b
 
 -- | Kahan summation. This is the least accurate of the compensated
 -- summation methods.  In practice, it only beats naive summation for

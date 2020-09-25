@@ -7,7 +7,6 @@
 module Tests.Sum (tests) where
 
 import Control.Applicative ((<$>))
-import Data.Functor.Identity
 import Foreign.C.Types
 import Numeric.Sum as Sum
 import Prelude hiding (sum)
@@ -57,7 +56,6 @@ type SummationTestTypes s =
   , Summation s Double
   , Summation s CFloat
   , Summation s CDouble
-  , Summation s (Identity Float)
   )
 
 testShifted :: forall s. SummationTestTypes s
@@ -83,7 +81,6 @@ testOnTypes f ts =
   , testGroup "Double" $ toTest (f :: s Double -> Double) <$> ts
   , testGroup "CFloat" $ toTest (f :: s CFloat -> CFloat) <$> ts
   , testGroup "CDouble" $ toTest (f :: s CDouble -> CDouble) <$> ts
-  , testGroup "Identity Float" $ toTest (f :: s (Identity Float) -> Identity Float) <$> ts
   ]
   where
     toTest f' (testName, test) = testProperty testName $ test (sum f')
