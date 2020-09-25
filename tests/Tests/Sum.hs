@@ -1,7 +1,7 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Tests.Sum (tests) where
@@ -42,45 +42,51 @@ tests = testGroup "Summation" [
       -- testProperty "t_sum_error" $ t_sum_error (sum id)
       -- testProperty "t_sum_shifted" $ t_sum_shifted (sum id)
     ]
-  , testGroup "Kahan" [
-      testGroup "Float " [
+  , testGroup "Kahan" $ testShifted kahan
       -- tests that cannot pass:
-      -- testProperty "t_sum" $ t_sum @Float (sum kahan)
-      -- testProperty "t_sum_error" $ t_sum_error @Float (sum kahan)
+      -- testProperty "t_sum" $ t_sum (sum kahan)
+      -- testProperty "t_sum_error" $ t_sum_error (sum kahan)
 
       -- kahan summation only beats normal summation with large values
-        testProperty "t_sum_shifted" $ t_sum_shifted @Float (sum kahan)
-      ]
-    , testGroup "Double" [
-        testProperty "t_sum_shifted" $ t_sum_shifted @Double (sum kahan)
-      ]
-    ]
   , testGroup "KBN" $ testSum kbn
   , testGroup "KB2" $ testSum kb2
   ]
 
-testSum :: ( Summation s Float
-           , Summation s Double
-           , Summation s CFloat
-           , Summation s CDouble
-           , Summation s (Identity Float)
-           )
+type SummationTestTypes s =
+  ( Summation s Float
+  , Summation s Double
+  , Summation s CFloat
+  , Summation s CDouble
+  , Summation s (Identity Float)
+  )
+
+testShifted :: forall s. SummationTestTypes s
+            => (forall a. Summation s a => s a -> a)
+            -> [TestTree]
+testShifted f = testOnTypes f [ ("t_sum_shifted", t_sum_shifted) ]
+
+testSum :: forall s. SummationTestTypes s
         => (forall a. Summation s a => s a -> a)
         -> [TestTree]
-testSum f =
-  [ testGroup "Float" $ testSumOnType @Float f
-  , testGroup "Double" $ testSumOnType @Double f
-  , testGroup "CFloat" $ testSumOnType @CFloat f
-  , testGroup "CDouble" $ testSumOnType @CDouble f
-  , testGroup "Identity Float" $ testSumOnType @(Identity Float) f
+testSum f = testOnTypes f
+  [ ("t_sum", t_sum)
+  , ("t_sum_error", t_sum_error)
+  , ("t_sum_shifted", t_sum_shifted)
   ]
 
-testSumOnType :: forall a s. (Arbitrary a, Show a, Summation s a) => (s a -> a) -> [TestTree]
-testSumOnType f =
-  [ testProperty "t_sum" $ t_sum @a (sum f)
-  , testProperty "t_sum_error" $ t_sum_error @a (sum f)
-  , testProperty "t_sum_shifted" $ t_sum_shifted @a (sum f)
+testOnTypes :: forall s. SummationTestTypes s
+            => (forall a. Summation s a => s a -> a)
+            -> (forall a. Summation s a => [ (String, ([a] -> a) -> [a] -> Bool) ])
+            -> [TestTree]
+testOnTypes f ts =
+  [ testGroup "Float" $ toTest (f :: s Float -> Float) <$> ts
+  , testGroup "Double" $ toTest (f :: s Double -> Double) <$> ts
+  , testGroup "CFloat" $ toTest (f :: s CFloat -> CFloat) <$> ts
+  , testGroup "CDouble" $ toTest (f :: s CDouble -> CDouble) <$> ts
+  , testGroup "Identity Float" $ toTest (f :: s (Identity Float) -> Identity Float) <$> ts
   ]
+  where
+    toTest f' (testName, test) = testProperty testName $ test (sum f')
 
 instance Arbitrary a => Arbitrary (KahanSum a) where
     arbitrary = toKahan <$> arbitrary
