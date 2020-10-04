@@ -355,7 +355,7 @@ sumVector f = f . foldl' add zero
 -- bounds on its error growth.  Instead of having roughly constant
 -- error regardless of the size of the input vector, in the worst case
 -- its accumulated error grows with /O(log n)/.
-pairwiseSum :: (Vector v Double) => v Double -> Double
+pairwiseSum :: RealFloat a => (Vector v a) => v a -> a
 pairwiseSum v
   | len <= 256 = G.sum v
   | otherwise  = uncurry (+) . (pairwiseSum *** pairwiseSum) .
@@ -377,7 +377,7 @@ pairwiseSum v
 -- computes the sum of elements in a list.
 --
 -- @
--- sillySumList :: [Double] -> Double
+-- sillySumList :: RealFloat a => [a] -> a
 -- sillySumList = loop 'zero'
 --   where loop s []     = 'kbn' s
 --         loop s (x:xs) = 'seq' s' loop s' xs
@@ -391,7 +391,7 @@ pairwiseSum v
 -- -- Avoid ambiguity around which sum function we are using.
 -- import Prelude hiding (sum)
 -- --
--- betterSumList :: [Double] -> Double
+-- betterSumList :: RealFloat a => [a] -> a
 -- betterSumList xs = 'Numeric.Sum.sum' 'kbn' xs
 -- @
 
@@ -404,7 +404,7 @@ pairwiseSum v
 -- intermediate values are as accurate as possible.
 --
 -- @
--- prefixSum :: [Double] -> [Double]
+-- prefixSum :: RealFloat a => [a] -> [a]
 -- prefixSum xs = map 'kbn' . 'scanl' 'add' 'zero' $ xs
 -- @
 
