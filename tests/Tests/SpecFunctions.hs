@@ -26,14 +26,20 @@ import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
 erfTol,erfcTol,erfcLargeTol :: Int
-#if USE_SYSTEM_ERF && !defined(__GHCJS__)
-erfTol       = 1
-erfcTol      = 2
-erfcLargeTol = 2
-#else
+-- Pure haskell implementation is not very good
+#if !defined(USE_SYSTEM_ERF) || defined(__GHCJS__)
 erfTol       = 4
 erfcTol      = 4
 erfcLargeTol = 64
+-- Macos's erf is slightly worse that GNU one
+#elif defined(darwin_HOST_OS)
+erfTol       = 2
+erfcTol      = 2
+erfcLargeTol = 2
+#else
+erfTol       = 1
+erfcTol      = 2
+erfcLargeTol = 2
 #endif
 
 isGHCJS :: Bool
@@ -42,6 +48,14 @@ isGHCJS = True
 #else
 isGHCJS = False
 #endif
+
+isWindows :: Bool
+#if defined(mingw32_HOST_OS)
+isWindows = True
+#else
+isWindows = False
+#endif
+
 
 tests :: TestTree
 tests = testGroup "Special functions"
@@ -88,7 +102,10 @@ tests = testGroup "Special functions"
     [ testCase "incompleteGamma table" $
         forTable "tests/tables/igamma.dat" $ \[a,x,exact] -> do
           let err | a < 10    = 16
-                  | a <= 101  = if isGHCJS then 64 else 32
+                  | a <= 101  = case () of
+                      _| isGHCJS   -> 64
+                       | isWindows -> 64
+                       | otherwise -> 32
                   | a == 201  = 200
                   | otherwise = 32
           checkTabularPure err (show (a,x)) exact (incompleteGamma a x)
@@ -183,7 +200,7 @@ tests = testGroup "Special functions"
     [ testCase "choose table" $
       forM_ [0 .. 1000] $ \n ->
         forM_ [0 .. n]  $ \k -> do
-          checkTabular 2048
+          checkTabular (if isWindows then 3072 else 2048)
             (show (n,k))
             (fromIntegral $ choose' n k)
             (choose (fromInteger n) (fromInteger k))
