@@ -137,6 +137,12 @@ tests = testGroup "Special functions"
     --
     , testProperty "0 <= I[B] <= 1" incompleteBetaInRange
     , testProperty "ibeta symmetry" incompleteBetaSymmetry
+    , testCase "Regression #68" $ do
+        let a = 1
+            b = 0.3
+            p = 0.3
+            x = invIncompleteBeta a b p
+        assertBool "Inversion OK" $ incompleteBeta a b x `ulpDistance` p < 4
     -- XXX FIXME DISABLED due to failures
     -- , testProperty "invIncompleteBeta  = B^-1" $ invIBetaIsInverse
     ]

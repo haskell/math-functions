@@ -777,7 +777,7 @@ invIncBetaGuess beta a b p
     in x
   -- For small a and not too big b we use approximation from boost.
   | b < 5 && a <= 1 =
-    let x | p**(1/a) < 0.5 = (p * a * exp beta) ** (1/a)
+    let x | p**(1/a) < 0.5 = (p ** (a * exp beta)) ** (1/a)
           | otherwise      = 1 - (1 - p ** (b * exp beta))**(1/b)
     in x
   -- When a>>b and both are large approximation from [Temme1992],
