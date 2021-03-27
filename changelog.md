@@ -1,3 +1,9 @@
+## Changes in 0.3.4.2
+
+  * Fixed crash in `invIncompleteBeta` (#68) for some inputs initial approximation
+    was computed incorrectly.
+
+
 ## Changes in 0.3.4.1
 
   * Precision of `incompleteGamma` improved.
