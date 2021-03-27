@@ -228,14 +228,18 @@ roundtrip_erfc_invErfc,
   roundtrip_invErfc_erfc,
   roundtrip_erf_invErf
   :: (Double,Double)
-#if USE_SYSTEM_ERF && !defined(__GHCJS__)
-roundtrip_erfc_invErfc = (2,2)
-roundtrip_invErfc_erfc = (2,2)
-roundtrip_erf_invErf   = (1,1)
-#else
+#if !defined(USE_SYSTEM_ERF) || defined(__GHCJS__)
 roundtrip_erfc_invErfc = (2,8)
 roundtrip_invErfc_erfc = (8,4)
 roundtrip_erf_invErf   = (128,128)
+#elif defined(darwin_HOST_OS)
+roundtrip_erfc_invErfc = (4,4)
+roundtrip_invErfc_erfc = (4,4)
+roundtrip_erf_invErf   = (2,2)
+#else
+roundtrip_erfc_invErfc = (2,2)
+roundtrip_invErfc_erfc = (2,2)
+roundtrip_erf_invErf   = (1,1)
 #endif
 
 -- id ≈ erfc . invErfc
