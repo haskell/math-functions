@@ -283,7 +283,7 @@ tableLogGamma_2_3Q = U.fromList
 
 -- For small z we can just use Gamma function recurrence and reduce
 -- problem to interval [2,3] and use polynomial approximation
--- there. Surpringly it gives very good precision
+-- there. Surprisingly it gives very good precision
 lgammaSmall :: Double -> Double
 lgammaSmall = go 0
   where
@@ -297,7 +297,7 @@ lgammaSmall = go 0
 --
 -- > Γ(z) = sqrt(2π)(z + g - 0.5)^(z - 0.5)·exp{-(z + g - 0.5)}·A_g(z)
 --
--- Coeffients are taken from boost. Constants are absorbed into
+-- Coefficients are taken from boost. Constants are absorbed into
 -- polynomial's coefficients.
 lanczosApprox :: Double -> Double
 lanczosApprox z
@@ -619,7 +619,7 @@ incompleteBeta_ beta p q x
   | otherwise        = 1 - incompleteBetaWorker beta q p (1 - x)
 
 
--- Approximation of incomplete beta by quandrature.
+-- Approximation of incomplete beta by quadrature.
 --
 -- Note that x =< p/(p+q)
 incompleteBetaApprox :: Double -> Double -> Double -> Double -> Double
@@ -750,7 +750,7 @@ invIncBetaGuess :: Double -> Double -> Double -> Double -> Double
 -- It's really hodgepodge of different approximations accumulated over years.
 --
 -- Equations are referred to by name of paper and number e.g. [AS64 2]
--- In AS64 papers equations are not numbered so they are refered to by
+-- In AS64 papers equations are not numbered so they are referred to by
 -- number of appearance starting from definition of incomplete beta.
 invIncBetaGuess beta a b p
   -- If both a and b are less than 1 incomplete beta have inflection
