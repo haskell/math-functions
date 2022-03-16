@@ -69,7 +69,7 @@ evaluateOddPolynomial x coefs
 -- $lists
 --
 -- When all coefficients are known statically it's more convenient to
--- pass coefficient in a list instad of vector. Functions below
+-- pass coefficient in a list instead of vector. Functions below
 -- provide just that functionality. If list is known statically it
 -- will be inlined anyway.
 

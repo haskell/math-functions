@@ -71,7 +71,7 @@ chebyshevBroucke x = fini . G.foldr' step (B 0 0 0)
 --
 -- * Broucke, R. (1973) Algorithm 446: Ten subroutines for the
 --   manipulation of Chebyshev series. /Communications of the ACM/
---   16(4):254&#8211;256.  <http://doi.acm.org/10.1145/362003.362037>
+--   16(4):254–256.  <http://doi.acm.org/10.1145/362003.362037>
 --
 -- * Clenshaw, C.W. (1962) Chebyshev series for mathematical
 --   functions. /National Physical Laboratory Mathematical Tables 5/,
