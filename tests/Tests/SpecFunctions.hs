@@ -60,7 +60,7 @@ isWindows = False
 tests :: TestTree
 tests = testGroup "Special functions"
   [ testGroup "erf"
-    [ -- implementation from numerical recipes loses presision for
+    [ -- implementation from numerical recipes loses precision for
       -- large arguments
       testCase "erfc table" $
         forTable "tests/tables/erfc.dat" $ \[x, exact] ->
