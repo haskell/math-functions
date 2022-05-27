@@ -27,7 +27,7 @@ import GHC.Float (log1p,expm1)
 ----------------------------------------------------------------
 -- erf & erfc
 --
--- We provide pure haskell implementation for GHCJS and accesible on
+-- We provide pure haskell implementation for GHCJS and accessible on
 -- GHC via flag
 ----------------------------------------------------------------
 
