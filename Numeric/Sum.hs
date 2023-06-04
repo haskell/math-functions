@@ -54,7 +54,7 @@ import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
 import Data.Semigroup               (Semigroup(..))
-import Data.Vector.Generic          (Vector(..), foldl')
+import Data.Vector.Generic          (Vector(..))
 -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
 import Control.Monad (liftM)
 import Data.Vector.Generic.Mutable (MVector(..))
@@ -343,7 +343,7 @@ kb2 (KB2Sum sum c cc) = sum + c + cc
 -- | /O(n)/ Sum a vector of values.
 sumVector :: (Vector v Double, Summation s) =>
              (s -> Double) -> v Double -> Double
-sumVector f = f . foldl' add zero
+sumVector f = f . G.foldl' add zero
 {-# INLINE sumVector #-}
 
 -- | /O(n)/ Sum a vector of values using pairwise summation.
