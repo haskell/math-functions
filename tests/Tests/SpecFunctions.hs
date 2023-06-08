@@ -36,6 +36,11 @@ erfcLargeTol = 64
 erfTol       = 2
 erfcTol      = 2
 erfcLargeTol = 2
+-- Windows' one is not very good too
+#elif defined(mingw32_HOST_OS)
+erfTol       = 2
+erfcTol      = 2
+erfcLargeTol = 4
 #else
 erfTol       = 1
 erfcTol      = 2
@@ -236,6 +241,10 @@ roundtrip_erf_invErf   = (128,128)
 roundtrip_erfc_invErfc = (4,4)
 roundtrip_invErfc_erfc = (4,4)
 roundtrip_erf_invErf   = (2,2)
+#elif defined(mingw32_HOST_OS)
+roundtrip_erfc_invErfc = (4,4)
+roundtrip_invErfc_erfc = (4,4)
+roundtrip_erf_invErf   = (4,4)
 #else
 roundtrip_erfc_invErfc = (2,2)
 roundtrip_invErfc_erfc = (2,2)
