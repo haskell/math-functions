@@ -18,8 +18,7 @@ import Numeric.Series
 
 -- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0). GHCJS
 -- doesn't
-#define USE_GHC_LOG1P_EXP1M (MIN_VERSION_base(4,9,0) && !defined(__GHCJS__))
-#if USE_GHC_LOG1P_EXP1M
+#if !defined(__GHCJS__)
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -103,20 +102,14 @@ erfcCoef = U.fromList
 
 
 ----------------------------------------------------------------
--- expm1
+-- expm1 & log1p
 --
--- We use version provided by GHC is available otherwise we can either
--- get from libc or if everything else fails use one from library
+-- We use one provided by base of for GHCJS use hand-coded one
 ----------------------------------------------------------------
 
-#if !USE_GHC_LOG1P_EXP1M
+#if defined(__GHCJS__)
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
-#if USE_SYSTEM_EXPM1 && !defined(__GHCJS__)
-expm1 = c_expm1
-
-foreign import ccall unsafe "expm1" c_expm1 :: Double -> Double
-#else
 -- NOTE: this is simplest implementation and not terribly efficient.
 expm1 x
   | x < (-37.42994775023705) = -1
@@ -124,17 +117,6 @@ expm1 x
   | abs x > 0.5              = exp x - 1
   | otherwise                = sumSeries $ liftA2 (*) (scanSequence (*) x (pure x))
                                                       (1 / scanSequence (*) 1 (enumSequenceFrom 2))
-#endif
-#endif
-
-
-----------------------------------------------------------------
--- log1p
---
--- Basically same as exm1
-----------------------------------------------------------------
-
-#if !USE_GHC_LOG1P_EXP1M
 -- | Compute the natural logarithm of 1 + @x@.  This is accurate even
 --   for values of @x@ near zero, where use of @log(1+x)@ would lose
 --   precision.

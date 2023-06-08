@@ -20,18 +20,17 @@ description:
   polynomials. 
 
 tested-with:
-    GHC ==7.4.2
-     || ==7.6.3
-     || ==7.8.4
-     || ==7.10.3
-     || ==8.0.2
+    GHC ==8.0.2
      || ==8.2.2
      || ==8.4.4
      || ==8.6.5
      || ==8.8.4
-     || ==8.10.2
-     || ==9.0.1
-  , GHCJS ==8.4
+     || ==8.10.7
+     || ==9.0.2
+     || ==9.2.7
+     || ==9.4.5
+     || ==9.6.2
+
 
 extra-source-files:
                    changelog.md
@@ -42,15 +41,6 @@ extra-source-files:
                    tests/tables/*.dat
                    tests/tables/inputs/*.dat
                    doc/sinc.hs
-
-flag system-expm1
-     description: Use expm1 provided by system. For GHC newer that
-                  8.0, GHCJS, and on Windows has no effect. GHC>=8.0
-                  provides expm1 so it's used. On GHCJS and on Windows
-                  we don't have C implementation so bundled one is
-                  used instead.
-     default:     True
-     manual:      True
 
 flag system-erf
      description: Use erf and erfc provided by system. On GHCJS
@@ -72,14 +62,12 @@ library
     DeriveGeneric
 
   ghc-options:          -Wall -O2
-  build-depends:        base                >= 4.5 && < 5
+  build-depends:        base                >= 4.9 && < 5
                       , deepseq
                       , data-default-class  >= 0.1.2.0
                       , vector              >= 0.11
                       , primitive
-  if flag(system-expm1) && !os(windows)
-    cpp-options: -DUSE_SYSTEM_EXPM1
-  if flag(system-erf)   && !impl(ghcjs)
+  if flag(system-erf) && !impl(ghcjs)
     cpp-options: -DUSE_SYSTEM_ERF
   exposed-modules:
     Numeric.MathFunctions.Constants
