@@ -131,7 +131,7 @@ test-suite math-function-tests
 
 benchmark math-functions-bench
   type:             exitcode-stdio-1.0
-  if impl(ghc <= 7.10 ) || impl(ghcjs)
+  if impl(ghcjs)
      buildable: False
   default-language: Haskell2010
   other-extensions:
@@ -152,7 +152,7 @@ benchmark math-functions-bench
                       , data-default-class
                       , vector
                       , random
-                      , gauge               >=0.2.5
+                      , tasty-bench         >=0.3.4
 
 source-repository head
   type:     git
