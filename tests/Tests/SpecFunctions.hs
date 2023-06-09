@@ -22,7 +22,7 @@ import Tests.Helpers
 import Tests.SpecFunctions.Tables
 import Numeric.SpecFunctions
 import Numeric.SpecFunctions.Internal   (factorialTable)
-import Numeric.MathFunctions.Comparison (within,relativeError,ulpDistance)
+import Numeric.MathFunctions.Comparison (within,ulpDistance)
 import Numeric.MathFunctions.Constants  (m_epsilon,m_tiny)
 
 erfTol,erfcTol,erfcLargeTol :: Int

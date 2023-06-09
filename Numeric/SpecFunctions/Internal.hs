@@ -16,7 +16,6 @@ module Numeric.SpecFunctions.Internal
     , Compat.expm1
     ) where
 
-import Control.Applicative
 import Data.Bits          ((.&.), (.|.), shiftR)
 import Data.Int           (Int64)
 import Data.Word          (Word)

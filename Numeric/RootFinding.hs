@@ -44,7 +44,6 @@ import Control.Applicative              (Alternative(..), Applicative(..))
 import Control.Monad                    (MonadPlus(..), ap)
 import Control.DeepSeq                  (NFData(..))
 import Data.Data                        (Data, Typeable)
-import Data.Monoid                      (Monoid(..))
 import Data.Foldable                    (Foldable)
 import Data.Traversable                 (Traversable)
 import Data.Default.Class
