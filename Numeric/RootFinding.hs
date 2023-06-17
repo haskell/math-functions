@@ -1,5 +1,4 @@
 {-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable     #-}
 {-# LANGUAGE DeriveGeneric      #-}
@@ -40,16 +39,12 @@ module Numeric.RootFinding
     -- $references
     ) where
 
-import Control.Applicative              (Alternative(..), Applicative(..))
+import Control.Applicative              (Alternative(..))
 import Control.Monad                    (MonadPlus(..), ap)
 import Control.DeepSeq                  (NFData(..))
 import Data.Data                        (Data, Typeable)
-import Data.Foldable                    (Foldable)
-import Data.Traversable                 (Traversable)
 import Data.Default.Class
-#if __GLASGOW_HASKELL__ > 704
 import GHC.Generics                     (Generic)
-#endif
 import Numeric.MathFunctions.Comparison (within,eqRelErr)
 import Numeric.MathFunctions.Constants  (m_epsilon)
 
@@ -69,9 +64,7 @@ data Root a = NotBracketed
             | Root !a
             -- ^ A root was successfully found.
               deriving (Eq, Read, Show, Typeable, Data, Foldable, Traversable
-#if __GLASGOW_HASKELL__ > 704
                        , Generic
-#endif
                        )
 
 instance (NFData a) => NFData (Root a) where
@@ -127,11 +120,7 @@ data Tolerance
     --   considered approximately equal if \[ |a - b| < \delta \].
     --   Note that @AbsTol 0@ could be used to require to find
     --   approximation within machine precision.
-  deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ > 704
-           , Generic
-#endif
-           )
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
 
 -- | Check that two values are approximately equal. In addition to
 --   specification values are considered equal if they're within 1ulp
@@ -178,11 +167,7 @@ data RiddersParam = RiddersParam
     -- ^ Error tolerance for root approximation. Default is relative
     --   error 4·ε, where ε is machine precision.
   }
-  deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ > 704
-           , Generic
-#endif
-           )
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
 
 instance Default RiddersParam where
   def = RiddersParam
@@ -201,11 +186,7 @@ data RiddersStep
   -- ^ Root found
   | RiddersNoBracket
   -- ^ Root is not bracketed
-  deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ > 704
-           , Generic
-#endif
-           )
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
 
 instance NFData RiddersStep where
   rnf x = x `seq` ()
@@ -294,11 +275,7 @@ data NewtonParam = NewtonParam
     -- ^ Error tolerance for root approximation. Default is relative
     --   error 4·ε, where ε is machine precision
   }
-  deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ > 704
-           , Generic
-#endif
-           )
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
 
 instance Default NewtonParam where
   def = NewtonParam
@@ -317,11 +294,8 @@ data NewtonStep
   -- ^ Root is found
   | NewtonNoBracket
   -- ^ Root is not bracketed
-  deriving (Eq, Read, Show, Typeable, Data
-#if __GLASGOW_HASKELL__ > 704
-           , Generic
-#endif
-           )
+  deriving (Eq, Read, Show, Typeable, Data, Generic)
+
 instance NFData NewtonStep where
   rnf x = x `seq` ()
 

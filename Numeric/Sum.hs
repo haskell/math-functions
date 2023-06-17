@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable, FlexibleContexts,
-    MultiParamTypeClasses, TypeFamilies, CPP #-}
+    MultiParamTypeClasses, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- |
 -- Module    : Numeric.Sum
@@ -53,10 +53,7 @@ import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
-import Data.Monoid                  (Monoid(..))
-#if MIN_VERSION_base(4,9,0)
 import Data.Semigroup               (Semigroup(..))
-#endif
 import Data.Vector.Generic          (Vector(..), foldl')
 -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
 import Control.Monad (liftM)
@@ -159,11 +156,9 @@ instance Monoid KahanSum where
   mempty = zero
   s `mappend` KahanSum s' _ = add s s'
 
-#if MIN_VERSION_base(4,9,0)
 -- | @since 0.3.0.0
 instance Semigroup KahanSum where
   (<>) = mappend
-#endif
 
 kahanAdd :: KahanSum -> Double -> KahanSum
 kahanAdd (KahanSum sum c) x = KahanSum sum' c'
@@ -241,11 +236,9 @@ instance Monoid KBNSum where
   mempty = zero
   s `mappend` KBNSum s' c' = add (add s s') c'
 
-#if MIN_VERSION_base(4,9,0)
 -- | @since 0.3.0.0
 instance Semigroup KBNSum where
   (<>) = mappend
-#endif
 
 kbnAdd :: KBNSum -> Double -> KBNSum
 kbnAdd (KBNSum sum c) x = KBNSum sum' c'
@@ -329,11 +322,9 @@ instance Monoid KB2Sum where
   mempty = zero
   s `mappend` KB2Sum s' c' cc' = add (add (add s s') c') cc'
 
-#if MIN_VERSION_base(4,9,0)
 -- | @since 0.3.0.0
 instance Semigroup KB2Sum where
   (<>) = mappend
-#endif
 
 
 kb2Add :: KB2Sum -> Double -> KB2Sum
