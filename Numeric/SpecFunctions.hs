@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 -- |
 -- Module    : Numeric.SpecFunctions
 -- Copyright : (c) 2009, 2011, 2012 Bryan O'Sullivan
