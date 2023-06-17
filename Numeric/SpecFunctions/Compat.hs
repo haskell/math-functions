@@ -9,12 +9,21 @@ module Numeric.SpecFunctions.Compat (
   , expm1
   ) where
 
-import Control.Applicative
+#if !defined(USE_SYSTEM_ERF) || !defined(USE_SYSTEM_EXPM1)
 import qualified Data.Vector.Unboxed as U
-import Numeric.MathFunctions.Constants
-import Numeric.Polynomial.Chebyshev    (chebyshev,chebyshevBroucke)
+#endif
+
+#if !defined(USE_SYSTEM_ERF)
+import Numeric.Polynomial.Chebyshev    (chebyshev)
 import Numeric.Polynomial              (evaluateOddPolynomial)
-import Numeric.Series
+#endif
+
+#if !defined(USE_SYSTEM_EXPM1)
+import Control.Applicative             (liftA2)
+import Numeric.Polynomial.Chebyshev    (chebyshevBroucke)
+import Numeric.Series                  (scanSequence,sumSeries,enumSequenceFrom)
+import Numeric.MathFunctions.Constants
+#endif
 
 #if defined(USE_SYSTEM_EXPM1)
 import GHC.Float (log1p,expm1)
