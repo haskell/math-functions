@@ -42,6 +42,12 @@ extra-source-files:
                    tests/tables/inputs/*.dat
                    doc/sinc.hs
 
+flag system-expm1
+     description: Use expm1 provided by GHC. On GHCJS we don't have one so we
+                  have to use hand-coded one.
+     default:     True
+     manual:      True
+
 flag system-erf
      description: Use erf and erfc provided by system. On GHCJS
                   version provided by library is used regardless of
@@ -67,6 +73,8 @@ library
                       , data-default-class  >= 0.1.2.0
                       , vector              >= 0.11
                       , primitive
+  if flag(system-expm1) && !impl(ghcjs)
+    cpp-options: -DUSE_SYSTEM_EXPM1
   if flag(system-erf) && !impl(ghcjs)
     cpp-options: -DUSE_SYSTEM_ERF
   exposed-modules:

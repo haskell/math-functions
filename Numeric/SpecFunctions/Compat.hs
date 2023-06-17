@@ -16,9 +16,7 @@ import Numeric.Polynomial.Chebyshev    (chebyshev,chebyshevBroucke)
 import Numeric.Polynomial              (evaluateOddPolynomial)
 import Numeric.Series
 
--- GHC.Float provides log1p and expm1 since base-4.9.0 (GHC8.0). GHCJS
--- doesn't
-#if !defined(__GHCJS__)
+#if defined(USE_SYSTEM_EXPM1)
 import GHC.Float (log1p,expm1)
 #endif
 
@@ -30,7 +28,7 @@ import GHC.Float (log1p,expm1)
 -- GHC via flag
 ----------------------------------------------------------------
 
-#if USE_SYSTEM_ERF && !defined(__GHCJS__)
+#if defined(USE_SYSTEM_ERF)
 
 erf :: Double -> Double
 erf = c_erf
@@ -107,7 +105,8 @@ erfcCoef = U.fromList
 -- We use one provided by base of for GHCJS use hand-coded one
 ----------------------------------------------------------------
 
-#if defined(__GHCJS__)
+#if !defined(USE_SYSTEM_EXPM1)
+
 -- | Compute @exp x - 1@ without loss of accuracy for x near zero.
 expm1 :: Double -> Double
 -- NOTE: this is simplest implementation and not terribly efficient.

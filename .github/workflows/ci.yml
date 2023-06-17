@@ -12,12 +12,12 @@ defaults:
 
 jobs:
   cabal:
-    name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
+    name: ${{ matrix.os }} / ghc ${{ matrix.ghc }} ${{matrix.flags}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          ### -- Linux --
+          # -- Linux --
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "8.0.2"  }
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "8.2.2"  }
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "8.4.4"  }
@@ -27,8 +27,10 @@ jobs:
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.0.2"  }
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.2.7"  }
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.4.5"  }
+          - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.4.5", flags: "-system-erf"  }
+          - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.4.5", flags: "-system-expm1"}
           - { cabal: "3.6", os: ubuntu-latest,  ghc: "9.6.2"  }
-          ## -- Win --
+          # -- Win --
           - { cabal: "3.6", os: windows-latest, ghc: "8.4.4"  }
           - { cabal: "3.6", os: windows-latest, ghc: "8.6.5"  }
           - { cabal: "3.6", os: windows-latest, ghc: "8.8.4"  }
@@ -92,7 +94,7 @@ jobs:
       run: |
         if [ "${{ matrix.skip-test  }}" == "" ]; then FLAG_TEST=--enable-test; fi
         if [ "${{ matrix.skip-bench }}" == "" ]; then FLAG_BENCH=--enable-benchmarks; fi
-        cabal configure $FLAG_TEST $FLAG_BENCH
+        cabal configure $FLAG_TEST $FLAG_BENCH --flags='${{matrix.flags}}'
         cabal build all --write-ghc-environment-files=always
     # ----------------
     - name: Test
