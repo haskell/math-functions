@@ -6,8 +6,8 @@ license-file:   LICENSE
 author:         Bryan O'Sullivan <bos@serpentine.com>,
                 Alexey Khudyakov <alexey.skladnoy@gmail.com>
 maintainer:     Alexey Khudyakov <alexey.skladnoy@gmail.com>
-homepage:       https://github.com/bos/math-functions
-bug-reports:    https://github.com/bos/math-functions/issues
+homepage:       https://github.com/haskell/math-functions
+bug-reports:    https://github.com/haskell/math-functions/issues
 category:       Math, Numeric
 build-type:     Simple
 synopsis:       Collection of tools for numeric computations
