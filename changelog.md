@@ -1,3 +1,10 @@
+## Changes in 0.3.4.3
+ 
+  * Support for `QuickCheck >= 2.14`. Test no longer fail
+
+  * Support for GHC<8.0 dropped
+  
+
 ## Changes in 0.3.4.2
 
   * Fixed crash in `invIncompleteBeta` (#68) for some inputs initial approximation
