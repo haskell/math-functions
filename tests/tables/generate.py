@@ -46,7 +46,7 @@ def load_inputs(path):
 
 
 def load_inputs_cartesian(path):
-    "Load inputs for several variables where we want to genrate all pair"
+    "Load inputs for several variables where we want to generate all pair"
     with open(path) as f:
         for x in itertools.product(*tokenize_stream(skip_comments(f))):
             yield x

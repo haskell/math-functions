@@ -150,7 +150,7 @@ logGamma z
   -- > (z + 1) - 1 = z
   -- > (z + 1) - 2 = z - 1
   --
-  -- Simple passing (z + 1) to piecewise approxiations and computing
+  -- Simple passing (z + 1) to piecewise approximations and computing
   -- difference leads to bad loss of precision near 1.
   -- This is reason lgamma1_15 & lgamma15_2 have three parameters
   | z < 0.5   = lgamma1_15 z (z - 1) - log z
@@ -515,7 +515,7 @@ invIncompleteGamma a p
         -- New approximation to x
         x'   | x < dx    = 0.5 * x -- Do not go below 0
              | otherwise = x - dx
-    -- Calculate inital guess for root
+    -- Calculate initial guess for root
     guess
       --
       | a > 1   =
