@@ -53,7 +53,7 @@ import Control.Arrow ((***))
 import Control.DeepSeq (NFData(..))
 import Data.Bits (shiftR)
 import Data.Data (Typeable, Data)
-import Data.Semigroup               (Semigroup(..))
+import Data.Semigroup               (Semigroup(..)) -- Needed for GHC <8.4
 import Data.Vector.Generic          (Vector(..))
 -- Needed for GHC 7.2 & 7.4 to derive Unbox instances
 import Control.Monad (liftM)

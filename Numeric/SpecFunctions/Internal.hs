@@ -18,7 +18,6 @@ module Numeric.SpecFunctions.Internal
 
 import Data.Bits          ((.&.), (.|.), shiftR)
 import Data.Int           (Int64)
-import Data.Word          (Word)
 import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import           Data.Vector.Unboxed   ((!))
