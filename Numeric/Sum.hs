@@ -154,11 +154,11 @@ instance NFData KahanSum where
 -- | @since 0.3.0.0
 instance Monoid KahanSum where
   mempty = zero
-  s `mappend` KahanSum s' _ = add s s'
+  mappend = (<>)
 
 -- | @since 0.3.0.0
 instance Semigroup KahanSum where
-  (<>) = mappend
+  s <> KahanSum s' _ = add s s'
 
 kahanAdd :: KahanSum -> Double -> KahanSum
 kahanAdd (KahanSum sum c) x = KahanSum sum' c'
@@ -234,11 +234,12 @@ instance NFData KBNSum where
 -- | @since 0.3.0.0
 instance Monoid KBNSum where
   mempty = zero
-  s `mappend` KBNSum s' c' = add (add s s') c'
+  mappend = (<>)
 
 -- | @since 0.3.0.0
 instance Semigroup KBNSum where
-  (<>) = mappend
+  s <> KBNSum s' c' = add (add s s') c'
+  
 
 kbnAdd :: KBNSum -> Double -> KBNSum
 kbnAdd (KBNSum sum c) x = KBNSum sum' c'
@@ -320,11 +321,11 @@ instance NFData KB2Sum where
 -- | @since 0.3.0.0
 instance Monoid KB2Sum where
   mempty = zero
-  s `mappend` KB2Sum s' c' cc' = add (add (add s s') c') cc'
+  mappend = (<>)
 
 -- | @since 0.3.0.0
 instance Semigroup KB2Sum where
-  (<>) = mappend
+  s <> KB2Sum s' c' cc' = add (add (add s s') c') cc'
 
 
 kb2Add :: KB2Sum -> Double -> KB2Sum

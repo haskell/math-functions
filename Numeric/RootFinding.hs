@@ -55,37 +55,31 @@ import Numeric.MathFunctions.Constants  (m_epsilon)
 ----------------------------------------------------------------
 
 -- | The result of searching for a root of a mathematical function.
-data Root a = NotBracketed
-            -- ^ The function does not have opposite signs when
-            -- evaluated at the lower and upper bounds of the search.
-            | SearchFailed
-            -- ^ The search failed to converge to within the given
-            -- error tolerance after the given number of iterations.
-            | Root !a
-            -- ^ A root was successfully found.
-              deriving (Eq, Read, Show, Typeable, Data, Foldable, Traversable
-                       , Generic
-                       )
+data Root a
+  = NotBracketed
+    -- ^ The function does not have opposite signs when
+    -- evaluated at the lower and upper bounds of the search.
+  | SearchFailed
+    -- ^ The search failed to converge to within the given
+    -- error tolerance after the given number of iterations.
+  | Root !a
+    -- ^ A root was successfully found.
+  deriving (Eq, Read, Show, Typeable, Data, Foldable, Traversable, Functor, Generic)
 
 instance (NFData a) => NFData (Root a) where
     rnf NotBracketed = ()
     rnf SearchFailed = ()
     rnf (Root a)     = rnf a
 
-instance Functor Root where
-    fmap _ NotBracketed = NotBracketed
-    fmap _ SearchFailed = SearchFailed
-    fmap f (Root a)     = Root (f a)
-
 instance Applicative Root where
-    pure  = return
+    pure  = Root
     (<*>) = ap
 
 instance Monad Root where
     NotBracketed >>= _ = NotBracketed
     SearchFailed >>= _ = SearchFailed
     Root a       >>= f = f a
-    return = Root
+    return = pure
 
 instance MonadPlus Root where
     mzero = empty
