@@ -1,3 +1,9 @@
+## Changes in 0.3.4.4
+
+  * Support for future versions of GHC. Monoid and Monad instances now have
+    canonical form
+
+
 ## Changes in 0.3.4.3
  
   * Support for `QuickCheck >= 2.14`. Test no longer fail
