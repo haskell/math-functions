@@ -1,15 +1,16 @@
+cabal-version:  3.0
+build-type:     Simple
 name:           math-functions
 version:        0.3.4.4
-cabal-version:  >= 1.10
-license:        BSD2
+license:        BSD-2-Clause
 license-file:   LICENSE
+
 author:         Bryan O'Sullivan <bos@serpentine.com>,
                 Alexey Khudyakov <alexey.skladnoy@gmail.com>
 maintainer:     Alexey Khudyakov <alexey.skladnoy@gmail.com>
 homepage:       https://github.com/haskell/math-functions
 bug-reports:    https://github.com/haskell/math-functions/issues
 category:       Math, Numeric
-build-type:     Simple
 synopsis:       Collection of tools for numeric computations
 description:
 
@@ -31,7 +32,6 @@ tested-with:
      || ==9.4.5
      || ==9.6.2
 
-
 extra-source-files:
                    changelog.md
                    README.markdown
@@ -41,6 +41,10 @@ extra-source-files:
                    tests/tables/*.dat
                    tests/tables/inputs/*.dat
                    doc/sinc.hs
+
+source-repository head
+  type:     git
+  location: https://github.com/bos/math-functions
 
 flag system-expm1
      description: Use expm1 provided by GHC. On GHCJS we don't have one so we
@@ -54,6 +58,12 @@ flag system-erf
                   flag for that lack of libc.
      default:     True
      manual:      True
+
+flag BenchPAPI
+  Description: Enable building of benchmarks which use instruction counters.
+               It requires libpapi and only works on Linux so it's protected by flag
+  Default: False
+  Manual: True
 
 library
   default-language: Haskell2010
@@ -125,10 +135,13 @@ test-suite math-function-tests
                   , tasty-hunit      >= 0.10
                   , tasty-quickcheck >= 0.10
 
-benchmark math-functions-bench
-  type:             exitcode-stdio-1.0
-  if impl(ghcjs)
-     buildable: False
+
+-- We want to be able to build benchmarks using both tasty-bench and tasty-papi.
+-- They have similar API so we just create two shim modules which reexport
+-- definitions from corresponding library and pick one in cabal file.
+
+common bench-stanza
+  ghc-options:      -Wall -O2
   default-language: Haskell2010
   other-extensions:
     BangPatterns
@@ -140,16 +153,29 @@ benchmark math-functions-bench
     TemplateHaskell
     TypeFamilies
     DeriveGeneric
-  ghc-options:          -Wall -O2
-  hs-source-dirs:       bench
-  Main-is:              bench.hs
   build-depends:        base                >= 4.5 && < 5
                       , math-functions
                       , data-default-class
                       , vector
                       , random
-                      , tasty-bench         >=0.3.4
+                      , tasty
 
-source-repository head
-  type:     git
-  location: https://github.com/bos/math-functions
+benchmark math-functions-bench
+  import:           bench-stanza
+  type:             exitcode-stdio-1.0
+  if impl(ghcjs)
+     buildable: False
+  Main-is:              bench.hs
+  Other-modules:        Bench
+  hs-source-dirs:       bench bench-time
+  build-depends:        tasty-bench         >=0.3.4
+
+benchmark math-functions-papi
+  import:           bench-stanza
+  type:             exitcode-stdio-1.0
+  if impl(ghcjs) || !flag(BenchPAPI)
+     buildable: False
+  Main-is:              bench.hs
+  Other-modules:        Bench
+  hs-source-dirs:       bench bench-papi
+  build-depends:        tasty-papi         >=0.1.2
