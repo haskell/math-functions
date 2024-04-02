@@ -165,7 +165,7 @@ benchmark math-functions-bench
   type:             exitcode-stdio-1.0
   if impl(ghcjs)
      buildable: False
-  Main-is:              bench.hs
+  Main-is:              main.hs
   Other-modules:        Bench
   hs-source-dirs:       bench bench-time
   build-depends:        tasty-bench         >=0.3.4
@@ -173,9 +173,9 @@ benchmark math-functions-bench
 benchmark math-functions-papi
   import:           bench-stanza
   type:             exitcode-stdio-1.0
-  if impl(ghcjs) || !flag(BenchPAPI)
+  if impl(ghcjs) || !flag(BenchPAPI) || impl(ghc < 8.2)
      buildable: False
-  Main-is:              bench.hs
+  Main-is:              main.hs
   Other-modules:        Bench
   hs-source-dirs:       bench bench-papi
   build-depends:        tasty-papi         >=0.1.2
