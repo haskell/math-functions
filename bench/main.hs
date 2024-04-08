@@ -2,7 +2,7 @@
 import Data.Default.Class
 import qualified Data.Vector.Unboxed as U
 import Text.Printf
-import Test.Tasty.Bench
+import Test.Tasty    (TestTree)
 import System.Random (randomIO)
 
 import qualified Numeric.Sum as Sum
@@ -10,10 +10,11 @@ import Numeric.SpecFunctions
 import Numeric.Polynomial
 import Numeric.RootFinding
 
+import Bench
 
 
 -- Uniformly sample logGamma performance between 10^-6 to 10^6
-benchmarkLogGamma :: (Double -> Double) -> [Benchmark]
+benchmarkLogGamma :: (Double -> Double) -> [TestTree]
 benchmarkLogGamma logG =
   [ bench (printf "%.3g" x) $ nf logG x
   | x <- [ m * 10**n | n <- [ -8 .. 8 ]
