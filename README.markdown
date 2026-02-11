@@ -25,7 +25,7 @@ Please report bugs via the
 
 Master [git mirror](https://github.com/haskell/math-functions):
 
-* `git clone git://github.com/bos/math-functions.git`
+* `git clone https://github.com/haskell/math-functions.git`
 
 
 
