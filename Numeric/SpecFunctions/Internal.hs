@@ -936,6 +936,35 @@ log1pmx x
   where
    ax = abs x
 
+-- | Compute log(sum(exp(x_i))) in a numerically stable way using
+-- the log-sum-exp trick. This is useful when working with log
+-- probabilities to avoid overflow and underflow.
+--
+-- Uses the identity:
+--
+-- \[
+-- \log \sum_i \exp(x_i) = m + \log \sum_i \exp(x_i - m)
+-- \]
+--
+-- where \(m = \max_i x_i\).
+--
+-- Returns @-Infinity@ for an empty vector.
+logSumExp :: U.Vector Double -> Double
+logSumExp xs
+  | U.null xs = m_neg_inf
+  | otherwise = m + log (U.sum (U.map (\x -> exp (x - m)) xs))
+  where
+    m = U.maximum xs
+
+-- | Compute @log(exp(a) + exp(b))@ in a numerically stable way.
+--
+-- This is a special case of 'logSumExp' for two arguments, useful
+-- when combining two log-probabilities.
+logSumExpPair :: Double -> Double -> Double
+logSumExpPair a b
+  | a >= b    = a + log1p (exp (b - a))
+  | otherwise = b + log1p (exp (a - b))
+
 -- | /O(log n)/ Compute the logarithm in base 2 of the given value.
 log2 :: Int -> Int
 log2 v0

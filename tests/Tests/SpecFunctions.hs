@@ -91,6 +91,31 @@ tests = testGroup "Special functions"
           checkTabularPure 1 (show x) exact (log1p x)
     ]
   ----------------
+  , testGroup "logSumExp"
+    [ testProperty "logSumExp [a] == a" $ \a ->
+        not (isNaN a) ==> logSumExp (U.singleton a) == a
+    , testProperty "logSumExpPair commutative" $ \a b ->
+        not (isNaN a) && not (isNaN b) ==>
+          logSumExpPair a b == logSumExpPair b a
+    , testProperty "logSumExpPair a a == a + log 2" $ \a ->
+        not (isNaN a) && not (isInfinite a) ==>
+          within 2 (logSumExpPair a a) (a + log 2)
+    , testProperty "logSumExp recovers log(sum(exp(x)))" $ \(getNonEmpty -> xs) ->
+        let v    = U.fromList xs
+            naive = log (U.sum (U.map exp v))
+            stable = logSumExp v
+        in  not (any isNaN xs) && not (any isInfinite xs) && all (\x -> abs x < 300) xs ==>
+              within 4 naive stable
+    , testCase "logSumExp empty == -Infinity" $
+        assertBool "should be -Infinity" (isInfinite (logSumExp U.empty) && logSumExp U.empty < 0)
+    , testCase "logSumExp with large values" $ do
+        let result = logSumExp (U.fromList [1000, 1001, 1002])
+        assertBool "should be close to 1002.41" (within 4 result 1002.4076059644443)
+    , testCase "logSumExpPair log-probability combination" $ do
+        let result = logSumExpPair (-1000) (-1001)
+        assertBool "should be close to -999.687" (within 4 result (-999.6867383124818))
+    ]
+  ----------------
   , testGroup "gamma function"
     [ testCase "logGamma table [fractional points" $
         forTable "tests/tables/loggamma.dat" $ \[x, exact] -> do
