@@ -32,6 +32,9 @@ module Numeric.SpecFunctions (
   , log1p
   , log1pmx
   , log2
+    -- * Log-sum-exp
+  , logSumExp
+  , logSumExpPair
     -- * Exponent
   , expm1
     -- * Factorial
